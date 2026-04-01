@@ -1,26 +1,1076 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  color-scheme: light dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100%;
+  background-color: var(--color-background, #faf7f8);
+  background-image: var(--theme-background-image, none);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: var(--color-text, #110b0e);
+  font-family: var(--font-theme-sans, system-ui, sans-serif);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top, var(--theme-header-glow, transparent), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 22%);
+  opacity: 0.9;
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 32%),
+    linear-gradient(125deg, transparent 30%, rgba(255, 255, 255, 0.03) 48%, transparent 66%);
+  mix-blend-mode: screen;
+  opacity: 0.65;
+  z-index: -1;
+}
+
+@keyframes maj-pulse-attention {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.maj-pulse-attention {
+  animation: maj-pulse-attention 2.2s ease-in-out infinite;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.maj-glass-panel {
+  position: relative;
+  border: var(--theme-panel-border, 1px solid var(--color-surface-border, transparent));
+  border-radius: var(--theme-panel-radius, 24px);
+  background-color: color-mix(in srgb, var(--color-surface, transparent) 88%, var(--color-background, transparent));
+  background-image: linear-gradient(
+    180deg,
+    var(--theme-panel-highlight, rgba(255, 255, 255, 0.06)),
+    transparent 42%
+  );
+  box-shadow: var(--theme-panel-shadow, none);
+  backdrop-filter: blur(18px) saturate(135%);
+  overflow: hidden;
+}
+
+.maj-glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 30%),
+    linear-gradient(125deg, transparent 38%, rgba(255, 255, 255, 0.04) 52%, transparent 68%);
+  opacity: 0.7;
+}
+
+.maj-bento-tile {
+  position: relative;
+  border: var(--theme-tile-border, 1px solid var(--color-surface-border, transparent));
+  border-radius: var(--theme-tile-radius, 20px);
+  background-color: color-mix(in srgb, var(--color-surface, transparent) 90%, var(--color-background, transparent));
+  background-image: linear-gradient(
+    180deg,
+    var(--theme-panel-highlight, rgba(255, 255, 255, 0.08)),
+    transparent 58%
+  );
+  box-shadow: var(--theme-tile-shadow, none);
+  overflow: hidden;
+}
+
+.maj-bento-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 38%),
+    linear-gradient(135deg, transparent 42%, rgba(255, 255, 255, 0.04) 55%, transparent 70%);
+}
+
+.maj-header-chip {
+  border: var(--theme-panel-border, 1px solid var(--color-surface-border, transparent));
+  border-radius: var(--theme-chip-radius, 16px);
+  background-color: color-mix(in srgb, var(--color-surface, transparent) 86%, var(--color-background, transparent));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-surface-border, transparent) 70%, transparent),
+    0 10px 24px var(--theme-header-glow, transparent);
+}
+
+.maj-seasonal-banner {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 227, 148, 0.14), transparent 20%),
+    radial-gradient(circle at 88% 16%, rgba(255, 185, 122, 0.14), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 60%),
+    var(--color-surface);
+  box-shadow: var(--theme-panel-shadow, none);
+}
+
+.maj-seasonal-banner-top,
+.maj-seasonal-banner-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 42%;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.maj-seasonal-banner-top {
+  top: 0;
+  border-radius: 1.5rem 1.5rem 0 0;
+}
+
+.maj-seasonal-banner-bottom {
+  bottom: 0;
+  border-radius: 0 0 1.5rem 1.5rem;
+}
+
+.maj-seasonal-banner--easter .maj-seasonal-banner-top {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 14px,
+      rgba(180, 160, 90, 0.22) 14px,
+      rgba(180, 160, 90, 0.22) 15px,
+      transparent 15px,
+      transparent 36px
+    ),
+    radial-gradient(ellipse 140% 90% at 20% 110%, rgba(255, 252, 235, 0.55), transparent 52%),
+    radial-gradient(ellipse 120% 80% at 72% 100%, rgba(255, 245, 210, 0.45), transparent 48%),
+    radial-gradient(circle at 48% 88%, rgba(255, 255, 255, 0.35) 0, transparent 38%);
+}
+
+.maj-seasonal-banner--easter .maj-seasonal-banner-bottom {
+  background: linear-gradient(0deg, rgba(120, 140, 80, 0.12), transparent 70%);
+}
+
+.maj-seasonal-banner--christmas .maj-seasonal-banner-top {
+  background:
+    repeating-linear-gradient(
+      105deg,
+      rgba(30, 90, 45, 0.35) 0 3px,
+      transparent 3px 14px,
+      rgba(196, 40, 55, 0.4) 14px 17px,
+      transparent 17px 28px
+    ),
+    linear-gradient(180deg, rgba(30, 70, 40, 0.25), transparent);
+}
+
+.maj-seasonal-banner--christmas .maj-seasonal-banner-bottom {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(255, 230, 180, 0.35) 0, transparent 45%),
+    radial-gradient(circle at 50% 0%, rgba(255, 220, 160, 0.3) 0, transparent 40%),
+    radial-gradient(circle at 85% 0%, rgba(255, 235, 190, 0.35) 0, transparent 45%);
+}
+
+.maj-seasonal-banner--midsummer .maj-seasonal-banner-top {
+  background:
+    conic-gradient(
+      from 200deg at 50% 120%,
+      rgba(220, 180, 60, 0.2),
+      rgba(90, 130, 60, 0.18),
+      rgba(220, 180, 60, 0.2)
+    ),
+    radial-gradient(circle at 30% 100%, rgba(255, 220, 120, 0.25), transparent 50%),
+    radial-gradient(circle at 70% 100%, rgba(200, 230, 140, 0.2), transparent 48%);
+}
+
+.maj-seasonal-banner--midsummer .maj-seasonal-banner-bottom {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(90, 120, 50, 0.2), transparent 62%),
+    linear-gradient(0deg, rgba(160, 120, 40, 0.12), transparent 75%);
+}
+
+.maj-seasonal-banner--valentine .maj-seasonal-banner-top {
+  background: radial-gradient(ellipse 100% 80% at 50% 100%, rgba(255, 180, 190, 0.28), transparent 55%);
+}
+
+.maj-seasonal-banner--valentine .maj-seasonal-banner-bottom {
+  background: radial-gradient(ellipse 90% 50% at 80% 0%, rgba(255, 150, 170, 0.15), transparent 50%);
+}
+
+.maj-seasonal-banner--newyear .maj-seasonal-banner-top {
+  background:
+    radial-gradient(circle at 20% 100%, rgba(255, 250, 200, 0.35) 0, transparent 35%),
+    radial-gradient(circle at 80% 100%, rgba(200, 220, 255, 0.25) 0, transparent 32%);
+}
+
+.maj-seasonal-banner--newyear .maj-seasonal-banner-bottom {
+  background: linear-gradient(0deg, rgba(100, 140, 200, 0.1), transparent 65%);
+}
+
+/* App-wide seasonal viewport overlay (Easter catkins / Midsummer oak & wreath / Christmas garland & lights) */
+.maj-seasonal-shell-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.maj-seasonal-shell {
+  position: absolute;
+  inset: 0;
+  opacity: 0.42;
+  transition: opacity 0.5s ease;
+}
+
+.maj-seasonal-shell-unlocked {
+  opacity: 0.52;
+  animation: maj-seasonal-unlock-pulse 4s ease-in-out infinite;
+}
+
+@keyframes maj-seasonal-unlock-pulse {
+  0%,
+  100% {
+    filter: saturate(1);
+  }
+  50% {
+    filter: saturate(1.15) brightness(1.03);
+  }
+}
+
+.maj-seasonal-top,
+.maj-seasonal-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2.75rem;
+}
+
+.maj-seasonal-top {
+  top: 0;
+}
+
+.maj-seasonal-bottom {
+  bottom: 0;
+  height: 3.25rem;
+}
+
+.maj-seasonal-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.1rem;
+}
+
+.maj-seasonal-shell-easter {
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 248, 220, 0.12), transparent 55%);
+}
+
+.maj-seasonal-shell-easter .maj-seasonal-pupoli {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 20px,
+      rgba(200, 185, 120, 0.2) 20px,
+      rgba(200, 185, 120, 0.2) 21px,
+      transparent 21px,
+      transparent 48px
+    ),
+    radial-gradient(ellipse 100% 120% at 50% 100%, rgba(255, 255, 245, 0.35), transparent 58%);
+}
+
+.maj-seasonal-shell-easter .maj-seasonal-branch-side {
+  background: linear-gradient(
+    180deg,
+    rgba(130, 150, 90, 0.14),
+    transparent 35%,
+    transparent 65%,
+    rgba(130, 150, 90, 0.12) 100%
+  );
+}
+
+.maj-seasonal-shell-easter .maj-seasonal-egg-border {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 22px,
+      rgba(255, 255, 255, 0.12) 22px,
+      rgba(255, 255, 255, 0.12) 26px,
+      transparent 26px,
+      transparent 48px
+    ),
+    linear-gradient(0deg, rgba(160, 175, 110, 0.1), transparent 80%);
+}
+
+.maj-seasonal-shell-christmas {
+  background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(196, 40, 55, 0.08), transparent 60%);
+}
+
+.maj-seasonal-shell-christmas .maj-seasonal-garland {
+  background:
+    repeating-linear-gradient(
+      100deg,
+      rgba(28, 85, 48, 0.4) 0 4px,
+      transparent 4px 18px,
+      rgba(196, 45, 58, 0.45) 18px 21px,
+      transparent 21px 34px
+    ),
+    linear-gradient(180deg, rgba(20, 60, 35, 0.35), transparent);
+}
+
+.maj-seasonal-shell-christmas .maj-seasonal-fir {
+  background: linear-gradient(
+    90deg,
+    rgba(25, 70, 42, 0.22),
+    transparent,
+    rgba(25, 70, 42, 0.22)
+  );
+}
+
+.maj-seasonal-shell-christmas .maj-seasonal-lights {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 240, 200, 0.5) 0, transparent 28%),
+    radial-gradient(circle at 32% 10%, rgba(255, 220, 160, 0.45) 0, transparent 22%),
+    radial-gradient(circle at 55% 0%, rgba(255, 250, 210, 0.5) 0, transparent 26%),
+    radial-gradient(circle at 78% 8%, rgba(255, 230, 170, 0.45) 0, transparent 24%),
+    radial-gradient(circle at 92% 0%, rgba(255, 245, 200, 0.48) 0, transparent 28%),
+    linear-gradient(0deg, rgba(40, 30, 20, 0.15), transparent 70%);
+}
+
+.maj-seasonal-shell-midsummer {
+  background: radial-gradient(ellipse 90% 45% at 50% 0%, rgba(255, 210, 90, 0.1), transparent 58%);
+}
+
+.maj-seasonal-shell-midsummer .maj-seasonal-meijas {
+  background:
+    repeating-conic-gradient(
+      from 0deg at 50% 120%,
+      rgba(220, 185, 70, 0.15) 0deg 8deg,
+      transparent 8deg 18deg,
+      rgba(100, 140, 60, 0.12) 18deg 24deg,
+      transparent 24deg 36deg
+    ),
+    radial-gradient(ellipse 120% 100% at 50% 100%, rgba(255, 235, 150, 0.25), transparent 55%);
+}
+
+.maj-seasonal-shell-midsummer .maj-seasonal-oak-leaves {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(85, 120, 55, 0.16) 0 2px,
+    transparent 2px 14px,
+    rgba(70, 100, 45, 0.12) 14px 16px,
+    transparent 16px 28px
+  );
+}
+
+.maj-seasonal-shell-midsummer .maj-seasonal-wreath {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(90, 125, 55, 0.22), transparent 62%),
+    radial-gradient(ellipse 55% 40% at 50% 15%, rgba(210, 170, 60, 0.15), transparent 58%),
+    linear-gradient(0deg, rgba(140, 110, 40, 0.1), transparent 75%);
+}
+
+.maj-seasonal-shell-state .maj-seasonal-flags {
+  background: linear-gradient(
+    180deg,
+    rgba(200, 40, 50, 0.2),
+    rgba(255, 255, 255, 0.12),
+    rgba(200, 40, 50, 0.18)
+  );
+}
+
+.maj-seasonal-shell-state .maj-seasonal-ribbon,
+.maj-seasonal-shell-state .maj-seasonal-ribbon-side {
+  background: linear-gradient(
+    180deg,
+    rgba(200, 45, 55, 0.14),
+    transparent,
+    rgba(200, 45, 55, 0.1)
+  );
+}
+
+.maj-seasonal-shell-womensday .maj-seasonal-flowers {
+  background: radial-gradient(ellipse 100% 90% at 50% 100%, rgba(255, 180, 200, 0.22), transparent 55%);
+}
+
+.maj-seasonal-shell-womensday .maj-seasonal-blossom-side {
+  background: linear-gradient(180deg, rgba(255, 170, 190, 0.14), transparent 50%, rgba(255, 190, 210, 0.1) 100%);
+}
+
+.maj-seasonal-shell-mensday .maj-seasonal-ember-line {
+  background: linear-gradient(0deg, rgba(180, 90, 40, 0.14), transparent 85%);
+}
+
+.maj-seasonal-shell-mensday .maj-seasonal-crest-side {
+  background: linear-gradient(180deg, rgba(100, 120, 160, 0.12), transparent 45%, rgba(80, 100, 140, 0.1) 100%);
+}
+
+.maj-seasonal-shell-soft .maj-seasonal-soft-line {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+}
+
+.maj-seasonal-shell-soft .maj-seasonal-soft-side {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent);
+}
+
+.maj-seasonal-floaters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.maj-seasonal-sprite {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  opacity: 0.72;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.14));
+}
+
+.maj-seasonal-sprite::before,
+.maj-seasonal-sprite::after {
+  content: "";
+  position: absolute;
+}
+
+.maj-seasonal-sprite--unlocked {
+  filter: drop-shadow(0 12px 22px rgba(255, 215, 130, 0.24));
+}
+
+.maj-seasonal-sprite--egg {
+  border-radius: 48% 48% 42% 42% / 58% 58% 40% 40%;
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.78), transparent 24%),
+    linear-gradient(180deg, #fff2c8 0%, #f6c87a 44%, #d38a67 100%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.maj-seasonal-sprite--egg::before {
+  inset: 18% 22% 36%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(214, 140, 84, 0.16), rgba(255, 255, 255, 0.28), rgba(214, 140, 84, 0.16));
+}
+
+.maj-seasonal-sprite--bunny {
+  width: 100%;
+  height: 74%;
+  top: 24%;
+  border-radius: 48% 48% 44% 44%;
+  background:
+    radial-gradient(circle at 34% 34%, rgba(255, 255, 255, 0.95), transparent 22%),
+    linear-gradient(180deg, #fffdf9 0%, #f3e8dc 100%);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+}
+
+.maj-seasonal-sprite--bunny::before,
+.maj-seasonal-sprite--bunny::after {
+  width: 28%;
+  height: 52%;
+  top: -36%;
+  border-radius: 999px 999px 42% 42%;
+  background:
+    linear-gradient(180deg, #fffdf9 0%, #f4e3db 100%);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+}
+
+.maj-seasonal-sprite--bunny::before {
+  left: 18%;
+  transform: rotate(-8deg);
+}
+
+.maj-seasonal-sprite--bunny::after {
+  right: 18%;
+  transform: rotate(8deg);
+}
+
+.maj-seasonal-sprite--chick {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.68), transparent 22%),
+    linear-gradient(180deg, #ffe983 0%, #ffc94d 100%);
+  border: 1px solid rgba(255, 223, 116, 0.8);
+}
+
+.maj-seasonal-sprite--chick::after {
+  width: 28%;
+  height: 22%;
+  left: 36%;
+  bottom: 16%;
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  background: linear-gradient(180deg, #f79a31 0%, #da7120 100%);
+}
+
+.maj-seasonal-sprite--catkin::before {
+  width: 6%;
+  height: 100%;
+  left: 44%;
+  top: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(110, 92, 54, 0.86), rgba(141, 123, 76, 0.28));
+}
+
+.maj-seasonal-sprite--catkin::after {
+  width: 54%;
+  height: 28%;
+  left: 22%;
+  top: 18%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 36% 36%, rgba(255, 255, 255, 0.8), transparent 22%),
+    linear-gradient(180deg, #f2efe8 0%, #d9ccb5 100%);
+  box-shadow:
+    -12px 16px 0 -2px rgba(228, 216, 192, 0.94),
+    10px 24px 0 -4px rgba(222, 210, 187, 0.9);
+}
+
+.maj-seasonal-sprite--heart {
+  background: linear-gradient(180deg, #ff92ae 0%, #e15278 100%);
+  clip-path: polygon(50% 100%, 0 42%, 18% 14%, 50% 12%, 82% 14%, 100% 42%);
+}
+
+.maj-seasonal-sprite--letter {
+  border-radius: 20%;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0 50%, transparent 50%),
+    linear-gradient(225deg, rgba(255, 255, 255, 0.88) 0 50%, transparent 50%),
+    linear-gradient(180deg, #f8e6dd 0%, #ebcad4 100%);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+}
+
+.maj-seasonal-sprite--letter::after {
+  width: 26%;
+  height: 26%;
+  right: 14%;
+  top: 14%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff8da6 0%, #d94c71 100%);
+}
+
+.maj-seasonal-sprite--flower {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, #ffd57d 0 18%, transparent 19%),
+    radial-gradient(circle at 50% 16%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
+    radial-gradient(circle at 82% 36%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
+    radial-gradient(circle at 76% 74%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
+    radial-gradient(circle at 24% 74%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
+    radial-gradient(circle at 18% 36%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%);
+}
+
+.maj-seasonal-sprite--star,
+.maj-seasonal-sprite--spark {
+  background: linear-gradient(180deg, #fff8cf 0%, #f2c752 100%);
+  clip-path: polygon(50% 0%, 61% 34%, 98% 36%, 68% 57%, 79% 95%, 50% 72%, 21% 95%, 32% 57%, 2% 36%, 39% 34%);
+}
+
+.maj-seasonal-sprite--ornament {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.72), transparent 20%),
+    linear-gradient(180deg, #d74f5d 0%, #8d2138 100%);
+  border: 1px solid rgba(255, 214, 214, 0.42);
+}
+
+.maj-seasonal-sprite--ornament::before {
+  width: 28%;
+  height: 14%;
+  left: 36%;
+  top: -10%;
+  border-radius: 999px 999px 0 0;
+  border: 2px solid rgba(255, 221, 180, 0.72);
+  border-bottom: none;
+}
+
+.maj-seasonal-sprite--leaf {
+  border-radius: 70% 20% 70% 20%;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 38%),
+    linear-gradient(180deg, #7caf54 0%, #335e28 100%);
+}
+
+.maj-seasonal-sprite--leaf::before {
+  width: 10%;
+  height: 84%;
+  left: 45%;
+  top: 8%;
+  border-radius: 999px;
+  background: rgba(230, 255, 205, 0.36);
+}
+
+.maj-seasonal-sprite--wreath {
+  border-radius: 999px;
+  border: 6px solid rgba(100, 138, 62, 0.8);
+  box-shadow:
+    inset 0 0 0 2px rgba(233, 196, 87, 0.42),
+    0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.maj-seasonal-sprite--wreath::after {
+  width: 26%;
+  height: 26%;
+  right: 8%;
+  top: 10%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f7d777 0%, #dbac38 100%);
+}
+
+.maj-seasonal-sprite--flag {
+  background:
+    linear-gradient(180deg, #8e1f2f 0 34%, #fff7ef 34% 66%, #8e1f2f 66% 100%);
+  clip-path: polygon(0 0, 100% 8%, 92% 50%, 100% 92%, 0 100%, 8% 52%);
+  border-radius: 0.4rem;
+}
+
+.maj-seasonal-sprite--flag::before {
+  width: 8%;
+  height: 112%;
+  left: -10%;
+  top: -6%;
+  border-radius: 999px;
+  background: rgba(255, 248, 233, 0.64);
+}
+
+.maj-seasonal-sprite--ribbon {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 38%),
+    linear-gradient(180deg, #c94353 0%, #8d1f34 100%);
+  border-radius: 36% 18% 36% 18%;
+  clip-path: polygon(12% 0, 100% 0, 84% 48%, 100% 100%, 0 100%, 16% 52%);
+}
+
+.maj-seasonal-sprite--crest {
+  background:
+    linear-gradient(180deg, #5b7392 0%, #32475e 100%);
+  clip-path: polygon(50% 0, 88% 16%, 88% 58%, 50% 100%, 12% 58%, 12% 16%);
+}
+
+.maj-seasonal-sprite--crest::after {
+  inset: 22%;
+  clip-path: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 70%);
+}
+
+.maj-seasonal-sprite--ember {
+  border-radius: 58% 58% 54% 54% / 74% 74% 34% 34%;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255, 236, 164, 0.82), transparent 20%),
+    linear-gradient(180deg, #ffbf61 0%, #e46127 58%, #762217 100%);
+}
+
+.maj-seasonal-sprite--balloon {
+  border-radius: 50% 50% 46% 46% / 56% 56% 44% 44%;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.66), transparent 20%),
+    linear-gradient(180deg, #ff9bb3 0%, #d95d82 100%);
+}
+
+.maj-seasonal-sprite--balloon::after {
+  width: 10%;
+  height: 48%;
+  left: 45%;
+  top: 92%;
+  border-radius: 999px;
+  background: rgba(255, 232, 223, 0.54);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maj-seasonal-shell-unlocked {
+    animation: none;
+  }
+
+  .maj-auth-ambient {
+    animation: none;
+  }
+}
+
+.maj-hidden-collectible {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px dashed var(--color-surface-border, transparent);
+  background: color-mix(in srgb, var(--color-surface, transparent) 92%, var(--color-background, transparent));
+  color: var(--color-primary, currentColor);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--theme-header-glow, transparent) 60%, transparent);
+  backdrop-filter: blur(12px) saturate(135%);
+}
+
+.maj-hidden-collectible-core {
+  position: relative;
+  width: 1.2rem;
+  height: 1.2rem;
+  opacity: 0.96;
+}
+
+.maj-auth-shell {
+  isolation: isolate;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 228, 220, 0.88), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgba(233, 241, 231, 0.8), transparent 26%),
+    radial-gradient(circle at 50% 100%, rgba(255, 247, 241, 0.96), transparent 38%),
+    linear-gradient(180deg, #f9f1ec 0%, #f6ede8 48%, #f3ebe6 100%);
+}
+
+.maj-auth-ambient {
+  position: absolute;
+  border-radius: 999px;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(2px);
+  opacity: 1;
+  box-shadow:
+    inset 0 8px 14px rgba(255, 255, 255, 0.55),
+    inset 0 -10px 18px rgba(255, 255, 255, 0.18),
+    0 30px 60px rgba(116, 85, 94, 0.14);
+  animation: maj-auth-float 10s ease-in-out infinite;
+}
+
+.maj-auth-ambient--rose {
+  top: 7%;
+  left: -11%;
+  width: 15rem;
+  height: 15rem;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.85), transparent 18%),
+    radial-gradient(circle at 58% 62%, rgba(255, 255, 255, 0.2), transparent 24%),
+    radial-gradient(circle, rgba(234, 185, 198, 0.94), rgba(234, 185, 198, 0.24) 76%);
+}
+
+.maj-auth-ambient--sage {
+  right: -9%;
+  top: 13%;
+  width: 13rem;
+  height: 13rem;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.82), transparent 18%),
+    radial-gradient(circle at 62% 66%, rgba(255, 255, 255, 0.18), transparent 24%),
+    radial-gradient(circle, rgba(193, 214, 187, 0.94), rgba(193, 214, 187, 0.24) 76%);
+  animation-delay: 1.4s;
+}
+
+.maj-auth-ambient--pearl {
+  bottom: 10%;
+  left: 10%;
+  width: 14rem;
+  height: 14rem;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.88), transparent 18%),
+    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.18), transparent 24%),
+    radial-gradient(circle, rgba(255, 247, 240, 0.96), rgba(255, 247, 240, 0.3) 78%);
+  animation-delay: 2.6s;
+}
+
+.maj-auth-ambient--blush {
+  right: 6%;
+  bottom: 16%;
+  width: 10rem;
+  height: 10rem;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.86), transparent 18%),
+    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.16), transparent 24%),
+    radial-gradient(circle, rgba(227, 201, 209, 0.94), rgba(227, 201, 209, 0.26) 76%);
+  animation-delay: 3.1s;
+}
+
+.maj-auth-ambient--cream {
+  top: 38%;
+  left: -6%;
+  width: 11rem;
+  height: 11rem;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.88), transparent 18%),
+    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.16), transparent 24%),
+    radial-gradient(circle, rgba(246, 233, 214, 0.96), rgba(246, 233, 214, 0.28) 76%);
+  animation-delay: 0.9s;
+}
+
+.maj-auth-ambient--mist {
+  right: 18%;
+  top: 45%;
+  width: 9rem;
+  height: 9rem;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.86), transparent 18%),
+    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.14), transparent 24%),
+    radial-gradient(circle, rgba(220, 230, 228, 0.94), rgba(220, 230, 228, 0.24) 76%);
+  animation-delay: 1.8s;
+}
+
+.maj-auth-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  pointer-events: none;
+  background-image:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.18), transparent 38%),
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px),
+    radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px);
+  background-size: auto, 22px 22px, 28px 28px;
+}
+
+.maj-auth-soft-copy {
+  margin: 2.8rem auto 0;
+  max-width: 28rem;
+  text-align: center;
+  font-family: var(--font-lora, serif);
+  font-size: 1.14rem;
+  line-height: 1.75;
+  color: #694f58;
+  text-shadow:
+    0 0 22px rgba(255, 248, 243, 0.98),
+    0 2px 10px rgba(255, 255, 255, 0.42);
+}
+
+.maj-auth-card-wrap {
+  margin-top: 5.2rem;
+  padding-bottom: 0;
+}
+
+.maj-auth-intro {
+  border: 1px solid rgba(155, 123, 135, 0.16);
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.46), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 245, 240, 0.44));
+  box-shadow:
+    0 18px 38px rgba(95, 64, 74, 0.1),
+    0 0 34px rgba(255, 245, 234, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(20px) saturate(150%);
+  padding: 1.15rem 1.1rem 1.15rem;
+  text-align: center;
+}
+
+.maj-auth-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #876772;
+  text-shadow: 0 0 12px rgba(255, 247, 241, 0.8);
+}
+
+.maj-auth-title {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-theme-display, serif);
+  font-size: 1.72rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #452e36;
+  text-shadow:
+    0 0 18px rgba(255, 247, 241, 0.95),
+    0 2px 8px rgba(255, 255, 255, 0.48);
+}
+
+.maj-auth-copy {
+  margin: 0.6rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #6f5961;
+  text-shadow: 0 0 14px rgba(255, 250, 246, 0.88);
+}
+
+.maj-auth-card {
+  border: 1px solid rgba(154, 124, 134, 0.18);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 244, 238, 0.62)),
+    rgba(255, 248, 244, 0.72);
+  box-shadow:
+    0 26px 60px rgba(88, 59, 68, 0.12),
+    0 0 44px rgba(255, 245, 238, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(22px) saturate(150%);
+}
+
+.maj-auth-brand {
+  color: #8d6e79;
+  text-shadow: 0 0 16px rgba(255, 246, 241, 0.96);
+}
+
+.maj-auth-heading {
+  font-family: var(--font-lora, serif);
+  font-weight: 500;
+  color: #442d35;
+  text-shadow:
+    0 0 20px rgba(255, 247, 242, 0.95),
+    0 2px 10px rgba(255, 255, 255, 0.46);
+}
+
+.maj-auth-subheading {
+  color: #6d5961;
+}
+
+.maj-auth-segmented {
+  border: 1px solid rgba(154, 124, 134, 0.16);
+  background: rgba(255, 249, 246, 0.72);
+}
+
+.maj-auth-segmented-active {
+  background: linear-gradient(180deg, #b88495 0%, #9e6d80 100%);
+  color: #fff8f4;
+  box-shadow:
+    0 10px 24px rgba(169, 116, 136, 0.22),
+    0 0 18px rgba(255, 244, 236, 0.42);
+}
+
+.maj-auth-segmented-idle {
+  color: #846d75;
+}
+
+.maj-auth-input {
+  border: 1px solid rgba(154, 124, 134, 0.18);
+  background: rgba(255, 251, 248, 0.88);
+  color: #3f2b33;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 20px rgba(97, 69, 77, 0.05);
+}
+
+.maj-auth-input:focus {
+  outline: none;
+  border-color: rgba(184, 126, 148, 0.5);
+  box-shadow:
+    0 0 0 4px rgba(233, 206, 214, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.maj-auth-primary-button {
+  background: linear-gradient(180deg, #b98596 0%, #996a7d 100%);
+  color: #fff8f3;
+  box-shadow:
+    0 16px 28px rgba(168, 116, 136, 0.24),
+    0 0 20px rgba(255, 243, 236, 0.42);
+}
+
+.maj-auth-welcome-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 1.25rem;
+  background: rgba(246, 238, 233, 0.78);
+  backdrop-filter: blur(14px);
+}
+
+.maj-auth-welcome-card {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 27rem);
+  border: 1px solid rgba(154, 124, 134, 0.18);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 244, 238, 0.68)),
+    rgba(255, 249, 246, 0.76);
+  box-shadow:
+    0 26px 64px rgba(88, 59, 68, 0.14),
+    0 0 48px rgba(255, 245, 238, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.66);
+  padding: 1.45rem 1.2rem 1.2rem;
+  text-align: center;
+}
+
+.maj-auth-welcome-title {
+  margin: 0.7rem 0 0;
+  font-family: var(--font-lora, serif);
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.12;
+  color: #442d35;
+  text-shadow:
+    0 0 20px rgba(255, 247, 242, 0.95),
+    0 2px 10px rgba(255, 255, 255, 0.48);
+}
+
+.maj-auth-welcome-copy {
+  margin: 0.8rem 0 0;
+  font-size: 0.97rem;
+  line-height: 1.7;
+  color: #6d5961;
+}
+
+.maj-auth-welcome-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(10px);
+  opacity: 0.96;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 20px 45px rgba(116, 85, 94, 0.1);
+  animation: maj-auth-float 15s ease-in-out infinite;
+}
+
+.maj-auth-welcome-orb--rose {
+  top: 6%;
+  left: -6%;
+  width: 15rem;
+  height: 15rem;
+  background:
+    radial-gradient(circle at 35% 32%, rgba(255, 255, 255, 0.52), transparent 22%),
+    radial-gradient(circle, rgba(234, 185, 198, 0.74), rgba(234, 185, 198, 0.08) 72%);
+}
+
+.maj-auth-welcome-orb--sage {
+  right: -5%;
+  top: 16%;
+  width: 13rem;
+  height: 13rem;
+  background:
+    radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.48), transparent 20%),
+    radial-gradient(circle, rgba(193, 214, 187, 0.72), rgba(193, 214, 187, 0.08) 72%);
+  animation-delay: 2.2s;
+}
+
+.maj-auth-welcome-orb--pearl {
+  bottom: 2%;
+  left: 24%;
+  width: 16rem;
+  height: 10rem;
+  background:
+    radial-gradient(circle at 34% 32%, rgba(255, 255, 255, 0.5), transparent 22%),
+    radial-gradient(circle, rgba(255, 247, 240, 0.86), rgba(255, 247, 240, 0.1) 74%);
+  animation-delay: 3.4s;
+}
+
+@keyframes maj-auth-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(22px, -24px, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-26px, 20px, 0) scale(0.94);
+  }
 }

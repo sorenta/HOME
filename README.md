@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mājas / HomeOS
 
-## Getting Started
+Mobile-first mājsaimniecības lietotnes starteris ar `Next.js App Router`, `Tailwind v4`,
+`Framer Motion` un `Supabase` integrācijas bāzi.
 
-First, run the development server:
+## Kas jau ir izveidots
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Adaptīvs Bento dashboard ar moduļiem: `Kalendārs`, `Finanses`, `RESET`, `Virtuve`, `Aptieciņa`, `Notikumi`
+- `Profils` un `Iestatījumi`
+- Trīs tēmas ar fontu un kustības loģiku
+- `LV/EN` lokalizācijas slānis
+- Lokāli glabāts `BYOK` iestatījumu demo
+- `Supabase` starter shēma ar `RLS` bāzi
+- `PWA` manifests un automātiski ģenerēta app ikona
+
+## Projekta struktūra
+
+```text
+src/
+  app/                  Next.js routes, layout, icons, loading
+  components/
+    dashboard/          Home dashboard un navigācija
+    layout/             Kopīgie moduļu ietvari
+    providers/          Theme + i18n provideri
+    ui/                 Atkārtoti lietojami UI bloki
+  lib/
+    ai/                 BYOK helperi
+    demo-data.ts        Reāliem ekrāniem paredzēti demo dati
+    i18n/               Tulkojumi un locale context
+    supabase/           Browser client factory
+    theme-logic.ts      Lietotnes manifestam līdzīga tēmu definīcija
+supabase/
+  schema.sql            Tabulas, RLS un starter politikas
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Palaišana
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Atver `http://localhost:3000`.
 
-## Learn More
+## Vides mainīgie
 
-To learn more about Next.js, take a look at the following resources:
+Kopē `.env.example` uz `.env.local` un aizpildi:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Supabase
 
-## Deploy on Vercel
+Starter SQL atrodas `supabase/schema.sql`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Ieteicamā secība:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Izveido Supabase projektu.
+2. Palaid `schema.sql`.
+3. Ieslēdz Auth.
+4. Pievieno `.env.local`.
+5. Aizstāj `demo-data.ts` ar reāliem query un realtime subscription slāņiem.
+
+## Nākamie soļi
+
+- Pievienot Supabase Auth un lietotāju onboarding
+- Savienot dashboard un moduļus ar reāliem datiem
+- Izveidot QR household invite plūsmu
+- Pievienot push notifications un service worker
+- Ieviest server-side AI proxy vai drošu lietotāja atslēgu glabāšanu

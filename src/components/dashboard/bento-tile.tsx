@@ -10,6 +10,8 @@ type Props = {
   title: string;
   emoji: string;
   highlight?: boolean;
+  /** Extra motion when tile should draw attention (e.g. RESET pending). */
+  attention?: boolean;
   themeId: ThemeId;
   colSpan?: 1 | 2;
 };
@@ -30,6 +32,7 @@ export function BentoTile({
   title,
   emoji,
   highlight,
+  attention,
   themeId,
   colSpan = 1,
 }: Props) {
@@ -45,9 +48,9 @@ export function BentoTile({
         href={href}
         onClick={() => hapticTap()}
         className={[
-          "flex min-h-[5.5rem] flex-col justify-between rounded-2xl border p-4 shadow-sm transition-[transform,box-shadow]",
-          "bg-[color:var(--color-surface)] border-[color:var(--color-surface-border)]",
-          "active:scale-[0.98]",
+          "maj-bento-tile flex min-h-[5.5rem] flex-col justify-between bg-[color:var(--color-surface)] p-4 transition-[transform,box-shadow]",
+          "active:scale-[0.98] hover:-translate-y-0.5",
+          attention ? "maj-pulse-attention" : "",
           highlight
             ? "ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-[color:var(--color-background)]"
             : "",

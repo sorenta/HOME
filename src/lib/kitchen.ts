@@ -1,0 +1,200 @@
+import { getBrowserClient } from "@/lib/supabase/client";
+
+export type KitchenInventoryRecord = {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string | null;
+  expiry_date: string | null;
+  status: string;
+};
+
+export type ShoppingRecord = {
+  id: string;
+  title: string;
+  quantity: number;
+  unit: string | null;
+  status: string;
+};
+
+export async function fetchKitchenInventory(householdId: string) {
+  const supabase = getBrowserClient();
+  if (!supabase) return [] as KitchenInventoryRecord[];
+
+  const { data, error } = await supabase
+    .from("inventory_items")
+    .select("id, name, quantity, unit, expiry_date, status")
+    .eq("household_id", householdId)
+    .eq("module", "kitchen")
+    .eq("owner_scope", "household")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch kitchen inventory", error);
+    return [];
+  }
+
+  return data as KitchenInventoryRecord[];
+}
+
+export async function fetchShoppingItems(householdId: string) {
+  const supabase = getBrowserClient();
+  if (!supabase) return [] as ShoppingRecord[];
+
+  const { data, error } = await supabase
+    .from("shopping_items")
+    .select("id, title, quantity, unit, status")
+    .eq("household_id", householdId)
+    .neq("status", "archived")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch shopping items", error);
+    return [];
+  }
+
+  return data as ShoppingRecord[];
+}
+
+export async function addKitchenInventoryItem(input: {
+  householdId: string;
+  name: string;
+  quantity: number;
+  unit?: string;
+  expiryDate?: string;
+}) {
+  const supabase = getBrowserClient();
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { error } = await supabase.from("inventory_items").insert({
+    household_id: input.householdId,
+    module: "kitchen",
+    name: input.name.trim(),
+    quantity: input.quantity,
+    unit: input.unit?.trim() || null,
+    expiry_date: input.expiryDate || null,
+    status: "in_stock",
+    owner_scope: "household",
+  });
+
+  if (error) throw error;
+}
+
+export async function addKitchenInventoryItems(
+  householdId: string,
+  items: Array<{
+    name: string;
+    quantity?: number;
+    unit?: string | null;
+    category?: string | null;
+  }>,
+) {
+  const supabase = getBrowserClient();
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const payload = items
+    .map((item) => ({
+      household_id: householdId,
+      module: "kitchen" as const,
+      name: item.name.trim(),
+      category: item.category?.trim() || null,
+      quantity: item.quantity ?? 1,
+      unit: item.unit?.trim() || null,
+      status: "in_stock" as const,
+      owner_scope: "household" as const,
+    }))
+    .filter((item) => item.name.length > 0);
+
+  if (payload.length === 0) return;
+
+  const { error } = await supabase.from("inventory_items").insert(payload);
+
+  if (error) throw error;
+}
+
+export async function addShoppingItem(input: {
+  householdId: string;
+  title: string;
+  quantity: number;
+  unit?: string;
+}) {
+  const supabase = getBrowserClient();
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { error } = await supabase.from("shopping_items").insert({
+    household_id: input.householdId,
+    title: input.title.trim(),
+    quantity: input.quantity,
+    unit: input.unit?.trim() || null,
+    status: "open",
+  });
+
+  if (error) throw error;
+}
+
+export async function updateShoppingItemStatus(
+  itemId: string,
+  status: "open" | "picked" | "archived",
+) {
+  const supabase = getBrowserClient();
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { error } = await supabase
+    .from("shopping_items")
+    .update({ status })
+    .eq("id", itemId);
+
+  if (error) throw error;
+}
+
+export async function moveShoppingItemToInventory(itemId: string) {
+  const supabase = getBrowserClient();
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { error } = await supabase.rpc("move_shopping_item_to_inventory", {
+    p_item_id: itemId,
+  });
+
+  if (error) throw error;
+}
+
+export async function deleteKitchenInventoryItem(itemId: string) {
+  const supabase = getBrowserClient();
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { error } = await supabase
+    .from("inventory_items")
+    .delete()
+    .eq("id", itemId)
+    .eq("module", "kitchen");
+
+  if (error) throw error;
+}
+
+export function formatQuantity(value: number, unit: string | null) {
+  return unit ? `${value} ${unit}` : `${value}`;
+}
+
+export function inventoryTone(status: string): "good" | "warn" | "critical" {
+  if (status === "low_stock" || status === "expiring") return "warn";
+  if (status === "out" || status === "expired") return "critical";
+  return "good";
+}
+
+export function shoppingTone(status: string): "good" | "warn" | "neutral" {
+  if (status === "picked") return "good";
+  if (status === "open") return "warn";
+  return "neutral";
+}

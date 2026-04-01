@@ -11,10 +11,12 @@ import {
 import type { Locale } from "./dictionaries";
 import { dictionaries } from "./dictionaries";
 
+type TParams = Record<string, string>;
+
 type I18nContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: TParams) => string;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -25,20 +27,27 @@ function detectLocale(): Locale {
   return lang === "en" ? "en" : "lv";
 }
 
+function getInitialLocale(): Locale {
+  if (typeof window === "undefined") return "lv";
+  try {
+    const saved = localStorage.getItem("majapps-locale");
+    if (saved === "en" || saved === "lv") {
+      return saved;
+    }
+  } catch {
+    /* ignore */
+  }
+  return detectLocale();
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("lv");
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("majapps-locale");
-      if (saved === "en" || saved === "lv") {
-        setLocaleState(saved);
-        return;
-      }
-    } catch {
-      /* ignore */
-    }
-    setLocaleState(detectLocale());
+    const frame = requestAnimationFrame(() => {
+      setLocaleState(getInitialLocale());
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -55,7 +64,15 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string) => dictionaries[locale][key] ?? key,
+    (key: string, vars?: TParams) => {
+      let s = dictionaries[locale][key] ?? key;
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          s = s.split(`{${k}}`).join(v);
+        }
+      }
+      return s;
+    },
     [locale],
   );
 

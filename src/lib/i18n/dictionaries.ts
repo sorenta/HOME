@@ -1,0 +1,835 @@
+export type Locale = "lv" | "en";
+
+export const dictionaries: Record<
+  Locale,
+  Record<string, string>
+> = {
+  lv: {
+    "app.name": "Mājas",
+    "app.tagline": "HomeOS",
+    "app.household": "Mājsaimniecība",
+    "app.realtime": "Realtime",
+    "app.smartAssistant": "Gudrais asistents",
+    "pwa.title": "Uzliec kā lietotni",
+    "pwa.prompt.body":
+      "Vari instalēt Mājas uz sākuma ekrāna, lai tā atveras kā īsta lietotne.",
+    "pwa.ios.body":
+      "iPhone telefonā atver Share izvēlni Safari pārlūkā un izvēlies Add to Home Screen.",
+    "pwa.install": "Instalēt",
+    "pwa.dismiss": "Vēlāk",
+    "household.title": "Sasaisti savas mājas",
+    "household.subtitle":
+      "Izveido jaunu household vai pievienojies esošam ar uzaicinājuma kodu.",
+    "household.create.title": "Izveidot household",
+    "household.create.submit": "Izveidot",
+    "household.create.success": "Household izveidots.",
+    "household.join.title": "Pievienoties ar kodu",
+    "household.join.submit": "Pievienoties",
+    "household.join.success": "Pievienošanās izdevās.",
+    "household.field.name": "Household nosaukums",
+    "household.field.namePlaceholder": "Piemēram, Mūsu mājas",
+    "household.field.code": "Uzaicinājuma kods",
+    "household.field.codePlaceholder": "Ievadi kodu",
+    "household.error.generic": "Neizdevās apstrādāt household darbību.",
+    "household.loading": "Notiek ielāde...",
+    "household.members": "biedri",
+    "household.shareHint":
+      "Šo kodu vari izmantot kā uzaicinājumu vai nākotnē pārvērst QR plūsmā.",
+    "household.qr.title": "QR ielūgums",
+    "household.qr.hint":
+      "Lai pievienotu vīru vai citu biedru, atver šo QR kodu viņa telefonā un noskenē ar kameru.",
+    "household.qr.copy": "Kopēt linku",
+    "household.qr.copied": "Links nokopēts.",
+    "household.join.detected": "Atrasts uzaicinājuma kods no QR.",
+    "household.join.useDetected": "Pievienoties ar šo kodu",
+    "household.membersList.title": "Mājsaimniecības biedri",
+    "household.membersList.empty": "Biedru saraksts vēl nav pieejams.",
+    "household.membersList.unknown": "Nezināms lietotājs",
+    "household.membersList.member": "Biedrs",
+    "household.membersList.you": "Tu",
+    "household.scan.open": "Skenēt QR lietotnē",
+    "household.scan.hint": "Pavērs kameru pret household QR kodu.",
+    "household.scan.close": "Aizvērt skeneri",
+    "household.scan.error": "Neizdevās palaist kameru vai nolasīt QR kodu.",
+    "auth.brand": "HOME:OS",
+    "auth.tabs.signin": "Ienākt",
+    "auth.tabs.signup": "Reģistrēties",
+    "auth.signin.title": "Atver savu māju telpu",
+    "auth.signin.subtitle":
+      "Ievadi e-pastu un paroli, lai ieietu savā māju vidē.",
+    "auth.signup.title": "Izveido savu kontu",
+    "auth.signup.subtitle":
+      "Reģistrācija sagatavos sesiju un automātiski izveidos tavu profilu.",
+    "auth.signin.submit": "Ienākt",
+    "auth.signup.submit": "Izveidot kontu",
+    "auth.signup.hint":
+      "Pirmā reize? Vismaz ceram, ka šī neliks vilties.",
+    "auth.signin.success": "Pieslēgšanās izdevās.",
+    "auth.signup.success": "Konts izveidots, sesija aktīva.",
+    "auth.signup.confirmation":
+      "Konts izveidots. Pārbaudi e-pastu, ja Supabase prasa apstiprinājumu.",
+    "auth.error.generic": "Neizdevās autentificēties. Mēģini vēlreiz.",
+    "auth.loading": "Notiek ielāde...",
+    "auth.welcome.title": "Esi sveicināta savās modernajās mājās",
+    "auth.welcome.body":
+      "Šeit vari veidot mierīgāku ritmu sev un savai ģimenei, ar vairāk skaidrības, viegluma un kopīgas sajūtas.",
+    "auth.welcome.cta": "Atvērt mājas",
+    "auth.field.name": "Vārds",
+    "auth.field.email": "E-pasts",
+    "auth.field.password": "Parole",
+    "auth.session.loading": "Ielādē sesiju...",
+    "auth.session.required": "Lai turpinātu, pieslēdzies.",
+    "auth.session.helper":
+      "Reģistrācija izveidos tavu kontu un pirmo profila ierakstu Supabase pusē.",
+    "auth.session.cta": "Atvērt autentifikāciju",
+    "auth.signout": "Iziet",
+    "nav.home": "Sākums",
+    "nav.profile": "Profils",
+    "nav.settings": "Iestatījumi",
+    "tile.calendar": "Kalendārs",
+    "tile.finance": "Finanses",
+    "tile.reset": "RESET",
+    "tile.kitchen": "Virtuve",
+    "tile.pharmacy": "Aptieciņa",
+    "tile.events": "Notikumi",
+    "theme.forest": "Mežs saulrietā",
+    "theme.ocean": "Okeāna dziļums",
+    "theme.zephyr": "Zefīra maigums",
+    "theme.calla": "Kallas grācija",
+    "theme.ember": "Sarkanā koka spēks",
+    "settings.title": "Iestatījumi",
+    "settings.theme": "Tēma",
+    "settings.language": "Valoda",
+    "settings.byok.title": "Gudrais asistents (BYOK)",
+    "settings.byok.hint":
+      "Atslēgas glabājas šajā ierīcē. Produkcijā izmanto šifrētu servera slāni.",
+    "settings.byok.localStorageNote":
+      "Pēc pārbaudes atslēga tiek saglabāta tikai šīs ierīces pārlūkā.",
+    "settings.byok.missing": "Ievadi API atslēgu.",
+    "settings.byok.invalidGemini":
+      "Gemini atslēga izskatās pārāk īsa. Pārbaudi, vai esi ielicis pilnu API key.",
+    "settings.byok.invalidOpenai":
+      "OpenAI atslēgai jāsākas ar 'sk-' un tai jābūt pilnai.",
+    "settings.byok.verifyFailed": "Neizdevās pārbaudīt API atslēgu.",
+    "settings.byok.savedDevice": "Saglabāts šajā ierīcē kā",
+    "settings.byok.unsaved": "Izmaiņas vēl nav pārbaudītas un saglabātas.",
+    "settings.byok.notSaved": "Šim pakalpojumu sniedzējam atslēga vēl nav pievienota.",
+    "settings.byok.state.saved": "Saglabāts",
+    "settings.byok.state.notSaved": "Nav saglabāts",
+    "settings.byok.state.testing": "Pārbauda",
+    "settings.byok.state.error": "Kļūda",
+    "settings.byok.action.verify": "Pārbaudīt un saglabāt",
+    "settings.byok.action.testing": "Pārbauda...",
+    "settings.byok.action.remove": "Noņemt",
+    "billing.title": "Plāns un piekļuve",
+    "billing.plan.free": "Bezmaksas",
+    "billing.plan.premium": "Premium",
+    "billing.status.active": "Aktīvs",
+    "billing.status.trial": "Izmēģinājums",
+    "billing.status.past_due": "Maksājums kavējas",
+    "billing.status.canceled": "Atcelts",
+    "billing.blurb.free":
+      "Pamata moduļi paliek bez maksas. Premium vēlāk varēs ieslēgt paplašinātām AI un automatizācijas iespējām.",
+    "billing.blurb.premium":
+      "Šim household ir atvērta paplašinātā piekļuve, lai ieslēgtu maksas iespējas bez app pārbūves.",
+    "billing.included": "Iekļauts šajā plānā",
+    "billing.premiumComing": "Premium iespējas nākotnei",
+    "billing.premiumHint":
+      "Šīs funkcijas ir sagatavotas feature gating modelim un vēlāk var tikt pieslēgtas ar abonementu.",
+    "billing.trialEnds": "Izmēģinājums beidzas",
+    "billing.renewsAt": "Nākamais periods līdz",
+    "billing.feature.aiByok": "AI BYOK",
+    "billing.feature.kitchenRealtime": "Virtuves realtime",
+    "billing.feature.householdBasic": "Household pamati",
+    "billing.feature.financeBasic": "Finanšu pamati",
+    "billing.feature.eventsBasic": "Notikumu pamati",
+    "billing.feature.pharmacyAi": "Aptieciņas AI",
+    "billing.feature.advancedInsights": "Padziļināti ieskati",
+    "billing.feature.premiumThemes": "Premium tēmas",
+    "billing.feature.sharedAutomations": "Kopīgās automātikas",
+    "billing.pharmacyLocked":
+      "Aptieciņas AI ieteikumi ir atzīmēti kā nākotnes Premium funkcija. Pamata inventārs paliek bez maksas.",
+    "dashboard.title": "Šodienas mājas ritms",
+    "dashboard.subtitle":
+      "Adaptīvs Bento dashboard ar privātu RESET, koplietojamiem moduļiem un ātrām darbībām.",
+    "dashboard.greeting.morning": "Labrīt",
+    "dashboard.greeting.day": "Labdien",
+    "dashboard.greeting.evening": "Labvakar",
+    "dashboard.greeting.night": "Vēls vakars",
+    "dashboard.timeNotice.morning.title": "Labs rīts",
+    "dashboard.timeNotice.morning.body":
+      "Sāc dienu mierīgi — īss plāns virtuvē un kalendārā palīdz turēt mājas ritmu.",
+    "dashboard.timeNotice.lunch.title": "Dienas vidus",
+    "dashboard.timeNotice.lunch.body":
+      "Labs brīdis īsam pārskatam: kas mājās gaida un kas var pagaidīt līdz vakaram.",
+    "dashboard.timeNotice.evening.title": "Vakara noskaņa",
+    "dashboard.timeNotice.evening.body":
+      "Samazini tempu — atver RESET vai virtuvi, ja gribi noslēgt dienu ar vieglu kontroli.",
+    "dashboard.timeNotice.lateNight.title": "Jau vēls",
+    "dashboard.timeNotice.lateNight.body":
+      "Ir jau vēls — ļauj acīm un prātam atpūsties. Atlikušās lietas var sagaidīt rītu; miegs ir svarīgs.",
+    "dashboard.timeNotice.day.title": "Dienas vidus",
+    "dashboard.timeNotice.day.body":
+      "Labs brīdis īsam pārskatam: kas mājās gaida un kas var pagaidīt līdz vakaram.",
+    "dashboard.timeNotice.night.title": "Vēls vakars vai nakts",
+    "dashboard.timeNotice.night.body":
+      "Samazini tempu — atver RESET vai virtuvi, ja gribi noslēgt dienu ar vieglu kontroli; pārējais var pagaidīt līdz rītam.",
+    "dashboard.timeNotice.sleepHint":
+      "Īpaši šajā stundā — ļauj sev atpūtu. Ekrānu var nolikt malā; miegs un klusums ir daļa no mājas labbūtības.",
+    "dashboard.timeNotice.eyebrow": "Šī brīža noskaņa",
+    "dashboard.timeNotice.aria": "Diennakts laika novērojums",
+    "dashboard.peakHoliday.eyebrow": "Īpašs sveiciens",
+    "dashboard.peakHoliday.aria": "Svētku dienas sveiciens",
+    "seasonal.active": "Svētku režīms",
+    "seasonal.greeting.peak.easter": "Priecīgas Lieldienas, {name}!",
+    "seasonal.greeting.peak.valentine": "Priecīgu Valentīndienu, {name}!",
+    "seasonal.greeting.peak.christmas": "Priecīgus Ziemassvētkus, {name}!",
+    "seasonal.greeting.peak.newyear": "Laimīgu Jauno gadu, {name}!",
+    "seasonal.greeting.peak.midsummer": "Līgo un Jāņus, {name}!",
+    "seasonal.greeting.peak.state": "Sveicu svētkos, {name}!",
+    "seasonal.greeting.peak.womensday": "Sveicu 8. martā, {name}!",
+    "seasonal.greeting.peak.mensday": "Sveicu vīriešu dienā, {name}!",
+    "seasonal.greeting.peak.birthday": "Daudz laimes dzimšanas dienā, {name}!",
+    "seasonal.greeting.peak.nameday": "Daudz laimes vārda dienā, {name}!",
+    "seasonal.easter.title.lead": "Lieldienas jau tuvojas",
+    "seasonal.easter.body.lead":
+      "Mājas sāk dzīvot svētku nedēļas ritmā: olas ripo, zaķi lēkā, un home ekrāns kļūst priecīgāks.",
+    "seasonal.easter.title.peak": "Priecīgas Lieldienas",
+    "seasonal.easter.body.peak":
+      "Šodien home ekrāns svin kopā ar jums: ripojošas olas, lecoši zaķi un viegla svētku noskaņa.",
+    "seasonal.easter.title.after": "Lieldienu noskaņa vēl tepat",
+    "seasonal.easter.body.after":
+      "Vēl pāris dienas saglabājam svētku sajūtu, lai māju ritms nesteidzas atgriezties ikdienā.",
+    "seasonal.valentine.title.lead": "Valentīndiena tuvojas",
+    "seasonal.valentine.body.lead":
+      "App kļūst siltāks un romantiskāks: pa lapām slēpjas mīļi pārsteigumi, kurus vari savākt.",
+    "seasonal.valentine.title.peak": "Priecīgu Valentīndienu",
+    "seasonal.valentine.body.peak":
+      "Šodien lietotne iekrāsojas romantiskāk un ienes mīkstu svētku noskaņu visā mājas ritmā.",
+    "seasonal.valentine.title.after": "Valentīndienas noskaņa vēl paliek",
+    "seasonal.valentine.body.after":
+      "Vēl pāris dienas saglabājam maigus akcentus un paslēptos sirsnīgo pārsteigumu elementus.",
+    "seasonal.christmas.title.lead": "Ziemassvētki jau klāt",
+    "seasonal.christmas.body.lead":
+      "Mājas app ieiet svētku režīmā ar siltākiem akcentiem, paslēptiem pārsteigumiem un ziemīgu noskaņu.",
+    "seasonal.christmas.title.peak": "Priecīgus Ziemassvētkus",
+    "seasonal.christmas.body.peak":
+      "Šodien app svin līdzi ar mirdzumu, kustīgiem akcentiem un sezonālu pārsteigumu medībām.",
+    "seasonal.christmas.title.after": "Ziemassvētku siltums vēl paliek",
+    "seasonal.christmas.body.after":
+      "Pēc svētkiem vēl dažas dienas saglabājam mierīgu, siltu un maģisku noskaņu.",
+    "seasonal.newyear.title.lead": "Jaunais gads tuvojas",
+    "seasonal.newyear.body.lead":
+      "App kļūst dzirkstošāks, lai kopā sagaidītu jaunu sākumu un paslēptas svētku balvas.",
+    "seasonal.newyear.title.peak": "Laimīgu Jauno gadu",
+    "seasonal.newyear.body.peak":
+      "Šodien visā app parādās svinīgi akcenti un Jaunā gada pārsteigumi, ko vari savākt.",
+    "seasonal.newyear.title.after": "Jaunā gada enerģija vēl turas",
+    "seasonal.newyear.body.after":
+      "Vēl dažas dienas saglabājas svētku dzirksts, pirms app pilnībā atgriežas ikdienas ritmā.",
+    "seasonal.birthday.title.lead": "Dzimšanas diena jau tuvojas",
+    "seasonal.birthday.body.lead":
+      "Tavs Home ekrāns gatavojas svinībām ar priecīgiem akcentiem un slepenām dzimšanas dienas dāvanām.",
+    "seasonal.birthday.title.peak": "Priecīgu dzimšanas dienu",
+    "seasonal.birthday.body.peak":
+      "Šodien app sveic tevi īpaši, ar personalizētu svētku noskaņu un savācamiem pārsteigumiem.",
+    "seasonal.birthday.title.after": "Dzimšanas dienas prieks vēl paliek",
+    "seasonal.birthday.body.after":
+      "Vēl pāris dienas vari izbaudīt svētku noskaņu un pabeigt savākt paslēptās dāvaniņas.",
+    "seasonal.nameday.title.lead": "Vārda diena tuvojas",
+    "seasonal.nameday.body.lead":
+      "App sāk svinēt tavus svētkus ar viegliem akcentiem un maziem paslēptiem pārsteigumiem.",
+    "seasonal.nameday.title.peak": "Priecīgu vārda dienu",
+    "seasonal.nameday.body.peak":
+      "Šodien lietotne tevi sveic ar personisku noskaņu, ziedainiem akcentiem un savācamiem elementiem.",
+    "seasonal.nameday.title.after": "Vārda dienas noskaņa vēl paliek",
+    "seasonal.nameday.body.after":
+      "Pēc svētkiem vēl pāris dienas saglabājam maigu un personisku svētku sajūtu.",
+    "seasonal.midsummer.title.lead": "Līgo un Jāņi jau tuvojas",
+    "seasonal.midsummer.body.lead":
+      "Īsi akcenti atgādina par vainagiem, ozolu un nakts ugunskuru — mājas app tur līdzi vasaras svētku noskaņai.",
+    "seasonal.midsummer.title.peak": "Priecīgu Līgo un Jāņus",
+    "seasonal.midsummer.body.peak":
+      "Šodien līdz ar tavu māju svinam vasaras saulgriežus: zāļu vainagi, ozola lapas un vieglas dekorācijas visā lietotnē.",
+    "seasonal.midsummer.title.after": "Jāņu noskaņa vēl paliek",
+    "seasonal.midsummer.body.after":
+      "Vēl dažas dienas saglabājam vasaras svētku vieglumu, pirms ritms atgriežas ikdienā.",
+    "seasonal.state.title.lead": "Valsts svētki tuvojas",
+    "seasonal.state.body.lead":
+      "App iegūst svinīgus, vieglus akcentus — kā sarkanbaltsarkanā lente loga malā.",
+    "seasonal.state.title.peak": "Priecīgus valsts svētkus",
+    "seasonal.state.body.peak":
+      "Šodien mājas ritms iekrāsojas svinīgi un kopīgi — ar vieglu patriotisku noskaņu.",
+    "seasonal.state.title.after": "Svētku noskaņa vēl turas",
+    "seasonal.state.body.after":
+      "Vēl pāris dienas saglabājam svinīgu, kopīgu sajūtu visā lietotnē.",
+    "seasonal.womensday.title.lead": "8. marts tuvojas",
+    "seasonal.womensday.body.lead":
+      "Viegli ziedaini akcenti un maiga noskaņa visās lapās.",
+    "seasonal.womensday.title.peak": "Sveicu Starptautiskajā sieviešu dienā",
+    "seasonal.womensday.body.peak":
+      "Šodien app sveic ar siltu, pateicīgu noskaņu un maziem pārsteigumiem.",
+    "seasonal.womensday.title.after": "8. marta noskaņa vēl paliek",
+    "seasonal.womensday.body.after":
+      "Vēl dažas dienas saglabājam maigus akcentus.",
+    "seasonal.mensday.title.lead": "Vīriešu diena tuvojas",
+    "seasonal.mensday.body.lead":
+      "Viegli, svinīgi akcenti un kopības sajūta mājas ritmā.",
+    "seasonal.mensday.title.peak": "Priecīgu vīriešu dienu",
+    "seasonal.mensday.body.peak":
+      "Šodien app pievieno vieglu svinīgu noskaņu un paslēptus pārsteigumus.",
+    "seasonal.mensday.title.after": "Vīriešu dienas noskaņa vēl paliek",
+    "seasonal.mensday.body.after":
+      "Vēl pāris dienas saglabājam svinīgu vieglumu.",
+    "seasonal.reward.ready": "Balva gatava",
+    "seasonal.reward.unlocked": "Balva atslēgta",
+    "seasonal.reward.cta": "Skaidrs",
+    "seasonal.reward.easter.title": "Lieldienu balva",
+    "seasonal.reward.easter.body":
+      "Savāci visus Lieldienu pārsteigumus un atslēdzi slepeno pavasara talismanu šai sezonai.",
+    "seasonal.reward.valentine.title": "Valentīndienas balva",
+    "seasonal.reward.valentine.body":
+      "Savāci visus romantiskos pārsteigumus un atslēdzi slepeno mīļuma talismanu.",
+    "seasonal.reward.christmas.title": "Ziemassvētku balva",
+    "seasonal.reward.christmas.body":
+      "Savāci visus ziemīgos pārsteigumus un atslēdzi slepeno svētku siltuma talismanu.",
+    "seasonal.reward.newyear.title": "Jaunā gada balva",
+    "seasonal.reward.newyear.body":
+      "Savāci visus dzirkstošos pārsteigumus un atslēdzi slepeno jaunā sākuma talismanu.",
+    "seasonal.reward.birthday.title": "Dzimšanas dienas balva",
+    "seasonal.reward.birthday.body":
+      "Savāci visus personiskos pārsteigumus un atslēdzi slepeno dzimšanas dienas talismanu.",
+    "seasonal.reward.nameday.title": "Vārda dienas balva",
+    "seasonal.reward.nameday.body":
+      "Savāci visus ziedainos pārsteigumus un atslēdzi slepeno vārda dienas talismanu.",
+    "seasonal.reward.midsummer.title": "Jāņu sezonas balva",
+    "seasonal.reward.midsummer.body":
+      "Savāci visus vasaras svētku pārsteigumus un atslēdzi slepeno vainagu un ozola talismanu.",
+    "seasonal.reward.state.title": "Valsts svētku balva",
+    "seasonal.reward.state.body":
+      "Savāci visus svinīgos pārsteigumus un atslēdzi slepeno kopības talismanu.",
+    "seasonal.reward.womensday.title": "8. marta balva",
+    "seasonal.reward.womensday.body":
+      "Savāci visus maigos pārsteigumus un atslēdzi slepeno pateicības talismanu.",
+    "seasonal.reward.mensday.title": "Vīriešu dienas balva",
+    "seasonal.reward.mensday.body":
+      "Savāci visus svinīgos pārsteigumus un atslēdzi slepeno kopības talismanu.",
+    "dashboard.focus": "Šodienas fokuss",
+    "dashboard.feed": "Dzīvā plūsma",
+    "dashboard.adaptive": "Adaptīva secība",
+    "dashboard.pendingReset": "RESET gaida check-in",
+    "dashboard.members": "Biedri",
+    "dashboard.pending": "Atvērti uzdevumi",
+    "dashboard.aiReady": "AI gatavs",
+    "module.calendar.blurb":
+      "Emocionālais kalendārs un laika atskaite — drīz šeit būs kopīgie notikumi un atgādinājumi.",
+    "module.finance.blurb":
+      "Kopīgais maks, fiksētie maksājumi un sociālā atgādināšana — sinhronizēti ar mājsaimniecību.",
+    "module.kitchen.blurb":
+      "Dinamiskie stikla plaukti, iepirkumu grozs un inventārs — ar reāllaika sinhronizāciju.",
+    "module.pharmacy.blurb":
+      "Vienots inventārs, termiņi un AI savietojamības padomi — kad pievienosi API atslēgu.",
+    "module.events.blurb":
+      "Svētku dzinējs un dzīvā plūsma — partnera aktivitātes vienā laika līnijā.",
+    "module.reset.blurb":
+      "RESET kā mājas klimata radars: šeit fiksē dienas check-in; partneris redz tikai aurus, nevis detaļas.",
+    "module.reset.checkin": "Šodienas RESET check-in",
+    "module.reset.done": "Šodienas check-in pabeigts",
+    "calendar.upcoming": "Tuvākie datumi",
+    "calendar.countdown": "Atskaites",
+    "kitchen.stock": "Ledusskapja plaukti",
+    "kitchen.cart": "Iepirkumu grozs",
+    "kitchen.assistant": "AI šefpavārs",
+    "kitchen.empty.stock": "Virtuves inventārs vēl ir tukšs.",
+    "kitchen.empty.cart": "Iepirkumu grozs šobrīd ir tukšs.",
+    "kitchen.form.inventory": "Pievienot produktu",
+    "kitchen.form.shopping": "Pievienot grozam",
+    "kitchen.form.name": "Nosaukums",
+    "kitchen.form.quantity": "Daudzums",
+    "kitchen.form.unit": "Vienība",
+    "kitchen.form.expiry": "Termiņš",
+    "kitchen.form.submit": "Saglabāt",
+    "kitchen.form.addToCart": "Pievienot",
+    "kitchen.loading": "Ielādē virtuves datus...",
+    "kitchen.saved": "Saglabāts.",
+    "kitchen.view.inventory": "Krājumi",
+    "kitchen.view.shopping": "Grozs",
+    "kitchen.quickAdd": "Ātrā pievienošana",
+    "kitchen.hideForm": "Paslēpt formu",
+    "kitchen.summary.items": "vienības",
+    "kitchen.summary.next": "Tālāk",
+    "kitchen.summary.ready": "Gatavs",
+    "kitchen.action.remove": "Dzēst",
+    "kitchen.action.picked": "Atzīmēt kā paņemtu",
+    "kitchen.action.moveToInventory": "Pārvietot uz inventāru",
+    "kitchen.action.reopen": "Atzīmēt kā atvērtu",
+    "kitchen.action.archive": "Arhivēt",
+    "kitchen.moved": "Pārvietots uz inventāru.",
+    "kitchen.realtime": "Sinhronizēts reāllaikā",
+    "finance.wallet": "Kopīgais maks",
+    "finance.bills": "Obligātie maksājumi",
+    "finance.activity": "Sociālā aktivitāte",
+    "finance.insight": "AI pārzinis",
+    "reset.score": "RESET aura",
+    "reset.metrics": "Automātiskais check-in",
+    "reset.privacy": "Privātuma balanss",
+    "reset.recommendation": "Empātijas ieteikums",
+    "pharmacy.stock": "Aptieciņas inventārs",
+    "pharmacy.reminders": "Push atgādinājumi",
+    "pharmacy.compatibility": "AI savietojamība",
+    "events.upcoming": "Svarīgākie notikumi",
+    "events.celebration": "Celebration Engine",
+    "events.feed": "Mājas timeline",
+    "events.overview": "Notikumu pārskats",
+    "events.next": "Tuvākais notikums",
+    "events.total": "Kopā",
+    "events.shared": "Kopīgs",
+    "events.personal": "Personīgs",
+    "events.plan.sharedTitle": "Kopīgo datumu plāns",
+    "events.plan.sharedBody":
+      "Kopīgajiem datumiem vari vēlāk ieslēgt vienu atgādinājumu abiem, maigu animāciju un partnera paziņojumu.",
+    "events.plan.personalTitle": "Personīgo svētku plāns",
+    "events.plan.personalBody":
+      "Personīgajiem datumiem lapa paliek mierīga un skaidra, bet vēlāk var pievienot dāvanu idejas un maigus atgādinājumus.",
+    "profile.blurb":
+      "Lomu identitāte, statistika un izaugsmes centrs — šī sadaļa tiks papildināta ar Supabase profilu.",
+    "profile.identity": "Lomu identitāte",
+    "profile.shortcuts.title": "Papildu sadaļas",
+    "profile.shortcuts.hint":
+      "Retāk lietotās sadaļas ir šeit, lai apakšējā navigācija telefonā paliek īsa un ērta.",
+    "profile.specialDates.title": "Personīgie svētki",
+    "profile.specialDates.blurb":
+      "Pievieno dzimšanas dienu un vārda dienu, lai app var automātiski ieslēgt tavu tematisko svētku režīmu.",
+    "profile.specialDates.birthday": "Dzimšanas diena",
+    "profile.specialDates.nameday": "Vārda diena",
+    "profile.specialDates.namedayHint":
+      "Vārda dienai pietiek ar pareizu mēnesi un dienu. Gads tiek izmantots tikai tehniski.",
+    "profile.specialDates.save": "Saglabāt svētku datumus",
+    "profile.specialDates.saving": "Saglabā...",
+    "profile.specialDates.saved": "Svētku datumi saglabāti.",
+    "profile.specialDates.error": "Neizdevās saglabāt svētku datumus.",
+    "profile.stats": "Aktivitātes bilance",
+    "profile.growth": "Izaugsmes centrs",
+    "settings.household": "Household Hub",
+    "settings.notifications": "Notifikāciju centrs",
+    "settings.privacy": "Privātuma filtri",
+    "settings.supabase": "Supabase statuss",
+    "settings.connected": "Savienojums gatavs",
+    "settings.localOnly": "Lokāls demo režīms",
+    "supabase.missing": "Supabase nav konfigurēts (pievieno .env.local).",
+  },
+  en: {
+    "app.name": "Mājas",
+    "app.tagline": "HomeOS",
+    "app.household": "Household",
+    "app.realtime": "Realtime",
+    "app.smartAssistant": "Smart assistant",
+    "pwa.title": "Install as app",
+    "pwa.prompt.body":
+      "You can install Mājas on your home screen so it opens like a real app.",
+    "pwa.ios.body":
+      "On iPhone, open the Share menu in Safari and choose Add to Home Screen.",
+    "pwa.install": "Install",
+    "pwa.dismiss": "Later",
+    "household.title": "Connect your home",
+    "household.subtitle":
+      "Create a new household or join an existing one with an invite code.",
+    "household.create.title": "Create household",
+    "household.create.submit": "Create",
+    "household.create.success": "Household created.",
+    "household.join.title": "Join with code",
+    "household.join.submit": "Join",
+    "household.join.success": "Joined successfully.",
+    "household.field.name": "Household name",
+    "household.field.namePlaceholder": "For example, Our home",
+    "household.field.code": "Invite code",
+    "household.field.codePlaceholder": "Enter code",
+    "household.error.generic": "Could not complete household action.",
+    "household.loading": "Loading...",
+    "household.members": "members",
+    "household.shareHint":
+      "Use this code as an invite now or turn it into a QR flow later.",
+    "household.qr.title": "QR invite",
+    "household.qr.hint":
+      "To add your husband or another member, open this QR on their phone and scan it with the camera.",
+    "household.qr.copy": "Copy link",
+    "household.qr.copied": "Link copied.",
+    "household.join.detected": "Invite code detected from QR.",
+    "household.join.useDetected": "Join with this code",
+    "household.membersList.title": "Household members",
+    "household.membersList.empty": "Member list is not available yet.",
+    "household.membersList.unknown": "Unknown user",
+    "household.membersList.member": "Member",
+    "household.membersList.you": "You",
+    "household.scan.open": "Scan QR in app",
+    "household.scan.hint": "Point the camera at the household QR code.",
+    "household.scan.close": "Close scanner",
+    "household.scan.error": "Could not start the camera or read the QR code.",
+    "auth.brand": "HOME:OS",
+    "auth.tabs.signin": "Sign in",
+    "auth.tabs.signup": "Sign up",
+    "auth.signin.title": "Enter your home space",
+    "auth.signin.subtitle":
+      "Use your email and password to enter your home space.",
+    "auth.signup.title": "Create your account",
+    "auth.signup.subtitle":
+      "Sign up will prepare your session and automatically create your profile.",
+    "auth.signin.submit": "Sign in",
+    "auth.signup.submit": "Create account",
+    "auth.signup.hint":
+      "First time here? At the very least, we hope this one will not disappoint.",
+    "auth.signin.success": "Signed in successfully.",
+    "auth.signup.success": "Account created and session is active.",
+    "auth.signup.confirmation":
+      "Account created. Check your email if Supabase requires confirmation.",
+    "auth.error.generic": "Authentication failed. Please try again.",
+    "auth.loading": "Working...",
+    "auth.welcome.title": "Welcome to your modern home",
+    "auth.welcome.body":
+      "Shape a calmer rhythm for yourself and your family, with more clarity, lightness, and togetherness.",
+    "auth.welcome.cta": "Open home",
+    "auth.field.name": "Name",
+    "auth.field.email": "Email",
+    "auth.field.password": "Password",
+    "auth.session.loading": "Loading session...",
+    "auth.session.required": "Sign in to continue.",
+    "auth.session.helper":
+      "Signing up will create your account and the first profile row in Supabase.",
+    "auth.session.cta": "Open authentication",
+    "auth.signout": "Sign out",
+    "nav.home": "Home",
+    "nav.profile": "Profile",
+    "nav.settings": "Settings",
+    "tile.calendar": "Calendar",
+    "tile.finance": "Finance",
+    "tile.reset": "RESET",
+    "tile.kitchen": "Kitchen",
+    "tile.pharmacy": "Pharmacy",
+    "tile.events": "Events",
+    "theme.forest": "Forest at sunset",
+    "theme.ocean": "Ocean depth",
+    "theme.zephyr": "Zephyr softness",
+    "theme.calla": "Calla grace",
+    "theme.ember": "Ember wood",
+    "settings.title": "Settings",
+    "settings.theme": "Theme",
+    "settings.language": "Language",
+    "settings.byok.title": "Smart assistant (BYOK)",
+    "settings.byok.hint":
+      "Keys stay on this device. Use an encrypted server layer in production.",
+    "settings.byok.localStorageNote":
+      "After verification, the key is saved only in this device's browser.",
+    "settings.byok.missing": "Enter an API key.",
+    "settings.byok.invalidGemini":
+      "This Gemini key looks too short. Make sure you pasted the full API key.",
+    "settings.byok.invalidOpenai":
+      "An OpenAI key must start with 'sk-' and include the full secret.",
+    "settings.byok.verifyFailed": "Could not verify the API key.",
+    "settings.byok.savedDevice": "Saved on this device as",
+    "settings.byok.unsaved": "Changes are not verified and saved yet.",
+    "settings.byok.notSaved": "No key has been added for this provider yet.",
+    "settings.byok.state.saved": "Saved",
+    "settings.byok.state.notSaved": "Not saved",
+    "settings.byok.state.testing": "Verifying",
+    "settings.byok.state.error": "Error",
+    "settings.byok.action.verify": "Verify and save",
+    "settings.byok.action.testing": "Verifying...",
+    "settings.byok.action.remove": "Remove",
+    "billing.title": "Plan and access",
+    "billing.plan.free": "Free",
+    "billing.plan.premium": "Premium",
+    "billing.status.active": "Active",
+    "billing.status.trial": "Trial",
+    "billing.status.past_due": "Past due",
+    "billing.status.canceled": "Canceled",
+    "billing.blurb.free":
+      "Core modules stay free. Premium can be enabled later for expanded AI and automation features.",
+    "billing.blurb.premium":
+      "This household has expanded access ready for paid features without rebuilding the app.",
+    "billing.included": "Included in this plan",
+    "billing.premiumComing": "Premium features for later",
+    "billing.premiumHint":
+      "These features are already mapped into the feature gating model and can later be unlocked with a subscription.",
+    "billing.trialEnds": "Trial ends",
+    "billing.renewsAt": "Current period until",
+    "billing.feature.aiByok": "AI BYOK",
+    "billing.feature.kitchenRealtime": "Kitchen realtime",
+    "billing.feature.householdBasic": "Household basics",
+    "billing.feature.financeBasic": "Finance basics",
+    "billing.feature.eventsBasic": "Events basics",
+    "billing.feature.pharmacyAi": "Pharmacy AI",
+    "billing.feature.advancedInsights": "Advanced insights",
+    "billing.feature.premiumThemes": "Premium themes",
+    "billing.feature.sharedAutomations": "Shared automations",
+    "billing.pharmacyLocked":
+      "Pharmacy AI guidance is marked as a future Premium feature. Core inventory stays free.",
+    "dashboard.title": "Today’s home rhythm",
+    "dashboard.subtitle":
+      "Adaptive Bento dashboard with private RESET, shared modules, and fast actions.",
+    "dashboard.greeting.morning": "Good morning",
+    "dashboard.greeting.day": "Good afternoon",
+    "dashboard.greeting.evening": "Good evening",
+    "dashboard.greeting.night": "Late evening",
+    "dashboard.timeNotice.morning.title": "Good morning",
+    "dashboard.timeNotice.morning.body":
+      "Ease into the day — a quick glance at kitchen and calendar keeps the household rhythm gentle.",
+    "dashboard.timeNotice.lunch.title": "Midday",
+    "dashboard.timeNotice.lunch.body":
+      "A good moment for a light check-in: what needs attention at home and what can wait until evening.",
+    "dashboard.timeNotice.evening.title": "Evening mood",
+    "dashboard.timeNotice.evening.body":
+      "Wind down — open RESET or the kitchen if you want to close the day with a soft sense of control.",
+    "dashboard.timeNotice.lateNight.title": "Late night",
+    "dashboard.timeNotice.lateNight.body":
+      "It’s very late — let your eyes and mind rest. The rest can wait for morning; sleep matters.",
+    "dashboard.timeNotice.day.title": "Midday",
+    "dashboard.timeNotice.day.body":
+      "A good moment for a light check-in: what needs attention at home and what can wait until evening.",
+    "dashboard.timeNotice.night.title": "Late evening or night",
+    "dashboard.timeNotice.night.body":
+      "Slow the pace — peek at RESET or the kitchen if you want a calm close to the day; the rest can wait.",
+    "dashboard.timeNotice.sleepHint":
+      "Especially now — give yourself rest. You can set the screen aside; sleep and quiet are part of feeling at home.",
+    "dashboard.timeNotice.eyebrow": "Right now",
+    "dashboard.timeNotice.aria": "Time of day notice",
+    "dashboard.peakHoliday.eyebrow": "A personal greeting",
+    "dashboard.peakHoliday.aria": "Holiday greeting",
+    "seasonal.greeting.peak.easter": "Happy Easter, {name}!",
+    "seasonal.greeting.peak.valentine": "Happy Valentine’s Day, {name}!",
+    "seasonal.greeting.peak.christmas": "Merry Christmas, {name}!",
+    "seasonal.greeting.peak.newyear": "Happy New Year, {name}!",
+    "seasonal.greeting.peak.midsummer": "Happy Midsummer, {name}!",
+    "seasonal.greeting.peak.state": "Warm holiday wishes, {name}!",
+    "seasonal.greeting.peak.womensday": "Happy International Women’s Day, {name}!",
+    "seasonal.greeting.peak.mensday": "Happy Men’s Day, {name}!",
+    "seasonal.greeting.peak.birthday": "Happy birthday, {name}!",
+    "seasonal.greeting.peak.nameday": "Happy name day, {name}!",
+    "seasonal.active": "Holiday mode",
+    "seasonal.easter.title.lead": "Easter is almost here",
+    "seasonal.easter.body.lead":
+      "Your home is entering Easter week: eggs start rolling, bunnies start hopping, and the home screen gets more playful.",
+    "seasonal.easter.title.peak": "Happy Easter",
+    "seasonal.easter.body.peak":
+      "Today the home screen celebrates with you: rolling eggs, hopping bunnies, and a soft festive mood.",
+    "seasonal.easter.title.after": "The Easter mood is still here",
+    "seasonal.easter.body.after":
+      "The festive feeling stays for a couple more days, so your home rhythm eases gently back into everyday life.",
+    "seasonal.valentine.title.lead": "Valentine's Day is near",
+    "seasonal.valentine.body.lead":
+      "The app becomes warmer and more romantic, with hidden seasonal surprises across your pages.",
+    "seasonal.valentine.title.peak": "Happy Valentine's Day",
+    "seasonal.valentine.body.peak":
+      "Today the app leans into a romantic mood with soft holiday touches and hidden collectibles.",
+    "seasonal.valentine.title.after": "The Valentine's mood stays a bit longer",
+    "seasonal.valentine.body.after":
+      "For a couple more days, gentle romantic accents and hidden sweet surprises remain across the app.",
+    "seasonal.christmas.title.lead": "Christmas is almost here",
+    "seasonal.christmas.body.lead":
+      "The app enters a warm festive mode with hidden surprises and a more magical holiday feeling.",
+    "seasonal.christmas.title.peak": "Merry Christmas",
+    "seasonal.christmas.body.peak":
+      "Today the app celebrates with sparkling accents, playful motion, and hidden holiday collectibles.",
+    "seasonal.christmas.title.after": "The Christmas warmth is still here",
+    "seasonal.christmas.body.after":
+      "For a few more days, the app keeps a calm, warm, and magical post-holiday feeling.",
+    "seasonal.newyear.title.lead": "New Year is coming",
+    "seasonal.newyear.body.lead":
+      "The app becomes more sparkling as it gets ready for a fresh start and hidden celebratory rewards.",
+    "seasonal.newyear.title.peak": "Happy New Year",
+    "seasonal.newyear.body.peak":
+      "Today the app lights up with festive energy and collectible New Year surprises.",
+    "seasonal.newyear.title.after": "The New Year energy lingers",
+    "seasonal.newyear.body.after":
+      "For a few more days, the app keeps some of that festive sparkle before easing back into routine.",
+    "seasonal.birthday.title.lead": "Your birthday is getting close",
+    "seasonal.birthday.body.lead":
+      "Your home screen starts preparing for your celebration with cheerful accents and hidden surprises.",
+    "seasonal.birthday.title.peak": "Happy birthday",
+    "seasonal.birthday.body.peak":
+      "Today the app celebrates you with a personal festive mood and collectible birthday surprises.",
+    "seasonal.birthday.title.after": "The birthday joy is still here",
+    "seasonal.birthday.body.after":
+      "For a couple more days, you can still enjoy the festive mood and finish collecting the hidden gifts.",
+    "seasonal.nameday.title.lead": "Your name day is near",
+    "seasonal.nameday.body.lead":
+      "The app starts celebrating your special day with soft accents and small hidden surprises.",
+    "seasonal.nameday.title.peak": "Happy name day",
+    "seasonal.nameday.body.peak":
+      "Today the app greets you with a personal mood, floral touches, and collectible surprises.",
+    "seasonal.nameday.title.after": "The name day mood is still here",
+    "seasonal.nameday.body.after":
+      "For a couple more days, the app keeps a soft and personal festive feeling.",
+    "seasonal.midsummer.title.lead": "Midsummer is almost here",
+    "seasonal.midsummer.body.lead":
+      "Soft accents echo wreaths, oak, and bonfire light — the app follows the summer solstice mood with you.",
+    "seasonal.midsummer.title.peak": "Happy Midsummer",
+    "seasonal.midsummer.body.peak":
+      "Today the app celebrates with you: herbal wreaths, oak leaves, and airy seasonal decor across your home screen.",
+    "seasonal.midsummer.title.after": "The Midsummer feeling lingers",
+    "seasonal.midsummer.body.after":
+      "For a few more days, the app keeps a light summer-holiday ease before everyday rhythm returns.",
+    "seasonal.state.title.lead": "National holidays are near",
+    "seasonal.state.body.lead":
+      "The app gains a calm, festive accent — like a ribbon along the window.",
+    "seasonal.state.title.peak": "Happy national holiday",
+    "seasonal.state.body.peak":
+      "Today your home rhythm feels a little more ceremonial and shared, with a gentle patriotic mood.",
+    "seasonal.state.title.after": "The holiday mood lingers",
+    "seasonal.state.body.after":
+      "For a few more days, the app keeps soft celebratory touches.",
+    "seasonal.womensday.title.lead": "8 March is coming",
+    "seasonal.womensday.body.lead":
+      "Light floral accents and a gentle mood across your pages.",
+    "seasonal.womensday.title.peak": "Happy International Women’s Day",
+    "seasonal.womensday.body.peak":
+      "Today the app greets you with warmth, gratitude, and small hidden surprises.",
+    "seasonal.womensday.title.after": "The 8 March mood lingers",
+    "seasonal.womensday.body.after":
+      "For a few more days, gentle accents remain.",
+    "seasonal.mensday.title.lead": "Men’s Day is coming",
+    "seasonal.mensday.body.lead":
+      "Light, celebratory accents and a sense of togetherness in your home rhythm.",
+    "seasonal.mensday.title.peak": "Happy Men’s Day",
+    "seasonal.mensday.body.peak":
+      "Today the app adds a festive ease and hidden surprises to explore.",
+    "seasonal.mensday.title.after": "The Men’s Day mood lingers",
+    "seasonal.mensday.body.after":
+      "For a couple more days, the app keeps a light celebratory tone.",
+    "seasonal.reward.ready": "Reward ready",
+    "seasonal.reward.unlocked": "Reward unlocked",
+    "seasonal.reward.cta": "Nice",
+    "seasonal.reward.easter.title": "Easter reward",
+    "seasonal.reward.easter.body":
+      "You collected every Easter surprise and unlocked the secret spring charm for this season.",
+    "seasonal.reward.valentine.title": "Valentine reward",
+    "seasonal.reward.valentine.body":
+      "You collected every romantic surprise and unlocked the secret affection charm.",
+    "seasonal.reward.christmas.title": "Christmas reward",
+    "seasonal.reward.christmas.body":
+      "You collected every winter surprise and unlocked the secret holiday warmth charm.",
+    "seasonal.reward.newyear.title": "New Year reward",
+    "seasonal.reward.newyear.body":
+      "You collected every sparkling surprise and unlocked the secret fresh-start charm.",
+    "seasonal.reward.birthday.title": "Birthday reward",
+    "seasonal.reward.birthday.body":
+      "You collected every personal surprise and unlocked the secret birthday charm.",
+    "seasonal.reward.nameday.title": "Name day reward",
+    "seasonal.reward.nameday.body":
+      "You collected every floral surprise and unlocked the secret name day charm.",
+    "seasonal.reward.midsummer.title": "Midsummer reward",
+    "seasonal.reward.midsummer.body":
+      "You collected every summer surprise and unlocked the secret wreath-and-oak charm.",
+    "seasonal.reward.state.title": "National holiday reward",
+    "seasonal.reward.state.body":
+      "You collected every ceremonial surprise and unlocked the secret togetherness charm.",
+    "seasonal.reward.womensday.title": "8 March reward",
+    "seasonal.reward.womensday.body":
+      "You collected every gentle surprise and unlocked the secret gratitude charm.",
+    "seasonal.reward.mensday.title": "Men’s Day reward",
+    "seasonal.reward.mensday.body":
+      "You collected every festive surprise and unlocked the secret camaraderie charm.",
+    "dashboard.focus": "Today’s focus",
+    "dashboard.feed": "Live feed",
+    "dashboard.adaptive": "Adaptive order",
+    "dashboard.pendingReset": "RESET is waiting for check-in",
+    "dashboard.members": "Members",
+    "dashboard.pending": "Open tasks",
+    "dashboard.aiReady": "AI ready",
+    "module.calendar.blurb":
+      "Emotional calendar and countdowns — shared events and reminders will live here.",
+    "module.finance.blurb":
+      "Shared wallet, fixed bills, and social nudges — synced with your household.",
+    "module.kitchen.blurb":
+      "Glass shelves, shopping cart, and inventory — realtime across devices.",
+    "module.pharmacy.blurb":
+      "Unified stock, expiry alerts, and AI compatibility hints — once your API key is set.",
+    "module.events.blurb":
+      "Celebration engine and live feed — partner activity on one timeline.",
+    "module.reset.blurb":
+      "RESET as a home climate radar: log today’s check-in; partners see auras, not raw details.",
+    "module.reset.checkin": "Today’s RESET check-in",
+    "module.reset.done": "Today’s check-in is done",
+    "calendar.upcoming": "Upcoming dates",
+    "calendar.countdown": "Countdowns",
+    "kitchen.stock": "Fridge shelves",
+    "kitchen.cart": "Shopping cart",
+    "kitchen.assistant": "AI chef",
+    "kitchen.empty.stock": "Kitchen inventory is still empty.",
+    "kitchen.empty.cart": "The shopping cart is currently empty.",
+    "kitchen.form.inventory": "Add product",
+    "kitchen.form.shopping": "Add to cart",
+    "kitchen.form.name": "Name",
+    "kitchen.form.quantity": "Quantity",
+    "kitchen.form.unit": "Unit",
+    "kitchen.form.expiry": "Expiry",
+    "kitchen.form.submit": "Save",
+    "kitchen.form.addToCart": "Add",
+    "kitchen.loading": "Loading kitchen data...",
+    "kitchen.saved": "Saved.",
+    "kitchen.view.inventory": "Stock",
+    "kitchen.view.shopping": "Cart",
+    "kitchen.quickAdd": "Quick add",
+    "kitchen.hideForm": "Hide form",
+    "kitchen.summary.items": "items",
+    "kitchen.summary.next": "Next",
+    "kitchen.summary.ready": "Ready",
+    "kitchen.action.remove": "Remove",
+    "kitchen.action.picked": "Mark as picked",
+    "kitchen.action.moveToInventory": "Move to inventory",
+    "kitchen.action.reopen": "Reopen",
+    "kitchen.action.archive": "Archive",
+    "kitchen.moved": "Moved to inventory.",
+    "kitchen.realtime": "Synced in realtime",
+    "finance.wallet": "Shared wallet",
+    "finance.bills": "Fixed costs",
+    "finance.activity": "Social activity",
+    "finance.insight": "AI steward",
+    "reset.score": "RESET aura",
+    "reset.metrics": "Automatic check-in",
+    "reset.privacy": "Privacy balance",
+    "reset.recommendation": "Empathy nudge",
+    "pharmacy.stock": "Pharmacy inventory",
+    "pharmacy.reminders": "Push reminders",
+    "pharmacy.compatibility": "AI compatibility",
+    "events.upcoming": "Key events",
+    "events.celebration": "Celebration engine",
+    "events.feed": "Home timeline",
+    "events.overview": "Events overview",
+    "events.next": "Next event",
+    "events.total": "Total",
+    "events.shared": "Shared",
+    "events.personal": "Personal",
+    "events.plan.sharedTitle": "Shared dates plan",
+    "events.plan.sharedBody":
+      "Shared dates can later trigger one reminder for both of you, a gentle animation, and a partner nudge.",
+    "events.plan.personalTitle": "Personal dates plan",
+    "events.plan.personalBody":
+      "Personal dates stay calm and clear, with room to later add gift ideas and soft reminders.",
+    "profile.blurb":
+      "Role, stats, and growth center — will connect to your Supabase profile.",
+    "profile.identity": "Role identity",
+    "profile.shortcuts.title": "More sections",
+    "profile.shortcuts.hint":
+      "Less-used sections live here so the phone navigation stays short and easy to use.",
+    "profile.specialDates.title": "Personal celebrations",
+    "profile.specialDates.blurb":
+      "Add your birthday and name day so the app can automatically switch on your personal festive mode.",
+    "profile.specialDates.birthday": "Birthday",
+    "profile.specialDates.nameday": "Name day",
+    "profile.specialDates.namedayHint":
+      "For name day, only the correct month and day matter. The year is used only technically.",
+    "profile.specialDates.save": "Save celebration dates",
+    "profile.specialDates.saving": "Saving...",
+    "profile.specialDates.saved": "Celebration dates saved.",
+    "profile.specialDates.error": "Could not save celebration dates.",
+    "profile.stats": "Activity balance",
+    "profile.growth": "Growth center",
+    "settings.household": "Household hub",
+    "settings.notifications": "Notification center",
+    "settings.privacy": "Privacy filters",
+    "settings.supabase": "Supabase status",
+    "settings.connected": "Connection ready",
+    "settings.localOnly": "Local demo mode",
+    "supabase.missing": "Supabase is not configured (add .env.local).",
+  },
+};

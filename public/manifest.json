@@ -1,0 +1,25 @@
+{
+  "name": "Mājas · HomeOS",
+  "short_name": "Mājas",
+  "description": "Mājsaimniecības lietotne: virtuve, finanses, RESET, aptieciņa un notikumi.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#2b3101",
+  "theme_color": "#2b3101",
+  "orientation": "portrait",
+  "lang": "lv",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
