@@ -7,6 +7,7 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { ResetDailySignalsForm } from "@/components/reset/reset-daily-signals-form";
 import { ResetBodyTracking } from "@/components/reset/reset-body-tracking";
 import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
 import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
@@ -28,6 +29,12 @@ import {
   submitResetCheckInToSupabase,
 } from "@/lib/reset-checkin-sync";
 import {
+  fetchTodaySignals,
+  localDateIso,
+  signalsScoreDelta,
+  type ResetDailySignalsRow,
+} from "@/lib/reset-daily-signals";
+import {
   loadWellnessStateSynced,
   persistWellnessStateSynced,
 } from "@/lib/reset-wellness-sync";
@@ -43,6 +50,8 @@ export default function ResetPage() {
   const [hydrated, setHydrated] = useState(false);
   const [showGoalEditor, setShowGoalEditor] = useState(false);
   const [members, setMembers] = useState<HouseholdMember[]>([]);
+  const [todaySignals, setTodaySignals] = useState<ResetDailySignalsRow | null>(null);
+  const [signalsVersion, setSignalsVersion] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -75,6 +84,21 @@ export default function ResetPage() {
       alive = false;
     };
   }, [profile?.household_id]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setTodaySignals(null);
+      return;
+    }
+    let alive = true;
+    const day = localDateIso();
+    void fetchTodaySignals(user.id, day).then((row) => {
+      if (alive) setTodaySignals(row);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [user?.id, signalsVersion]);
 
   const persistWellness = useCallback((next: ResetWellnessV1) => {
     setWellness(next);
@@ -110,15 +134,28 @@ export default function ResetPage() {
       .map((b) => b.mode);
     return [...new Set(modes)];
   }, [bodies]);
-  const resetScoreValue = useMemo(() => {
+  const baseResetScore = useMemo(() => {
     let score = wellness.onboardingDone ? 20 : 0;
     score += quits.length * 15;
     score += bodies.length * 15;
     score += Math.min(20, wellness.measurements.length * 4);
     score += Math.min(20, wellness.weighIns.length * 5);
     if (doneToday) score += 15;
-    return Math.min(100, score);
-  }, [bodies.length, doneToday, quits.length, wellness.measurements.length, wellness.onboardingDone, wellness.weighIns.length]);
+    return score;
+  }, [
+    bodies.length,
+    doneToday,
+    quits.length,
+    wellness.measurements.length,
+    wellness.onboardingDone,
+    wellness.weighIns.length,
+  ]);
+
+  const resetScoreValue = useMemo(
+    () =>
+      Math.min(100, Math.max(0, baseResetScore + signalsScoreDelta(todaySignals))),
+    [baseResetScore, todaySignals],
+  );
   const partnerAura = useMemo(() => {
     if (resetScoreValue >= 75) return t("reset.aura.high");
     if (resetScoreValue >= 40) return t("reset.aura.steady");
@@ -240,6 +277,13 @@ export default function ResetPage() {
             />
           ))
         : null}
+
+      {hydrated && wellness.onboardingDone ? (
+        <ResetDailySignalsForm
+          userId={user?.id ?? null}
+          onSaved={() => setSignalsVersion((v) => v + 1)}
+        />
+      ) : null}
 
       <GlassPanel className="space-y-3">
         <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
