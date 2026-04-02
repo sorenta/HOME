@@ -17,6 +17,73 @@ export function ForgeZone({ children, className = "" }: ZoneProps) {
   );
 }
 
+type DeckProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+/**
+ * Primary control slab — angular, low radius, one rail. Use for the main Forge page chassis.
+ */
+export function ForgeMainDeck({ children, className = "" }: DeckProps) {
+  return (
+    <section className={["maj-forge-main-deck relative overflow-hidden text-left", className].join(" ")}>
+      <span className="maj-forge-zone-rail pointer-events-none absolute bottom-0 left-0 top-0 w-[3px]" aria-hidden />
+      {children}
+    </section>
+  );
+}
+
+type SystemSlabProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+/** Secondary system / legal / keys slab — flatter, darker, visually subordinate to the main deck. */
+export function ForgeSystemSlab({ children, className = "" }: SystemSlabProps) {
+  return (
+    <section className={["maj-forge-system-slab relative overflow-hidden text-left", className].join(" ")}>
+      <span
+        className="maj-forge-system-slab-accent pointer-events-none absolute left-0 right-0 top-0 h-px"
+        aria-hidden
+      />
+      {children}
+    </section>
+  );
+}
+
+type DeckListProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+/** Edge-to-edge rows inside a deck (no nested rounded “card”). */
+export function ForgeDeckList({ children, className = "" }: DeckListProps) {
+  return (
+    <div
+      className={[
+        "maj-forge-deck-list divide-y divide-[color:color-mix(in_srgb,var(--color-border)_72%,transparent)]",
+        className,
+      ].join(" ")}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Strong band separator inside the main deck (structural, not a new container). */
+export function ForgeBandRule({ dense }: { dense?: boolean }) {
+  return (
+    <div
+      className={[
+        "maj-forge-band-rule w-full",
+        dense ? "my-0.5" : "my-1",
+      ].join(" ")}
+      aria-hidden
+    />
+  );
+}
+
 type ZoneHeaderProps = {
   title: string;
   eyebrow?: string;
@@ -43,12 +110,19 @@ export function ForgeZoneHeader({ title, eyebrow, detail }: ZoneHeaderProps) {
   );
 }
 
-type SubLabelProps = { children: ReactNode };
+type SubLabelProps = { children: ReactNode; tight?: boolean };
 
 /** In-zone section break without a new card. */
-export function ForgeSubLabel({ children }: SubLabelProps) {
+export function ForgeSubLabel({ children, tight }: SubLabelProps) {
   return (
-    <p className="px-3 pb-1 pt-3 text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--color-text-secondary)] first:pt-2">
+    <p
+      className={[
+        "maj-forge-sublabel px-3 pb-1 pt-3 text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--color-text-secondary)] first:pt-2",
+        tight ? "maj-forge-sublabel--tight" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {children}
     </p>
   );
@@ -59,7 +133,7 @@ type InsetProps = {
   className?: string;
 };
 
-/** Recessed field / list tray. */
+/** Recessed field / list tray (use sparingly — prefer ForgeDeckList in main deck). */
 export function ForgeInset({ children, className = "" }: InsetProps) {
   return <div className={["maj-forge-inset mx-2 mb-2 rounded-lg", className].join(" ")}>{children}</div>;
 }
