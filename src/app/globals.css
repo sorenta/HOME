@@ -67,3 +67,50 @@
     margin: 0;
   }
 }
+
+@layer components {
+  .metal-gradient {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 92%, #ffffff 8%) 0%, var(--color-surface) 65%),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 28%, rgba(255, 255, 255, 0.03) 72%, transparent);
+  }
+
+  .maj-dash-compose {
+    display: grid;
+    gap: clamp(0.75rem, 2vw, 1rem);
+  }
+
+  .maj-section-gap {
+    display: block;
+  }
+
+  .maj-botanical-shelf {
+    border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+    border-radius: calc(var(--radius-card) * 0.72);
+    background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+    padding: 0.7rem;
+  }
+
+  .maj-botanical-shelf-label {
+    margin: 0 0 0.45rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  .maj-botanical-shelf-plate {
+    border: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+    border-radius: calc(var(--radius-card) * 0.6);
+    background: color-mix(in srgb, var(--color-card-elevated) 88%, transparent);
+    padding: 0.65rem;
+  }
+
+  .maj-panel-lite {
+    border: 1px solid color-mix(in srgb, var(--color-border) 62%, transparent);
+    border-radius: calc(var(--radius-card) * 0.62);
+    background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+    box-shadow: var(--theme-panel-shadow);
+  }
+}

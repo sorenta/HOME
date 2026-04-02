@@ -111,8 +111,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 1. Izmantojam vienkāršotu stilu objektu, lai build process neapjuktu
   const rootStyle: CSSProperties = {
+    ...buildRootThemeCssVars(defaultThemeManifest),
     colorScheme:
       defaultThemeManifest.id === "forge" || defaultThemeManifest.id === "botanical"
         ? "dark"
@@ -136,9 +136,8 @@ export default function RootLayout({
           ${lora.variable} ${playfair.variable} ${barlowCondensed.variable} 
           ${fraunces.variable} ${spaceGrotesk.variable} ${nunito.variable} 
           ${rajdhani.variable} 
-          min-h-full antialiased
+          min-h-full antialiased bg-[color:var(--color-background)] text-[color:var(--color-text)] font-[family-name:var(--font-theme-sans)]
         `.trim()}
-        /* Stils tiek kontrolēts caur globals.css body selektoru */
       >
         <AppProviders>
           <div className="relative isolate mx-auto flex min-h-full max-w-lg flex-col">

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { HouseholdOnboarding } from "@/components/household/household-onboarding";
 import { HouseholdSummary } from "@/components/household/household-summary";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -94,6 +94,34 @@ function getThemePanelClass(themeId: ThemeId) {
   if (themeId === "forge") return `${base} metal-gradient border-t-4 border-primary shadow-inner`;
   if (themeId === "botanical") return `${base} border border-border shadow-[inset_0_0_20px_rgba(255,255,255,0.3)]`;
   return `${base} border border-border`;
+}
+
+type DashboardCardProps = {
+  title: string;
+  badge?: string;
+  children: ReactNode;
+  className?: string;
+};
+
+function DashboardCard({ title, badge, children, className }: DashboardCardProps) {
+  return (
+    <section
+      className={[
+        "rounded-[1.1rem] border border-border/60 bg-background/70 p-4 shadow-[0_10px_35px_-25px_rgba(10,34,16,0.45)] backdrop-blur-sm",
+        className ?? "",
+      ].join(" ")}
+    >
+      <header className="mb-3 flex items-center justify-between gap-2 border-b border-border/40 pb-2">
+        <h2 className="text-sm font-semibold tracking-wide text-foreground/90">{title}</h2>
+        {badge ? (
+          <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+            {badge}
+          </span>
+        ) : null}
+      </header>
+      {children}
+    </section>
+  );
 }
 
 export function BentoDashboard() {
@@ -217,7 +245,50 @@ export function BentoDashboard() {
     </motion.div>
   );
 
-  const householdPanelSlot = (
+  const botanicalHouseholdPanelSlot = (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+      className="grid gap-3 sm:grid-cols-2"
+    >
+      <DashboardCard title={t("household.members")} badge={t("app.realtime")}>
+        <ul className="flex flex-col gap-2">
+          {members.length === 0 ? (
+            <li className="text-sm italic text-foreground/50">{t("household.membersList.empty")}</li>
+          ) : (
+            members.slice(0, 4).map((member) => {
+              const label = member.display_name ?? t("household.membersList.member");
+              return (
+                <li key={member.id} className="flex items-center gap-3 rounded-xl border border-border/40 bg-background/50 p-2.5">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
+                    {memberInitials(label)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{label}</p>
+                    <p className="text-[11px] text-foreground/60">{member.role_label ?? t("household.membersList.member")}</p>
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </DashboardCard>
+      <DashboardCard title={t("dashboard.pending")} badge={t("app.smartAssistant")}>
+        <div className="flex flex-wrap gap-2">
+          <StatusPill tone={aiReady ? "good" : "neutral"}>{t("dashboard.aiReady")}</StatusPill>
+          {!resetDoneToday ? (
+            <StatusPill tone="critical">{t("dashboard.pendingReset")}</StatusPill>
+          ) : (
+            <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
+          )}
+          <StatusPill tone="neutral">{`${t("dashboard.members")}: ${members.length || household?.member_count || 0}`}</StatusPill>
+        </div>
+      </DashboardCard>
+    </motion.div>
+  );
+
+  const defaultHouseholdPanelSlot = (
     <motion.section
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -270,7 +341,28 @@ export function BentoDashboard() {
     </motion.div>
   );
 
-  const feedSlot = (
+  const botanicalFeedSlot = (
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.14 }}
+      className="grid gap-3 sm:grid-cols-2"
+    >
+      {homeFeed.length === 0 ? (
+        <DashboardCard title={t("dashboard.feed")}>
+          <p className="text-sm text-foreground/60">{t("household.membersList.empty")}</p>
+        </DashboardCard>
+      ) : (
+        homeFeed.slice(0, 4).map((item) => (
+          <DashboardCard key={item.id} title={item.time} badge={item.source === "db" ? t("dashboard.feedLive") : undefined}>
+            <p className="text-sm font-medium">{item.line}</p>
+          </DashboardCard>
+        ))
+      )}
+    </motion.section>
+  );
+
+  const defaultFeedSlot = (
     <motion.section
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -324,6 +416,9 @@ export function BentoDashboard() {
       <p className="text-foreground/70 mt-2 max-w-sm font-medium">{headerSubtitle}</p>
     </motion.header>
   );
+
+  const householdPanelSlot = themeId === "botanical" ? botanicalHouseholdPanelSlot : defaultHouseholdPanelSlot;
+  const feedSlot = themeId === "botanical" ? botanicalFeedSlot : defaultFeedSlot;
 
   return (
     <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-8 md:p-8 space-y-6">

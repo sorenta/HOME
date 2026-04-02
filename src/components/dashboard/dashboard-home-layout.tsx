@@ -50,25 +50,29 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
       <div className="maj-dash-compose maj-dash-compose--botanical">
         {header}
         <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">Spaces</p>
-          <div className="maj-botanical-shelf-plate">{modules}</div>
-        </section>
-        <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">Today</p>
-          <div className="maj-botanical-shelf-plate space-y-3">
-            {notice}
-            {water}
+          <p className="maj-botanical-shelf-label">Moduļi un šodiena</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="maj-botanical-shelf-plate min-w-0">{modules}</div>
+            <div className="maj-botanical-shelf-plate min-w-0">{notice}</div>
           </div>
         </section>
-        <div className="maj-section-gap">{householdSummary}</div>
         <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">At a glance</p>
-          <div className="maj-botanical-shelf-plate">{metrics}</div>
+          <p className="maj-botanical-shelf-label">Ūdens un rādītāji</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="maj-botanical-shelf-plate min-w-0">{water}</div>
+            <div className="maj-botanical-shelf-plate min-w-0">{metrics}</div>
+          </div>
         </section>
-        <div className="maj-section-gap">{householdPanel}</div>
         <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">Live</p>
-          <div className="maj-botanical-shelf-plate">{feed}</div>
+          <p className="maj-botanical-shelf-label">Mājsaimniecība un dalībnieki</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="maj-botanical-shelf-plate min-w-0">{householdSummary}</div>
+            <div className="maj-botanical-shelf-plate min-w-0">{householdPanel}</div>
+          </div>
+        </section>
+        <section className="maj-botanical-shelf maj-section-gap">
+          <p className="maj-botanical-shelf-label">Plūsma</p>
+          <div className="maj-botanical-shelf-plate min-w-0">{feed}</div>
         </section>
       </div>
     );

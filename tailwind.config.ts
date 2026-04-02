@@ -26,7 +26,8 @@ const config: Config = {
         theme: "var(--radius)",
       },
       boxShadow: {
-        theme: "var(--theme-shadow)",
+        theme: "var(--theme-panel-shadow)",
+        "theme-shadow": "var(--theme-panel-shadow)",
       }
     },
   },
