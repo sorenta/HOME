@@ -25,7 +25,6 @@ export type SeasonalProfileDates = {
 export const SEASONAL_COLLECTIBLE_SPOTS = [
   "home",
   "household",
-  "calendar",
   "finance",
   "reset",
   "kitchen",

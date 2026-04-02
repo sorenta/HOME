@@ -29,12 +29,13 @@ import {
   type ModuleId,
 } from "@/lib/bento-usage";
 import { hapticTap } from "@/lib/haptic";
-import { dashboardSnapshot } from "@/lib/demo-data";
 import { useSeasonal } from "@/components/providers/seasonal-provider";
 import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { SeasonalRewardModal } from "@/components/seasonal/seasonal-reward-modal";
 import { hasResetCheckInToday } from "@/lib/reset-checkin";
 import type { ThemeId } from "@/lib/theme-logic";
+import { getGeminiKeyFromStorage, getOpenAIKeyFromStorage } from "@/lib/ai/keys";
+import { fetchOpenHouseholdTaskCount } from "@/lib/events-sync";
 import { BentoTile } from "./bento-tile";
 import { HouseholdWaterWidget } from "./household-water-widget";
 import { PeakHolidayCard } from "./peak-holiday-card";
@@ -151,6 +152,8 @@ export function BentoDashboard() {
   const [household, setHousehold] = useState<Household | null>(null);
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [activityRows, setActivityRows] = useState<ActivityFeedRow[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [aiReady, setAiReady] = useState(false);
 
   const displayName =
     profile?.display_name ??
@@ -164,6 +167,7 @@ export function BentoDashboard() {
       setOrder(getAdaptiveModuleOrder());
       setResetDoneToday(hasResetCheckInToday());
       setGreetingPeriod(getGreetingPeriod(new Date()));
+      setAiReady(Boolean(getGeminiKeyFromStorage() || getOpenAIKeyFromStorage()));
     });
     return () => cancelAnimationFrame(frame);
   }, []);
@@ -184,6 +188,18 @@ export function BentoDashboard() {
 
     void loadHousehold();
 
+    return () => {
+      alive = false;
+    };
+  }, [profile?.household_id]);
+
+  useEffect(() => {
+    let alive = true;
+    void fetchOpenHouseholdTaskCount(profile?.household_id ?? null).then((next) => {
+      if (alive) {
+        setPendingCount(next);
+      }
+    });
     return () => {
       alive = false;
     };
@@ -330,11 +346,11 @@ export function BentoDashboard() {
         />
         <MetricCard
           label={t("dashboard.pending")}
-          value={dashboardSnapshot.pendingCount}
+          value={pendingCount}
         />
         <MetricCard
           label={t("dashboard.aiReady")}
-          value={dashboardSnapshot.aiReady ? "ON" : "OFF"}
+          value={aiReady ? "ON" : "OFF"}
         />
       </motion.div>
 
@@ -346,14 +362,14 @@ export function BentoDashboard() {
       >
         <SectionHeading
           eyebrow={t("app.household")}
-          title={household?.name ?? dashboardSnapshot.householdName}
+          title={household?.name ?? t("app.household")}
           detail={t("app.realtime")}
         />
         <p className="mt-3 text-sm leading-relaxed text-[color:var(--color-text)]">
           {t("dashboard.householdHint")}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <StatusPill tone={dashboardSnapshot.aiReady ? "good" : "neutral"}>
+          <StatusPill tone={aiReady ? "good" : "neutral"}>
             {t("app.smartAssistant")}
           </StatusPill>
           {!resetDoneToday ? (

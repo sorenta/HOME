@@ -38,14 +38,18 @@ type CollectibleSprite = {
 
 const VISUALS_BY_THEME: Record<SeasonalThemeId, SeasonalVisualItem[]> = {
   easter: [
-    { kind: "chick", x: 8, y: 18, size: 30, driftX: 10, driftY: 8, rotate: 8, duration: 6.4, delay: 0.1 },
-    { kind: "bunny", x: 89, y: 20, size: 34, driftX: -12, driftY: 7, rotate: 10, duration: 7.2, delay: 0.5 },
-    { kind: "egg", x: 12, y: 78, size: 26, driftX: 9, driftY: -8, rotate: 12, duration: 5.8, delay: 1.2 },
-    { kind: "egg", x: 86, y: 74, size: 24, driftX: -8, driftY: -10, rotate: 10, duration: 6.1, delay: 0.8 },
-    { kind: "catkin", x: 4, y: 42, size: 28, driftX: 3, driftY: 12, rotate: 7, duration: 8.6, delay: 0.3 },
-    { kind: "catkin", x: 94, y: 46, size: 30, driftX: -3, driftY: 11, rotate: 6, duration: 8.2, delay: 1.1 },
-    { kind: "catkin", x: 22, y: 6, size: 22, driftX: 5, driftY: 5, rotate: 5, duration: 7.5, delay: 0.6 },
-    { kind: "chick", x: 79, y: 88, size: 24, driftX: -7, driftY: -6, rotate: 8, duration: 5.9, delay: 1.5 },
+    { kind: "chick", x: 8, y: 17, size: 34, driftX: 13, driftY: 8, rotate: 10, duration: 5.6, delay: 0.1 },
+    { kind: "bunny", x: 89, y: 19, size: 40, driftX: -18, driftY: 8, rotate: 12, duration: 4.8, delay: 0.4 },
+    { kind: "bunny", x: 17, y: 70, size: 34, driftX: 16, driftY: -7, rotate: 10, duration: 5.2, delay: 1.1 },
+    { kind: "egg", x: 13, y: 82, size: 30, driftX: 12, driftY: -9, rotate: 14, duration: 5.2, delay: 1.2 },
+    { kind: "egg", x: 84, y: 76, size: 28, driftX: -10, driftY: -11, rotate: 12, duration: 5.4, delay: 0.8 },
+    { kind: "egg", x: 50, y: 12, size: 22, driftX: 8, driftY: 6, rotate: 11, duration: 5.8, delay: 1.6 },
+    { kind: "catkin", x: 5, y: 39, size: 34, driftX: 4, driftY: 14, rotate: 8, duration: 7.8, delay: 0.3 },
+    { kind: "catkin", x: 95, y: 43, size: 36, driftX: -4, driftY: 13, rotate: 7, duration: 7.4, delay: 1.1 },
+    { kind: "catkin", x: 24, y: 5, size: 28, driftX: 7, driftY: 7, rotate: 6, duration: 6.9, delay: 0.6 },
+    { kind: "catkin", x: 73, y: 7, size: 26, driftX: -6, driftY: 8, rotate: 6, duration: 6.7, delay: 1.4 },
+    { kind: "chick", x: 80, y: 89, size: 28, driftX: -10, driftY: -8, rotate: 10, duration: 5.1, delay: 1.5 },
+    { kind: "chick", x: 48, y: 86, size: 24, driftX: 9, driftY: -7, rotate: 9, duration: 5.3, delay: 0.9 },
   ],
   valentine: [
     { kind: "heart", x: 10, y: 16, size: 26, driftX: 10, driftY: 9, rotate: 12, duration: 5.6, delay: 0.2 },

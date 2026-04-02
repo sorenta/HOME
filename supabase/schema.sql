@@ -18,6 +18,12 @@ create table if not exists public.households (
   updated_at timestamptz not null default now()
 );
 
+alter table public.households
+  add column if not exists subscription_status text not null default 'active',
+  add column if not exists billing_provider text,
+  add column if not exists trial_ends_at timestamptz,
+  add column if not exists current_period_ends_at timestamptz;
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   household_id uuid references public.households (id) on delete set null,
@@ -25,7 +31,7 @@ create table if not exists public.profiles (
   role_label text,
   avatar_url text,
   preferred_locale text not null default 'lv',
-  theme_id text not null default 'forest-sunset',
+  theme_id text not null default 'soft-spa',
   reset_score numeric not null default 0,
   reset_privacy_level text not null default 'aura_only',
   birthday_at date,
@@ -33,6 +39,10 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.profiles
+  add column if not exists birthday_at date,
+  add column if not exists name_day_at date;
 
 create table if not exists public.household_members (
   id uuid primary key default gen_random_uuid(),
@@ -183,6 +193,9 @@ create table if not exists public.ai_preferences (
   updated_at timestamptz not null default now()
 );
 
+create unique index if not exists ai_preferences_user_provider_idx
+  on public.ai_preferences (user_id, provider);
+
 create or replace function public.is_household_member(target_household uuid)
 returns boolean
 language sql
@@ -266,7 +279,9 @@ begin
 end;
 $$;
 
-create or replace function public.get_my_household_summary()
+drop function if exists public.get_my_household_summary();
+
+create function public.get_my_household_summary()
 returns table (
   id uuid,
   name text,
@@ -427,6 +442,7 @@ alter table public.ai_preferences enable row level security;
 drop policy if exists "profiles_self_select" on public.profiles;
 drop policy if exists "profiles_household_select" on public.profiles;
 drop policy if exists "profiles_self_update" on public.profiles;
+drop policy if exists "profiles_self_insert" on public.profiles;
 create policy "profiles_self_select" on public.profiles
   for select using (auth.uid() = id);
 create policy "profiles_household_select" on public.profiles
@@ -442,18 +458,22 @@ drop policy if exists "households_member_select" on public.households;
 create policy "households_member_select" on public.households
   for select using (public.is_household_member(id));
 
+drop policy if exists "household_members_member_select" on public.household_members;
 create policy "household_members_member_select" on public.household_members
   for select using (public.is_household_member(household_id));
 
+drop policy if exists "household_invites_member_select" on public.household_invites;
 create policy "household_invites_member_select" on public.household_invites
   for select using (public.is_household_member(household_id));
 
+drop policy if exists "inventory_shared_or_private_select" on public.inventory_items;
 create policy "inventory_shared_or_private_select" on public.inventory_items
   for select using (
     (owner_scope = 'household' and public.is_household_member(household_id))
     or (owner_scope = 'individual' and user_id = auth.uid())
   );
 
+drop policy if exists "inventory_household_insert" on public.inventory_items;
 create policy "inventory_household_insert" on public.inventory_items
   for insert to authenticated
   with check (
@@ -462,18 +482,22 @@ create policy "inventory_household_insert" on public.inventory_items
     and public.is_household_member(household_id)
   );
 
+drop policy if exists "shopping_member_select" on public.shopping_items;
 create policy "shopping_member_select" on public.shopping_items
   for select using (public.is_household_member(household_id));
 
+drop policy if exists "shopping_member_insert" on public.shopping_items;
 create policy "shopping_member_insert" on public.shopping_items
   for insert to authenticated
   with check (public.is_household_member(household_id));
 
+drop policy if exists "shopping_member_update" on public.shopping_items;
 create policy "shopping_member_update" on public.shopping_items
   for update to authenticated
   using (public.is_household_member(household_id))
   with check (public.is_household_member(household_id));
 
+drop policy if exists "inventory_household_delete" on public.inventory_items;
 create policy "inventory_household_delete" on public.inventory_items
   for delete to authenticated
   using (
@@ -482,15 +506,19 @@ create policy "inventory_household_delete" on public.inventory_items
     and public.is_household_member(household_id)
   );
 
+drop policy if exists "fixed_costs_member_select" on public.fixed_costs;
 create policy "fixed_costs_member_select" on public.fixed_costs
   for select using (public.is_household_member(household_id));
 
+drop policy if exists "finance_transactions_member_select" on public.finance_transactions;
 create policy "finance_transactions_member_select" on public.finance_transactions
   for select using (public.is_household_member(household_id));
 
+drop policy if exists "reset_self_select" on public.reset_checkins;
 create policy "reset_self_select" on public.reset_checkins
   for select using (user_id = auth.uid());
 
+drop policy if exists "reset_metrics_self_select" on public.reset_metrics;
 create policy "reset_metrics_self_select" on public.reset_metrics
   for select using (
     exists (
@@ -501,17 +529,39 @@ create policy "reset_metrics_self_select" on public.reset_metrics
     )
   );
 
+drop policy if exists "calendar_visible_events_select" on public.calendar_events;
 create policy "calendar_visible_events_select" on public.calendar_events
   for select using (
     (visibility = 'household' and public.is_household_member(household_id))
     or (visibility = 'individual' and user_id = auth.uid())
   );
 
+drop policy if exists "activity_feed_member_select" on public.activity_feed;
 create policy "activity_feed_member_select" on public.activity_feed
   for select using (public.is_household_member(household_id));
 
+drop policy if exists "notification_preferences_self_select" on public.notification_preferences;
+drop policy if exists "notification_preferences_self_insert" on public.notification_preferences;
+drop policy if exists "notification_preferences_self_update" on public.notification_preferences;
 create policy "notification_preferences_self_select" on public.notification_preferences
   for select using (user_id = auth.uid());
+create policy "notification_preferences_self_insert" on public.notification_preferences
+  for insert to authenticated
+  with check (user_id = auth.uid());
+create policy "notification_preferences_self_update" on public.notification_preferences
+  for update to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
 
+drop policy if exists "ai_preferences_self_select" on public.ai_preferences;
+drop policy if exists "ai_preferences_self_insert" on public.ai_preferences;
+drop policy if exists "ai_preferences_self_update" on public.ai_preferences;
 create policy "ai_preferences_self_select" on public.ai_preferences
   for select using (user_id = auth.uid());
+create policy "ai_preferences_self_insert" on public.ai_preferences
+  for insert to authenticated
+  with check (user_id = auth.uid());
+create policy "ai_preferences_self_update" on public.ai_preferences
+  for update to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());

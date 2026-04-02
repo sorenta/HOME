@@ -11,11 +11,6 @@ import { ResetBodyTracking } from "@/components/reset/reset-body-tracking";
 import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
 import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
 import { ResetWellnessOnboarding } from "@/components/reset/reset-wellness-onboarding";
-import {
-  dashboardSnapshot,
-  householdMembers,
-  resetMetrics,
-} from "@/lib/demo-data";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
 import { hasResetCheckInToday, markResetCheckInDone } from "@/lib/reset-checkin";
@@ -26,32 +21,62 @@ import {
   hasWeightLossGoal,
   loadWellnessState,
   quitGoals,
-  saveWellnessState,
   type ResetWellnessV1,
   type WellnessGoal,
 } from "@/lib/reset-wellness";
+import {
+  loadWellnessStateSynced,
+  persistWellnessStateSynced,
+} from "@/lib/reset-wellness-sync";
+import { useAuth } from "@/components/providers/auth-provider";
+import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 
 export default function ResetPage() {
   const { t } = useI18n();
   const router = useRouter();
+  const { user, profile } = useAuth();
   const [doneToday, setDoneToday] = useState(true);
   const [wellness, setWellness] = useState<ResetWellnessV1>(defaultWellnessState);
   const [hydrated, setHydrated] = useState(false);
   const [showGoalEditor, setShowGoalEditor] = useState(false);
+  const [members, setMembers] = useState<HouseholdMember[]>([]);
 
   useEffect(() => {
+    let alive = true;
     const frame = requestAnimationFrame(() => {
       setDoneToday(hasResetCheckInToday());
       setWellness(loadWellnessState());
       setHydrated(true);
     });
-    return () => cancelAnimationFrame(frame);
-  }, []);
+
+    void loadWellnessStateSynced(user?.id ?? null).then((next) => {
+      if (alive) {
+        setWellness(next);
+      }
+    });
+
+    return () => {
+      alive = false;
+      cancelAnimationFrame(frame);
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    let alive = true;
+    void fetchMyHouseholdMembers().then((next) => {
+      if (alive) {
+        setMembers(next);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [profile?.household_id]);
 
   const persistWellness = useCallback((next: ResetWellnessV1) => {
-    saveWellnessState(next);
     setWellness(next);
-  }, []);
+    void persistWellnessStateSynced(user?.id ?? null, next);
+  }, [user?.id]);
 
   const onSurveyComplete = useCallback(
     (goals: WellnessGoal[]) => {
@@ -81,6 +106,47 @@ export default function ResetPage() {
       .map((b) => b.mode);
     return [...new Set(modes)];
   }, [bodies]);
+  const resetScoreValue = useMemo(() => {
+    let score = wellness.onboardingDone ? 20 : 0;
+    score += quits.length * 15;
+    score += bodies.length * 15;
+    score += Math.min(20, wellness.measurements.length * 4);
+    score += Math.min(20, wellness.weighIns.length * 5);
+    if (doneToday) score += 15;
+    return Math.min(100, score);
+  }, [bodies.length, doneToday, quits.length, wellness.measurements.length, wellness.onboardingDone, wellness.weighIns.length]);
+  const partnerAura = useMemo(() => {
+    if (resetScoreValue >= 75) return t("reset.aura.high");
+    if (resetScoreValue >= 40) return t("reset.aura.steady");
+    return t("reset.aura.low");
+  }, [resetScoreValue, t]);
+  const liveMetrics = useMemo(
+    () => [
+      { label: t("reset.metric.goals"), value: String(wellness.goals.length), tone: "good" as const },
+      { label: t("reset.metric.quit"), value: String(quits.length), tone: quits.length > 0 ? ("good" as const) : ("warn" as const) },
+      {
+        label: t("reset.metric.body"),
+        value: String(wellness.measurements.length + wellness.weighIns.length),
+        tone:
+          wellness.measurements.length + wellness.weighIns.length > 0
+            ? ("good" as const)
+            : ("warn" as const),
+      },
+      {
+        label: t("reset.metric.training"),
+        value: String(trainingModes.length),
+        tone: trainingModes.length > 0 ? ("good" as const) : ("warn" as const),
+      },
+    ],
+    [
+      quits.length,
+      t,
+      trainingModes.length,
+      wellness.goals.length,
+      wellness.measurements.length,
+      wellness.weighIns.length,
+    ],
+  );
 
   function onCheckIn() {
     hapticTap();
@@ -159,11 +225,11 @@ export default function ResetPage() {
         <div className="grid grid-cols-2 gap-3">
           <MetricCard
             label={t("reset.score")}
-            value={`${dashboardSnapshot.resetScore}%`}
+            value={`${resetScoreValue}%`}
           />
           <MetricCard
             label={t("reset.partnerAura")}
-            value={t("reset.partnerAuraDemo")}
+            value={partnerAura}
             hint={t("reset.partnerAuraHint")}
           />
         </div>
@@ -172,7 +238,7 @@ export default function ResetPage() {
       <GlassPanel className="space-y-3">
         <SectionHeading title={t("reset.metrics")} />
         <div className="space-y-2">
-          {resetMetrics.map((metric) => (
+          {liveMetrics.map((metric) => (
             <div
               key={metric.label}
               className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3"
@@ -192,9 +258,21 @@ export default function ResetPage() {
           {t("reset.privacyBody")}
         </p>
         <div className="flex flex-wrap gap-2">
-          {householdMembers.map((member) => (
+          {(members.length > 0
+            ? members
+            : user
+              ? [
+                  {
+                    id: user.id,
+                    display_name: profile?.display_name ?? user.email?.split("@")[0] ?? null,
+                    role_label: profile?.role_label ?? null,
+                    is_me: true,
+                  } satisfies HouseholdMember,
+                ]
+              : []
+          ).map((member) => (
             <StatusPill key={member.id} tone="neutral">
-              {member.name} — {t("reset.seesAuraOnly")}
+              {member.display_name ?? t("household.membersList.member")} — {t("reset.seesAuraOnly")}
             </StatusPill>
           ))}
         </div>

@@ -1,10 +1,14 @@
 type Tone = "neutral" | "good" | "warn" | "critical";
 
 const toneClass: Record<Tone, string> = {
-  neutral: "border-[color:var(--color-surface-border)] text-[color:var(--color-secondary)]",
-  good: "border-emerald-500/30 text-emerald-300",
-  warn: "border-amber-500/30 text-amber-200",
-  critical: "border-rose-500/30 text-rose-200",
+  neutral:
+    "border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/45 text-[color:var(--color-text)]",
+  good:
+    "border-emerald-500/25 bg-emerald-500/10 text-[color:var(--color-text)]",
+  warn:
+    "border-amber-500/25 bg-amber-500/12 text-[color:var(--color-text)]",
+  critical:
+    "border-rose-500/25 bg-rose-500/10 text-[color:var(--color-text)]",
 };
 
 type Props = {
@@ -16,7 +20,7 @@ export function StatusPill({ children, tone = "neutral" }: Props) {
   return (
     <span
       className={[
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[0.7rem] font-medium",
+        "inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-[0.75rem] font-medium leading-tight",
         toneClass[tone],
       ].join(" ")}
     >

@@ -7,15 +7,16 @@ import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
 import type { HouseholdMember } from "@/lib/household";
 import {
-  addWater,
   getMlForMember,
-  loadWaterState,
-  runDailyMedalSettlement,
-  saveWaterState,
   todayIso,
   yesterdayIso,
   type HouseholdWaterV1,
 } from "@/lib/household-water-local";
+import {
+  addWaterSynced,
+  loadWaterStateSynced,
+  subscribeHouseholdWater,
+} from "@/lib/household-water-sync";
 
 type Props = {
   /** Household id or `personal:${userId}` */
@@ -37,6 +38,7 @@ function progressTone(pct: number): "good" | "warn" | "neutral" {
 export function HouseholdWaterWidget({ scopeId, members, currentUserId }: Props) {
   const { t } = useI18n();
   const [water, setWater] = useState<HouseholdWaterV1 | null>(null);
+  const householdId = scopeId.startsWith("personal:") ? null : scopeId;
 
   const effectiveMembers = useMemo(() => {
     if (members.length > 0) return members;
@@ -56,19 +58,38 @@ export function HouseholdWaterWidget({ scopeId, members, currentUserId }: Props)
   const memberIds = useMemo(() => effectiveMembers.map((m) => m.id), [effectiveMembers]);
 
   useEffect(() => {
+    let alive = true;
     const frame = requestAnimationFrame(() => {
-      let w = loadWaterState(scopeId);
-      w = runDailyMedalSettlement(w, memberIds);
-      saveWaterState(w);
-      setWater(w);
+      void loadWaterStateSynced({
+        scopeId,
+        householdId,
+        currentUserId,
+      }).then((next) => {
+        if (alive) {
+          setWater(next);
+        }
+      });
     });
-    return () => cancelAnimationFrame(frame);
-  }, [scopeId, memberIds]);
 
-  const persist = useCallback((next: HouseholdWaterV1) => {
-    saveWaterState(next);
-    setWater(next);
-  }, []);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(frame);
+    };
+  }, [currentUserId, householdId, memberIds, scopeId]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeHouseholdWater(householdId, () => {
+      void loadWaterStateSynced({
+        scopeId,
+        householdId,
+        currentUserId,
+      }).then(setWater);
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [currentUserId, householdId, scopeId]);
 
   const date = todayIso();
   const yest = yesterdayIso();
@@ -80,11 +101,19 @@ export function HouseholdWaterWidget({ scopeId, members, currentUserId }: Props)
       .sort((a, b) => b.ml - a.ml);
   }, [water, effectiveMembers, yest]);
 
-  const addForMember = (memberId: string, ml: number) => {
+  const addForMember = useCallback((memberId: string, ml: number) => {
     if (!water) return;
     hapticTap();
-    persist(addWater(water, date, memberId, ml));
-  };
+    void addWaterSynced({
+      scopeId,
+      householdId,
+      currentUserId,
+      memberId,
+      date,
+      deltaMl: ml,
+      currentState: water,
+    }).then(setWater);
+  }, [currentUserId, date, householdId, scopeId, water]);
 
   if (!water || effectiveMembers.length === 0) {
     return null;

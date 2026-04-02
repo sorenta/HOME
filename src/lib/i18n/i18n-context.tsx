@@ -12,6 +12,7 @@ import type { Locale } from "./dictionaries";
 import { dictionaries } from "./dictionaries";
 
 type TParams = Record<string, string>;
+const LOCALE_KEY = "majapps-locale-v2";
 
 type I18nContextValue = {
   locale: Locale;
@@ -23,21 +24,36 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 function detectLocale(): Locale {
   if (typeof navigator === "undefined") return "lv";
+
+  const preferred = navigator.languages?.map((lang) => lang.split("-")[0]) ?? [];
+  if (preferred.includes("lv")) return "lv";
+  if (preferred.includes("en")) return "en";
+
   const lang = navigator.language.split("-")[0];
-  return lang === "en" ? "en" : "lv";
+  if (lang === "lv") return "lv";
+  if (lang === "en") return "en";
+
+  try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (zone === "Europe/Riga") return "lv";
+  } catch {
+    /* ignore */
+  }
+
+  return "lv";
 }
 
 function getInitialLocale(): Locale {
   if (typeof window === "undefined") return "lv";
   try {
-    const saved = localStorage.getItem("majapps-locale");
+    const saved = localStorage.getItem(LOCALE_KEY);
     if (saved === "en" || saved === "lv") {
       return saved;
     }
   } catch {
     /* ignore */
   }
-  return detectLocale();
+  return "lv";
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -57,7 +73,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     try {
-      localStorage.setItem("majapps-locale", next);
+      localStorage.setItem(LOCALE_KEY, next);
     } catch {
       /* ignore */
     }

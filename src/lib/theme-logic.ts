@@ -1,4 +1,5 @@
 export type ThemeId =
+  | "soft-spa"
   | "forest-sunset"
   | "ocean-depth"
   | "zephyr-soft"
@@ -38,6 +39,38 @@ export type ThemeManifest = {
 };
 
 export const THEMES: Record<ThemeId, ThemeManifest> = {
+  "soft-spa": {
+    id: "soft-spa",
+    labelKey: "theme.spa",
+    emoji: "🫧",
+    colors: {
+      text: "#442d35",
+      background: "#f6ede8",
+      primary: "#b98596",
+      secondary: "#6d5961",
+      accent: "#c1d6bb",
+      surface: "rgba(255, 248, 244, 0.72)",
+      surfaceBorder: "rgba(154, 124, 134, 0.16)",
+    },
+    fontVars: {
+      sans: "var(--font-lora)",
+      display: "var(--font-playfair)",
+    },
+    ui: {
+      backgroundImage:
+        "radial-gradient(circle at 18% 18%, rgba(255, 228, 220, 0.72), transparent 28%), radial-gradient(circle at 82% 16%, rgba(233, 241, 231, 0.68), transparent 26%), radial-gradient(circle at 50% 100%, rgba(255, 247, 241, 0.86), transparent 38%), linear-gradient(180deg, #f9f1ec 0%, #f6ede8 48%, #f3ebe6 100%)",
+      panelShadow: "0 24px 56px rgba(88, 59, 68, 0.12)",
+      panelHighlight: "rgba(255, 255, 255, 0.72)",
+      tileShadow: "0 16px 34px rgba(97, 69, 77, 0.08)",
+      headerGlow: "rgba(185, 133, 150, 0.22)",
+      panelRadius: "30px",
+      tileRadius: "26px",
+      chipRadius: "22px",
+      panelBorderStyle: "1px solid rgba(255, 255, 255, 0.5)",
+      tileBorderStyle: "1px solid rgba(154, 124, 134, 0.14)",
+    },
+    motion: "soft",
+  },
   "forest-sunset": {
     id: "forest-sunset",
     labelKey: "theme.forest",
@@ -200,7 +233,7 @@ export const THEMES: Record<ThemeId, ThemeManifest> = {
   },
 };
 
-export const DEFAULT_THEME: ThemeId = "forest-sunset";
+export const DEFAULT_THEME: ThemeId = "soft-spa";
 
 export function isThemeId(value: string): value is ThemeId {
   return value in THEMES;

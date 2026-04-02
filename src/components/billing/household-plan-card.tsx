@@ -11,6 +11,7 @@ import {
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
+import { formatAppDate } from "@/lib/date-format";
 import { useI18n } from "@/lib/i18n/i18n-context";
 
 function featureLabelKey(feature: string) {
@@ -37,16 +38,7 @@ function featureLabelKey(feature: string) {
 }
 
 function formatPlanDate(value: string | null | undefined, locale: string) {
-  if (!value) return null;
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return date.toLocaleDateString(locale === "lv" ? "lv-LV" : "en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatAppDate(value, locale === "lv" ? "lv" : "en");
 }
 
 export function HouseholdPlanCard() {

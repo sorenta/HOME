@@ -3,8 +3,7 @@ export type ModuleId =
   | "finance"
   | "reset"
   | "kitchen"
-  | "pharmacy"
-  | "events";
+  | "pharmacy";
 
 const STORAGE_KEY = "majapps-module-usage";
 
@@ -31,14 +30,13 @@ export function recordModuleVisit(id: ModuleId): void {
   }
 }
 
-/** Default order matches spec: Kalendārs → Finanses → RESET → Virtuve → Aptieciņa → Notikumi */
+/** Kalendārs/notikumi (viena flīze) → pārējie mājas moduļi */
 const DEFAULT_ORDER: ModuleId[] = [
   "calendar",
+  "kitchen",
   "finance",
   "reset",
-  "kitchen",
   "pharmacy",
-  "events",
 ];
 
 export function getAdaptiveModuleOrder(): ModuleId[] {

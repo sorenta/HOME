@@ -15,13 +15,14 @@ import { THEMES, type ThemeId } from "@/lib/theme-logic";
 import { hapticTap } from "@/lib/haptic";
 import {
   type AiProvider,
+  getKeyLastFour,
   getProviderKeyFromStorage,
   maskKey,
   removeProviderKeyFromStorage,
   setProviderKeyInStorage,
   validateProviderKey,
 } from "@/lib/ai/keys";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, getBrowserClient } from "@/lib/supabase/client";
 
 const SETTINGS_KEY = "majapps-local-settings";
 
@@ -29,6 +30,18 @@ type LocalSettings = {
   pushFinance: boolean;
   pushPharmacy: boolean;
   showResetAura: boolean;
+};
+
+type NotificationPreferencesRow = {
+  finance_enabled: boolean;
+  pharmacy_enabled: boolean;
+  reset_empathy_enabled: boolean;
+};
+
+type AiPreferenceRow = {
+  provider: AiProvider;
+  is_enabled: boolean;
+  key_last_four: string | null;
 };
 
 type ByokProviderState = {
@@ -70,7 +83,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { t, locale, setLocale } = useI18n();
   const { themeId, setThemeId } = useTheme();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
   const [byok, setByok] = useState<Record<AiProvider, ByokProviderState>>({
     gemini: EMPTY_PROVIDER_STATE,
     openai: EMPTY_PROVIDER_STATE,
@@ -83,6 +96,7 @@ export default function SettingsPage() {
   const supabaseReady = createClient() !== null;
 
   useEffect(() => {
+    let alive = true;
     const frame = requestAnimationFrame(() => {
       setByok({
         gemini: (() => {
@@ -106,15 +120,82 @@ export default function SettingsPage() {
       });
       setSettings(readLocalSettings());
     });
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
-  function persistSettings(next: LocalSettings) {
+    const loadRemotePreferences = async () => {
+      if (!user) return;
+      const supabase = getBrowserClient();
+      if (!supabase) return;
+
+      const [{ data: notificationData }, { data: aiPreferenceRows }] = await Promise.all([
+        supabase
+          .from("notification_preferences")
+          .select("finance_enabled, pharmacy_enabled, reset_empathy_enabled")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("ai_preferences")
+          .select("provider, is_enabled, key_last_four")
+          .eq("user_id", user.id),
+      ]);
+
+      if (!alive) return;
+
+      if (notificationData) {
+        const row = notificationData as NotificationPreferencesRow;
+        setSettings({
+          pushFinance: row.finance_enabled,
+          pushPharmacy: row.pharmacy_enabled,
+          showResetAura: row.reset_empathy_enabled,
+        });
+      }
+
+      if (aiPreferenceRows?.length) {
+        setByok((current) => {
+          const next = { ...current };
+          for (const row of aiPreferenceRows as AiPreferenceRow[]) {
+            const saved = getProviderKeyFromStorage(row.provider) ?? "";
+            next[row.provider] = {
+              value: saved,
+              savedValue: saved,
+              status: "idle",
+              error: null,
+            };
+          }
+          return next;
+        });
+      }
+    };
+
+    void loadRemotePreferences();
+
+    return () => {
+      alive = false;
+      cancelAnimationFrame(frame);
+    };
+  }, [user]);
+
+  async function persistSettings(next: LocalSettings) {
     setSettings(next);
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
     } catch {
       /* ignore */
+    }
+
+    if (!user) return;
+    const supabase = getBrowserClient();
+    if (!supabase) return;
+
+    const { error } = await supabase.from("notification_preferences").upsert({
+      user_id: user.id,
+      finance_enabled: next.pushFinance,
+      pharmacy_enabled: next.pushPharmacy,
+      reset_empathy_enabled: next.showResetAura,
+      updated_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      console.error("Failed to save notification preferences", error);
     }
   }
 
@@ -185,6 +266,22 @@ export default function SettingsPage() {
       }
 
       setProviderKeyInStorage(provider, value);
+      if (user) {
+        const supabase = getBrowserClient();
+        if (supabase) {
+          const { error } = await supabase.from("ai_preferences").upsert({
+            user_id: user.id,
+            provider,
+            label: provider === "gemini" ? "Gemini" : "OpenAI",
+            is_enabled: true,
+            key_last_four: getKeyLastFour(value),
+            updated_at: new Date().toISOString(),
+          });
+          if (error) {
+            console.error("Failed to sync AI preference metadata", error);
+          }
+        }
+      }
       setByok((current) => ({
         ...current,
         [provider]: {
@@ -212,6 +309,26 @@ export default function SettingsPage() {
   function removeProvider(provider: AiProvider) {
     hapticTap();
     removeProviderKeyFromStorage(provider);
+    if (user) {
+      const supabase = getBrowserClient();
+      if (supabase) {
+        void supabase
+          .from("ai_preferences")
+          .upsert({
+            user_id: user.id,
+            provider,
+            label: provider === "gemini" ? "Gemini" : "OpenAI",
+            is_enabled: false,
+            key_last_four: null,
+            updated_at: new Date().toISOString(),
+          })
+          .then(({ error }) => {
+            if (error) {
+              console.error("Failed to clear AI preference metadata", error);
+            }
+          });
+      }
+    }
     setByok((current) => ({
       ...current,
       [provider]: EMPTY_PROVIDER_STATE,
@@ -221,6 +338,25 @@ export default function SettingsPage() {
   async function onSignOut() {
     await signOut();
     router.push("/auth");
+  }
+
+  async function handleThemeChange(id: ThemeId) {
+    hapticTap();
+    setThemeId(id);
+
+    if (!user) return;
+
+    const supabase = getBrowserClient();
+    if (!supabase) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ theme_id: id })
+      .eq("id", user.id);
+
+    if (!error) {
+      await refreshProfile();
+    }
   }
 
   function renderProviderCard(provider: AiProvider, label: string) {
@@ -316,10 +452,7 @@ export default function SettingsPage() {
               <button
                 key={id}
                 type="button"
-                onClick={() => {
-                  hapticTap();
-                  setThemeId(id);
-                }}
+                onClick={() => void handleThemeChange(id)}
                 className={[
                   "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm",
                   themeId === id
@@ -377,14 +510,14 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() =>
-            persistSettings({
+            void persistSettings({
               ...settings,
               pushFinance: !settings.pushFinance,
             })
           }
           className="flex w-full items-center justify-between rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left text-sm"
         >
-          <span>Finanšu paziņojumi</span>
+          <span>{t("settings.notifications.finance")}</span>
           <StatusPill tone={settings.pushFinance ? "good" : "neutral"}>
             {settings.pushFinance ? "ON" : "OFF"}
           </StatusPill>
@@ -392,14 +525,14 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() =>
-            persistSettings({
+            void persistSettings({
               ...settings,
               pushPharmacy: !settings.pushPharmacy,
             })
           }
           className="flex w-full items-center justify-between rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left text-sm"
         >
-          <span>Aptieciņas atgādinājumi</span>
+          <span>{t("settings.notifications.pharmacy")}</span>
           <StatusPill tone={settings.pushPharmacy ? "good" : "neutral"}>
             {settings.pushPharmacy ? "ON" : "OFF"}
           </StatusPill>
@@ -411,16 +544,16 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() =>
-            persistSettings({
+            void persistSettings({
               ...settings,
               showResetAura: !settings.showResetAura,
             })
           }
           className="flex w-full items-center justify-between rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left text-sm"
         >
-          <span>Partnerim rādīt RESET auru</span>
+          <span>{t("settings.privacy.resetAura")}</span>
           <StatusPill tone={settings.showResetAura ? "warn" : "neutral"}>
-            {settings.showResetAura ? "Atļauts" : "Paslēpts"}
+            {settings.showResetAura ? t("settings.state.allowed") : t("settings.state.hidden")}
           </StatusPill>
         </button>
       </GlassPanel>

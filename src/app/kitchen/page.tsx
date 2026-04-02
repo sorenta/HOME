@@ -24,13 +24,14 @@ import {
   updateShoppingItemStatus,
 } from "@/lib/kitchen";
 import { kitchenOnboardingStorageKey } from "@/lib/kitchen-onboarding";
+import { formatAppDate } from "@/lib/date-format";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/i18n-context";
 
 type KitchenView = "inventory" | "shopping";
 
 export default function KitchenPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { profile } = useAuth();
   const [inventory, setInventory] = useState<KitchenInventoryRecord[]>([]);
   const [shopping, setShopping] = useState<ShoppingRecord[]>([]);
@@ -439,7 +440,9 @@ export default function KitchenPage() {
                       <p className="font-medium text-[color:var(--color-text)]">{item.name}</p>
                       <p className="text-xs text-[color:var(--color-secondary)]">
                         {formatQuantity(item.quantity, item.unit)}
-                        {item.expiry_date ? ` · ${item.expiry_date}` : ""}
+                        {item.expiry_date
+                          ? ` · ${formatAppDate(item.expiry_date, locale) ?? item.expiry_date}`
+                          : ""}
                       </p>
                     </div>
                     <StatusPill tone={inventoryTone(item.status)}>{item.status}</StatusPill>
@@ -560,6 +563,7 @@ export default function KitchenPage() {
               {t("kitchen.form.expiry")}
               <input
                 type="date"
+                lang={locale === "lv" ? "lv-LV" : "en-US"}
                 value={inventoryExpiry}
                 onChange={(e) => setInventoryExpiry(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"

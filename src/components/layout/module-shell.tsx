@@ -31,7 +31,7 @@ export function ModuleShell({
   }, [moduleId]);
 
   return (
-    <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-28 pt-6">
+    <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-28 pt-18">
       <motion.header
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,9 +45,14 @@ export function ModuleShell({
         >
           ←
         </Link>
-        <h1 className="font-[family-name:var(--font-theme-display)] text-2xl font-semibold text-[color:var(--color-text)]">
-          {title}
-        </h1>
+        <div>
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-[color:var(--color-secondary)]">
+            HOME:OS
+          </p>
+          <h1 className="font-[family-name:var(--font-theme-display)] text-2xl font-semibold text-[color:var(--color-text)]">
+            {title}
+          </h1>
+        </div>
         <div className="ml-auto">
           <HiddenSeasonalCollectible
             spotId={pathname === "/" ? "home" : pathname.replace("/", "")}

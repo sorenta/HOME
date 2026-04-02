@@ -13,8 +13,7 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
-import { loadWaterState } from "@/lib/household-water-local";
-import { growthTips, profileSummary } from "@/lib/demo-data";
+import { loadUserWaterMedals } from "@/lib/household-water-sync";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
 import { getBrowserClient } from "@/lib/supabase/client";
@@ -23,13 +22,31 @@ function toDateInputValue(value: string | null | undefined) {
   return value ?? "";
 }
 
+function isMissingSpecialDateColumns(error: unknown) {
+  const message =
+    typeof error === "object" && error
+      ? `${(error as { message?: string }).message ?? ""}`.toLowerCase()
+      : "";
+  return (
+    message.includes("birthday_at") ||
+    message.includes("name_day_at") ||
+    message.includes("column") ||
+    message.includes("schema cache")
+  );
+}
+
 export default function ProfilePage() {
   const { t, locale } = useI18n();
   const { user, profile, refreshProfile } = useAuth();
+  const [displayNameInput, setDisplayNameInput] = useState("");
   const [birthdayAt, setBirthdayAt] = useState("");
   const [nameDayAt, setNameDayAt] = useState("");
   const [householdName, setHouseholdName] = useState<string | null>(null);
+  const [householdMemberCount, setHouseholdMemberCount] = useState(0);
   const [medals, setMedals] = useState({ gold: 0, silver: 0, bronze: 0 });
+  const [savingName, setSavingName] = useState(false);
+  const [nameMessage, setNameMessage] = useState<string | null>(null);
+  const [nameTone, setNameTone] = useState<"good" | "critical">("good");
   const [savingDates, setSavingDates] = useState(false);
   const [datesMessage, setDatesMessage] = useState<string | null>(null);
   const [datesTone, setDatesTone] = useState<"good" | "critical">("good");
@@ -41,17 +58,20 @@ export default function ProfilePage() {
     { href: "/settings", label: t("nav.settings"), icon: "⚙" },
   ];
   const displayName =
-    profile?.display_name ?? user?.user_metadata.display_name ?? user?.email?.split("@")[0] ?? profileSummary.name;
-  const role = profile?.role_label ?? profileSummary.role;
+    profile?.display_name ?? user?.user_metadata.display_name ?? user?.email?.split("@")[0] ?? "";
+  const role = profile?.role_label ?? t("profile.roleFallback");
+  const resetScore = Math.round(Number(profile?.reset_score ?? 0));
+  const celebrationsCount = Number(Boolean(birthdayAt)) + Number(Boolean(nameDayAt));
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
+      setDisplayNameInput(displayName);
       setBirthdayAt(toDateInputValue(profile?.birthday_at));
       setNameDayAt(toDateInputValue(profile?.name_day_at));
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [profile?.birthday_at, profile?.name_day_at]);
+  }, [displayName, profile?.birthday_at, profile?.name_day_at]);
 
   useEffect(() => {
     let alive = true;
@@ -60,6 +80,7 @@ export default function ProfilePage() {
       const summary = await fetchMyHouseholdSummary();
       if (!alive) return;
       setHouseholdName(summary?.name ?? "");
+      setHouseholdMemberCount(Number(summary?.member_count ?? 0));
     };
 
     void loadHousehold();
@@ -71,15 +92,65 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user?.id) return;
+    let alive = true;
 
-    const frame = requestAnimationFrame(() => {
-      const scopeId = profile?.household_id ?? `personal:${user.id}`;
-      const water = loadWaterState(scopeId);
-      setMedals(water.achievements[user.id] ?? { gold: 0, silver: 0, bronze: 0 });
+    void loadUserWaterMedals({
+      scopeId: profile?.household_id ?? `personal:${user.id}`,
+      householdId: profile?.household_id ?? null,
+      userId: user.id,
+    }).then((next) => {
+      if (alive) {
+        setMedals(next);
+      }
     });
 
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      alive = false;
+    };
   }, [profile?.household_id, user?.id]);
+
+  async function saveDisplayName() {
+    if (!user?.id) return;
+    const supabase = getBrowserClient();
+    if (!supabase) return;
+
+    const nextName = displayNameInput.trim();
+    if (!nextName) {
+      setNameTone("critical");
+      setNameMessage(t("profile.name.error"));
+      return;
+    }
+
+    setSavingName(true);
+    setNameMessage(null);
+    setNameTone("good");
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        display_name: nextName,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      setSavingName(false);
+      setNameTone("critical");
+      setNameMessage(t("profile.name.error"));
+      return;
+    }
+
+    await supabase.auth.updateUser({
+      data: {
+        display_name: nextName,
+        name: nextName,
+      },
+    });
+
+    await refreshProfile();
+    setSavingName(false);
+    setNameTone("good");
+    setNameMessage(t("profile.name.saved"));
+  }
 
   async function saveSpecialDates() {
     if (!user?.id) return;
@@ -102,7 +173,11 @@ export default function ProfilePage() {
 
     if (error) {
       setDatesTone("critical");
-      setDatesMessage(t("profile.specialDates.error"));
+      setDatesMessage(
+        isMissingSpecialDateColumns(error)
+          ? t("profile.specialDates.missingColumns")
+          : t("profile.specialDates.error"),
+      );
       return;
     }
 
@@ -134,11 +209,30 @@ export default function ProfilePage() {
               </p>
             ) : null}
           </div>
-          <StatusPill tone="good">{profileSummary.streak}</StatusPill>
+          <StatusPill tone={resetScore >= 60 ? "good" : "neutral"}>{`RESET ${resetScore}%`}</StatusPill>
         </div>
         <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
           {t("profile.blurb")}
         </p>
+        <label className="block text-sm text-[color:var(--color-text)]">
+          {t("profile.name.label")}
+          <input
+            type="text"
+            value={displayNameInput}
+            onChange={(e) => setDisplayNameInput(e.target.value)}
+            placeholder={t("profile.name.placeholder")}
+            className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => void saveDisplayName()}
+          disabled={savingName}
+          className="w-full rounded-xl border border-[color:var(--color-primary)] bg-[color:var(--color-surface)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)] disabled:opacity-60"
+        >
+          {savingName ? t("profile.name.saving") : t("profile.name.save")}
+        </button>
+        {nameMessage ? <StatusPill tone={nameTone}>{nameMessage}</StatusPill> : null}
       </GlassPanel>
 
       {profile?.household_id ? (
@@ -152,9 +246,16 @@ export default function ProfilePage() {
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        <MetricCard label="RESET" value={profileSummary.resetPoints} />
-        <MetricCard label="Grozs" value={profileSummary.shoppingContributions} />
-        <MetricCard label="Rēķini" value={profileSummary.financeActions} />
+        <MetricCard label={t("profile.metric.reset")} value={`${resetScore}%`} />
+        <MetricCard
+          label={t("profile.metric.medals")}
+          value={medals.gold + medals.silver + medals.bronze}
+        />
+        <MetricCard
+          label={t("profile.metric.celebrations")}
+          value={celebrationsCount}
+          hint={profile?.household_id ? String(householdMemberCount) : "0"}
+        />
       </div>
 
       <GlassPanel className="space-y-3">
@@ -245,17 +346,6 @@ export default function ProfilePage() {
         ) : null}
       </GlassPanel>
 
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("profile.growth")} />
-        {growthTips.map((tip) => (
-          <div
-            key={tip}
-            className="rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-sm text-[color:var(--color-text)]"
-          >
-            {tip}
-          </div>
-        ))}
-      </GlassPanel>
     </ModuleShell>
   );
 }

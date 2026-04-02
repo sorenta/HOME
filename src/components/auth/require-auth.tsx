@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
-import { AuthScreen } from "./auth-screen";
 
 type Props = {
   children: React.ReactNode;
@@ -11,8 +12,16 @@ type Props = {
 };
 
 export function RequireAuth({ children, compact = true }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { ready, user } = useAuth();
   const { t } = useI18n();
+
+  useEffect(() => {
+    if (!ready || user || compact) return;
+    if (pathname.startsWith("/auth")) return;
+    router.replace("/auth");
+  }, [compact, pathname, ready, router, user]);
 
   if (!ready) {
     return (
@@ -39,8 +48,10 @@ export function RequireAuth({ children, compact = true }: Props) {
         </Link>
       </div>
     ) : (
-      <div className="flex min-h-[100dvh] flex-col justify-center px-4 pb-28 pt-6">
-        <AuthScreen compact={false} />
+      <div className="flex min-h-[100dvh] items-center justify-center px-4 pb-10 pt-6">
+        <div className="rounded-3xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-5 text-center text-sm text-[color:var(--color-secondary)]">
+          {t("auth.session.loading")}
+        </div>
       </div>
     );
   }

@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
 import { AppBottomNav } from "@/components/dashboard/bento-dashboard";
+import { GlobalCornerActions } from "@/components/layout/global-corner-actions";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,15 +38,15 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Mājas · HomeOS",
+  title: "HOME:OS",
   description:
-    "Mājsaimniecības lietotne: virtuve, finanses, RESET, aptieciņa un notikumi.",
-  applicationName: "Mājas",
+    "HOME:OS household flow for kitchen, finance, calendar, pharmacy, and RESET.",
+  applicationName: "HOME:OS",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Mājas",
+    title: "HOME:OS",
   },
   icons: {
     icon: "/icon",
@@ -76,6 +77,7 @@ export default function RootLayout({
       >
         <AppProviders>
           <div className="relative isolate mx-auto flex min-h-full max-w-lg flex-col">
+            <GlobalCornerActions />
             <div className="relative z-10 flex min-h-[100dvh] flex-1 flex-col">
               {children}
             </div>

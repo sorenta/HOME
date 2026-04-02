@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
 
-const ALWAYS_SHOW_EMAIL = "sorentab.15@gmail.com";
-
 export function AuthWelcomeModal() {
   const pathname = usePathname();
   const { ready, user } = useAuth();
@@ -15,23 +13,23 @@ export function AuthWelcomeModal() {
 
   useEffect(() => {
     if (!ready || !user || pathname.startsWith("/auth")) {
-      setOpen(false);
-      return;
+      const frame = window.requestAnimationFrame(() => setOpen(false));
+      return () => window.cancelAnimationFrame(frame);
     }
 
     if (typeof window === "undefined") return;
 
-    const email = user.email?.trim().toLowerCase();
-    if (email === ALWAYS_SHOW_EMAIL) {
-      setOpen(true);
-      return;
+    const pendingKey = `majapps-auth-welcome-pending-${user.id}`;
+    const shouldOpen = window.localStorage.getItem(pendingKey) === "true";
+
+    if (shouldOpen) {
+      window.localStorage.removeItem(pendingKey);
+      const frame = window.requestAnimationFrame(() => setOpen(true));
+      return () => window.cancelAnimationFrame(frame);
     }
 
-    const pendingKey = `majapps-auth-welcome-pending-${user.id}`;
-    if (window.localStorage.getItem(pendingKey) === "true") {
-      setOpen(true);
-      window.localStorage.removeItem(pendingKey);
-    }
+    const frame = window.requestAnimationFrame(() => setOpen(false));
+    return () => window.cancelAnimationFrame(frame);
   }, [pathname, ready, user]);
 
   if (!open || !user || pathname.startsWith("/auth")) {

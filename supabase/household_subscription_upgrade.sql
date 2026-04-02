@@ -4,7 +4,9 @@ alter table public.households
   add column if not exists trial_ends_at timestamptz,
   add column if not exists current_period_ends_at timestamptz;
 
-create or replace function public.get_my_household_summary()
+drop function if exists public.get_my_household_summary();
+
+create function public.get_my_household_summary()
 returns table (
   id uuid,
   name text,

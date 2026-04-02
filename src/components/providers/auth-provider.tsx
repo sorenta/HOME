@@ -43,7 +43,7 @@ function profileSeed(user: User) {
       user.email?.split("@")[0] ??
       "Member",
     preferred_locale: "lv",
-    theme_id: "forest-sunset",
+    theme_id: "soft-spa",
   };
 }
 
@@ -55,7 +55,7 @@ async function ensureProfile(user: User): Promise<Profile | null> {
 
   const { error: upsertError } = await supabase
     .from("profiles")
-    .upsert(seed, { onConflict: "id" });
+    .upsert(seed, { onConflict: "id", ignoreDuplicates: true });
 
   if (upsertError) {
     console.error("Failed to ensure profile", upsertError);

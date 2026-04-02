@@ -72,7 +72,6 @@ export const dashboardSnapshot = {
   resetScore: 74,
   pendingCount: 4,
   aiReady: true,
-  todayFocus: "RESET check-in vēl nav veikts. Pēc tā priekšplānā izvirzīsies vakariņu plāns.",
   adaptiveHint: "Flīžu secība pielāgojas biežāk lietotajiem moduļiem.",
 };
 
@@ -104,6 +103,29 @@ export const financeSummary = {
   aiInsight:
     "Šomēnes pārtikas grozs aug straujāk par plānoto. AI iesaka vienu kopīgu iepirkumu logu nedēļā.",
 };
+
+export const financeBuckets = [
+  { id: "fb1", label: "Pārtika un māja", amount: "412 €", hint: "Šomēnes" },
+  { id: "fb2", label: "Transports", amount: "128 €", hint: "Kopīgais auto" },
+  { id: "fb3", label: "Bērni un skola", amount: "96 €", hint: "Mainīgie" },
+] as const;
+
+export const financeGoals = [
+  {
+    id: "fg1",
+    label: "Kopīgais atvaļinājums",
+    current: "820 €",
+    target: "2 400 €",
+    pct: 34,
+  },
+  {
+    id: "fg2",
+    label: "Jauns ledusskapis",
+    current: "310 €",
+    target: "900 €",
+    pct: 55,
+  },
+] as const;
 
 export const resetMetrics = [
   { label: "Soļi", value: "7 420", tone: "good" },
