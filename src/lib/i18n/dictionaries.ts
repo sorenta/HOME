@@ -288,6 +288,7 @@ export const dictionaries: Record<
     "seasonal.mensday.title.after": "Vīriešu dienas noskaņa vēl paliek",
     "seasonal.mensday.body.after":
       "Vēl pāris dienas saglabājam svinīgu vieglumu.",
+    "seasonal.collectible.easterEgg": "Paslēpta Lieldienu ola — piesit, lai savāktu",
     "seasonal.reward.ready": "Balva gatava",
     "seasonal.reward.unlocked": "Balva atslēgta",
     "seasonal.reward.cta": "Skaidrs",
@@ -890,6 +891,7 @@ export const dictionaries: Record<
     "seasonal.mensday.title.after": "The Men’s Day mood lingers",
     "seasonal.mensday.body.after":
       "For a couple more days, the app keeps a light celebratory tone.",
+    "seasonal.collectible.easterEgg": "Hidden Easter egg — tap to collect",
     "seasonal.reward.ready": "Reward ready",
     "seasonal.reward.unlocked": "Reward unlocked",
     "seasonal.reward.cta": "Nice",
