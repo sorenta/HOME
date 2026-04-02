@@ -11,7 +11,7 @@ import {
   Space_Grotesk,
 } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
-import { AppBottomNav } from "@/components/dashboard/bento-dashboard";
+import { ThemeBottomNav } from "@/components/navigation/theme-bottom-nav";
 import { GlobalCornerActions } from "@/components/layout/global-corner-actions";
 import { THEMES, DEFAULT_THEME } from "@/lib/theme-logic";
 import "./globals.css";
@@ -115,7 +115,7 @@ export default function RootLayout({
             <div className="relative z-10 flex min-h-[100dvh] flex-1 flex-col">
               {children}
             </div>
-            <AppBottomNav />
+            <ThemeBottomNav />
           </div>
         </AppProviders>
       </body>

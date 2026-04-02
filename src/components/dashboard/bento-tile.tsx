@@ -48,7 +48,8 @@ export function BentoTile({
         href={href}
         onClick={() => hapticTap()}
         className={[
-          "maj-bento-tile maj-dashboard-tile flex min-h-[5.5rem] flex-col justify-between bg-[color:var(--color-surface)] p-4 transition-[transform,box-shadow]",
+          `maj-bento-tile maj-dashboard-tile maj-tile-shell maj-tile-shell--${themeId}`,
+          "flex min-h-[5.5rem] flex-col justify-between bg-[color:var(--color-surface)] p-4 transition-[transform,box-shadow]",
           "active:scale-[0.98] hover:-translate-y-0.5",
           attention ? "maj-pulse-attention" : "",
           highlight

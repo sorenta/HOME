@@ -389,7 +389,12 @@ html[data-theme="forge"] .maj-glass-panel {
 }
 
 html[data-theme="lucent"] .maj-glass-panel {
-  backdrop-filter: blur(28px) saturate(158%);
+  /* Single lighter blur pass — avoids GPU overload on device */
+  backdrop-filter: blur(14px) saturate(145%);
+}
+
+html[data-theme="lucent"] .maj-glass-panel::before {
+  opacity: 0.42;
 }
 
 html[data-theme="pulse"] .maj-glass-panel {
@@ -409,7 +414,11 @@ html[data-theme="forge"] .maj-bento-tile {
 }
 
 html[data-theme="lucent"] .maj-bento-tile {
-  backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(138%);
+}
+
+html[data-theme="lucent"] .maj-bento-tile::before {
+  opacity: 0.38;
 }
 
 html[data-theme="pulse"] .maj-bento-tile {
@@ -564,19 +573,23 @@ html[data-home-layout="pulse-poster"] .maj-dashboard-tile {
     0 0 0 2px color-mix(in srgb, var(--color-accent) 38%, var(--color-border));
 }
 
-/* Lucent: floating layered modules */
+/* Lucent: float via box-shadow + overlap — no filter: drop-shadow on lists (GPU) */
 html[data-home-layout="lucent-float"] .maj-dashboard-modules {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(var(--maj-space-bento-gap) + 4px);
-  padding: 0.2rem 0.05rem 0.45rem;
+  gap: calc(var(--maj-space-bento-gap) + 6px);
+  padding: 0.25rem 0.1rem 0.5rem;
 }
 
-html[data-home-layout="lucent-float"] .maj-dashboard-modules > * {
-  filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--color-primary) 14%, transparent));
+html[data-home-layout="lucent-float"] .maj-dashboard-tile {
+  box-shadow:
+    0 12px 28px color-mix(in srgb, var(--color-primary) 12%, transparent),
+    0 2px 0 color-mix(in srgb, #fff 55%, transparent);
 }
 
-html[data-home-layout="lucent-float"] .maj-dashboard-metrics {
-  filter: drop-shadow(0 10px 22px color-mix(in srgb, var(--color-primary) 10%, transparent));
+html[data-home-layout="lucent-float"] .maj-dashboard-metrics .maj-metric-card {
+  box-shadow:
+    0 10px 24px color-mix(in srgb, var(--color-primary) 10%, transparent),
+    0 0 0 1px color-mix(in srgb, #fff 65%, transparent);
 }
 
 html[data-home-layout="lucent-float"] .maj-dashboard-feed {
@@ -588,7 +601,7 @@ html[data-home-layout="lucent-float"] .maj-dashboard-feed {
     color-mix(in srgb, var(--color-card-elevated) 55%, transparent),
     color-mix(in srgb, var(--color-surface) 40%, transparent)
   );
-  box-shadow: 0 24px 48px color-mix(in srgb, var(--color-primary) 8%, transparent);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--color-primary) 7%, transparent);
 }
 
 /* Hive: warm modular cluster — honeycomb-lite rhythm */
@@ -621,6 +634,142 @@ html[data-home-layout="hive-cluster"] .maj-dashboard-modules > *:nth-child(even)
   html[data-home-layout="hive-cluster"] .maj-dashboard-modules > *:nth-child(even) {
     transform: none;
   }
+}
+
+/* ── Dashboard composition wrappers (per-theme DOM from dashboard-home-layout.tsx) ── */
+.maj-pulse-hero-band {
+  height: 6px;
+  width: 100%;
+  margin-bottom: 0.25rem;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    color-mix(in srgb, var(--color-accent) 40%, #4ecdc4),
+    var(--color-border)
+  );
+}
+
+.maj-canopy-shelf-label {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-theme-sans), system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-accent) 75%, var(--color-text-secondary));
+}
+
+.maj-canopy-shelf-plate {
+  border-radius: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, var(--color-border));
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  padding: 0.65rem 0.55rem;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.maj-lucent-stack .maj-glass-panel {
+  border-radius: calc(var(--radius-card) + 4px);
+}
+
+.maj-lucent-float-panel {
+  border-radius: calc(var(--radius-card) + 6px);
+  border: 1px solid color-mix(in srgb, #fff 62%, var(--color-border));
+  background: color-mix(in srgb, var(--color-card-elevated) 78%, transparent);
+  box-shadow:
+    0 18px 42px color-mix(in srgb, var(--color-primary) 9%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+.maj-lucent-float-panel .maj-glass-panel {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.maj-lucent-float-panel .maj-glass-panel::before {
+  opacity: 0;
+}
+
+.maj-hive-metrics-honey {
+  border-radius: var(--radius-card);
+  padding: 0.5rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(245, 184, 0, 0.18), transparent 42%),
+    repeating-linear-gradient(
+      -25deg,
+      transparent 0,
+      transparent 10px,
+      rgba(245, 184, 0, 0.06) 10px,
+      rgba(245, 184, 0, 0.06) 11px
+    );
+  border: 1px solid color-mix(in srgb, var(--color-accent) 28%, var(--color-border));
+}
+
+.maj-hive-modules .maj-dashboard-modules {
+  padding: 0.35rem;
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-background));
+}
+
+html[data-theme="lucent"] .maj-page-shell {
+  padding-bottom: calc(var(--maj-page-padding-bottom) + 14px);
+}
+
+/* ── Tile shells: architecturally different surfaces per theme ── */
+.maj-tile-shell--forge {
+  border-radius: calc(var(--radius-card) - 2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 28px rgba(0, 0, 0, 0.42);
+}
+
+.maj-tile-shell--canopy {
+  border-radius: var(--radius-card);
+  box-shadow: var(--theme-tile-shadow);
+}
+
+.maj-tile-shell--pulse {
+  border-radius: var(--radius-card);
+}
+
+.maj-tile-shell--lucent {
+  border-radius: calc(var(--radius-card) + 2px);
+  box-shadow:
+    0 14px 32px color-mix(in srgb, var(--color-primary) 11%, transparent),
+    0 0 0 1px color-mix(in srgb, #fff 70%, transparent);
+}
+
+.maj-tile-shell--hive {
+  border-radius: calc(var(--radius-card) + 4px);
+  box-shadow:
+    var(--theme-tile-shadow),
+    0 0 0 2px color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+/* Household panel shells */
+.maj-shell-household--forge {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.maj-shell-household--canopy {
+  border: 1px solid color-mix(in srgb, var(--color-accent) 24%, var(--color-border));
+}
+
+.maj-shell-household--pulse {
+  border-width: 2px;
+}
+
+.maj-shell-feed--pulse {
+  border-width: 2px;
+}
+
+.maj-shell-feed--forge {
+  border-color: color-mix(in srgb, var(--color-border) 90%, transparent);
 }
 
 .maj-auth-shell {
@@ -683,6 +832,21 @@ html[data-home-layout="hive-cluster"] .maj-dashboard-modules > *:nth-child(even)
       transparent 1px
     );
   background-size: auto, 24px 24px, 30px 30px;
+}
+
+/* Lucent: lighter ambient (fewer full-screen blur pixels) */
+html[data-theme="lucent"] .maj-theme-ambient-glow {
+  opacity: 0.48;
+  filter: blur(44px);
+}
+
+html[data-theme="lucent"] .maj-theme-ambient-glow--secondary {
+  opacity: 0.2;
+  animation: none;
+}
+
+html[data-theme="lucent"] .maj-theme-ambient-grain {
+  opacity: 0.04;
 }
 
 .maj-auth-ambient {
