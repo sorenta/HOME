@@ -1,3 +1,4 @@
+// tailwind.config.ts saknes mapē
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -9,7 +10,6 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Izmantojam HSL, lai saskanētu ar globals.css mainīgajiem
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -23,11 +23,9 @@ const config: Config = {
         border: "hsl(var(--border))",
       },
       borderRadius: {
-        // Šis ļaus izmantot klasi 'rounded-theme'
         theme: "var(--radius)",
       },
       boxShadow: {
-        // Šis ļaus izmantot klasi 'shadow-theme'
         theme: "var(--theme-shadow)",
       }
     },
