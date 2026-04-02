@@ -3,7 +3,8 @@ export type ModuleId =
   | "finance"
   | "reset"
   | "kitchen"
-  | "pharmacy";
+  | "pharmacy"
+  | "settings";
 
 const STORAGE_KEY = "majapps-module-usage";
 

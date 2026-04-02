@@ -15,16 +15,30 @@ export default function Icon() {
           height: "100%",
           width: "100%",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background:
-            "linear-gradient(180deg, rgba(43,49,1,1) 0%, rgba(1,28,38,1) 100%)",
-          color: "#ead68b",
-          fontSize: 180,
-          fontWeight: 700,
+          background: "#000000", // Melns fons ir universāls visām tēmām
+          borderRadius: "128px", // Maigi noapaļoti stūri
         }}
       >
-        M
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "80%",
+            height: "80%",
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #fbbf24 0%, #d97706 100%)", // Dzintara gradients (mājas siltums)
+            color: "#ffffff",
+            fontSize: 240,
+            fontWeight: 900,
+            boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
+          }}
+        >
+          M
+        </div>
       </div>
     ),
     size,

@@ -192,14 +192,8 @@ export default function EventsPage() {
   }, [profile?.household_id]);
 
   const nextEvent = events[0] ?? null;
-  const sharedEvents = useMemo(
-    () => events.filter((item) => item.style === "shared"),
-    [events],
-  );
-  const personalEvents = useMemo(
-    () => events.filter((item) => item.style === "personal"),
-    [events],
-  );
+  const sharedEvents = useMemo(() => events.filter((item) => item.style === "shared"), [events]);
+  const personalEvents = useMemo(() => events.filter((item) => item.style === "personal"), [events]);
   const openTasks = useMemo(() => tasks.filter((item) => !item.done), [tasks]);
   const calendarDays = useMemo(() => buildMonthGrid(calendarMonth), [calendarMonth]);
   const selectedDayEvents = useMemo(
@@ -420,51 +414,52 @@ export default function EventsPage() {
   return (
     <ModuleShell title={t("tile.calendarEvents")} moduleId="calendar">
       {formError ? (
-        <GlassPanel className="border border-rose-400/35 bg-[color-mix(in_srgb,var(--color-surface)_88%,#fecaca)]">
-          <p className="text-sm text-[color:var(--color-text)]">{formError}</p>
+        <GlassPanel className="border border-red-500/30 bg-red-500/10">
+          <p className="text-sm font-medium text-red-500">{formError}</p>
           <button
             type="button"
             onClick={() => setFormError(null)}
-            className="mt-2 text-xs font-medium text-[color:var(--color-secondary)] underline"
+            className="mt-2 text-xs font-bold text-red-400 hover:text-red-500 underline transition-colors"
           >
             {locale === "lv" ? "Aizvērt" : "Dismiss"}
           </button>
         </GlassPanel>
       ) : null}
+
       <GlassPanel className="space-y-4">
         <SectionHeading
           eyebrow={t("tile.events")}
           title={t("events.overview")}
           detail={nextEvent ? formatAppDate(nextEvent.date, locale) ?? "" : ""}
         />
-        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
+        <p className="text-sm leading-relaxed text-foreground/70">
           {t("module.events.blurb")}
         </p>
+        
         {nextEvent ? (
-          <div className="rounded-3xl border border-[color:var(--color-surface-border)] bg-[linear-gradient(180deg,var(--color-surface),transparent)] p-4">
+          <div className="rounded-theme border border-border bg-gradient-to-b from-background/50 to-transparent p-5 shadow-sm transition-all hover:border-primary/50">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--color-secondary)]">
+                <p className="text-xs font-bold uppercase tracking-widest text-primary">
                   {t("events.next")}
                 </p>
-                <p className="mt-2 text-xl font-semibold text-[color:var(--color-text)]">
+                <p className="mt-2 text-xl font-bold text-foreground">
                   {nextEvent.title}
                 </p>
-                <p className="mt-1 text-sm text-[color:var(--color-secondary)]">
+                <p className="mt-1 text-sm font-medium text-foreground/60">
                   {formatAppDate(nextEvent.date, locale)}
                 </p>
               </div>
               <StatusPill tone={nextEvent.style === "shared" ? "good" : "neutral"}>
-                {nextEvent.style === "shared"
-                  ? t("events.shared")
-                  : t("events.personal")}
+                {nextEvent.style === "shared" ? t("events.shared") : t("events.personal")}
               </StatusPill>
             </div>
-            <p className="mt-4 text-sm font-medium text-[color:var(--color-text)]">
+            <p className="mt-4 text-sm font-medium text-foreground/70">
               {t("events.nextHint")}
             </p>
           </div>
         ) : null}
+        
         <div className="grid grid-cols-4 gap-3">
           <MetricCard label={t("events.total")} value={events.length} />
           <MetricCard label={t("events.shared")} value={sharedEvents.length} />
@@ -480,56 +475,49 @@ export default function EventsPage() {
             <button
               type="button"
               onClick={() => goToToday()}
-              className="rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text)]"
+              className="rounded-theme border border-border bg-background/50 px-3 py-2 text-sm font-bold text-foreground hover:bg-foreground/5 transition-colors"
             >
               {t("events.today")}
             </button>
             <button
               type="button"
               onClick={() =>
-                setCalendarMonth(
-                  new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1),
-                )
+                setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))
               }
-              className="rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-sm"
+              className="rounded-theme border border-border bg-background/50 px-3 py-2 text-sm font-bold hover:bg-foreground/5 transition-colors"
             >
               ←
             </button>
-            <p className="min-w-32 text-center text-sm font-medium capitalize text-[color:var(--color-text)]">
+            <p className="min-w-[100px] text-center text-sm font-bold capitalize text-foreground">
               {monthLabel}
             </p>
             <button
               type="button"
               onClick={() =>
-                setCalendarMonth(
-                  new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1),
-                )
+                setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))
               }
-              className="rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-sm"
+              className="rounded-theme border border-border bg-background/50 px-3 py-2 text-sm font-bold hover:bg-foreground/5 transition-colors"
             >
               →
             </button>
           </div>
         </div>
-        <p className="text-sm text-[color:var(--color-secondary)]">{t("events.calendarHint")}</p>
+        <p className="text-sm text-foreground/70">{t("events.calendarHint")}</p>
+        
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          {/* Kalendāra Režģis */}
           <div className="grid grid-cols-7 gap-2">
             {WEEKDAY_LABELS[locale].map((label) => (
               <p
                 key={label}
-                className="text-center text-[0.7rem] font-semibold uppercase tracking-wide text-[color:var(--color-secondary)]"
+                className="text-center text-[0.7rem] font-bold uppercase tracking-wider text-foreground/50"
               >
                 {label}
               </p>
             ))}
             {calendarDays.map((day, index) => {
               if (!day) {
-                return (
-                  <div
-                    key={`blank-${index}`}
-                    className="aspect-square rounded-2xl border border-transparent"
-                  />
-                );
+                return <div key={`blank-${index}`} className="aspect-square rounded-theme border border-transparent" />;
               }
 
               const dayEvents = events.filter((item) => isSameDay(day, item.date));
@@ -544,17 +532,17 @@ export default function EventsPage() {
                   type="button"
                   onClick={() => setSelectedDate(dayIso)}
                   className={[
-                    "aspect-square rounded-2xl border p-2 text-left transition-colors",
+                    "aspect-square rounded-theme border p-2 text-left transition-all duration-200",
                     isSelected
-                      ? "border-[color:var(--color-primary)] bg-[color:var(--color-surface)]"
-                      : "border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/45",
+                      ? "border-primary bg-primary/10 shadow-sm scale-[1.02] ring-1 ring-primary"
+                      : "border-border bg-background/40 hover:bg-background/80 hover:border-primary/30",
                   ].join(" ")}
                 >
                   <div className="flex h-full flex-col">
                     <span
                       className={[
-                        "text-sm font-semibold",
-                        isToday ? "text-[color:var(--color-primary)]" : "text-[color:var(--color-text)]",
+                        "text-sm font-bold",
+                        isToday ? "text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center -ml-1 -mt-1" : "text-foreground",
                       ].join(" ")}
                     >
                       {day.getDate()}
@@ -563,7 +551,7 @@ export default function EventsPage() {
                       {dayEvents.slice(0, 2).map((item) => (
                         <span
                           key={item.id}
-                          className="h-2 w-2 rounded-full bg-[color:var(--color-primary)]"
+                          className="h-2 w-2 rounded-full bg-primary shadow-[0_0_4px_var(--color-primary)]"
                           title={item.title}
                         />
                       ))}
@@ -572,9 +560,7 @@ export default function EventsPage() {
                           key={item.id}
                           className={[
                             "h-2 w-2 rounded-full",
-                            item.done
-                              ? "bg-[color:var(--color-secondary)]"
-                              : "bg-[color:var(--color-accent)]",
+                            item.done ? "bg-foreground/30" : "bg-primary/60",
                           ].join(" ")}
                           title={item.title}
                         />
@@ -586,23 +572,25 @@ export default function EventsPage() {
             })}
           </div>
 
-          <div className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 p-3">
+          {/* Izvēlētās dienas detaļas */}
+          <div className="rounded-theme border border-border bg-background/30 p-4">
             <SectionHeading title={t("events.selectedDay")} detail={formatAppDate(selectedDate, locale) ?? ""} />
             <div className="mt-4 space-y-4">
+              
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-secondary)]">
+                <p className="text-xs font-bold uppercase tracking-widest text-foreground/50 border-b border-border pb-1">
                   {t("events.dayEvents")}
                 </p>
                 {selectedDayEvents.length === 0 ? (
-                  <p className="text-sm text-[color:var(--color-secondary)]">{t("events.dayEmpty")}</p>
+                  <p className="text-sm text-foreground/60 italic py-2">{t("events.dayEmpty")}</p>
                 ) : (
                   selectedDayEvents.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3"
+                      className="rounded-theme border border-border bg-background/60 px-3 py-3 transition-colors hover:border-primary/50"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="font-medium text-[color:var(--color-text)]">{item.title}</p>
+                        <p className="font-semibold text-sm text-foreground">{item.title}</p>
                         <div className="flex shrink-0 items-center gap-2">
                           <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
                             {item.style === "shared" ? t("events.shared") : t("events.personal")}
@@ -610,9 +598,9 @@ export default function EventsPage() {
                           <button
                             type="button"
                             onClick={() => void removeEvent(item.id)}
-                            className="rounded-lg px-2 py-1 text-xs text-[color:var(--color-secondary)] underline"
+                            className="rounded-md px-2 py-1 text-xs font-medium text-foreground/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                           >
-                            {t("events.delete")}
+                            ✕
                           </button>
                         </div>
                       </div>
@@ -622,22 +610,22 @@ export default function EventsPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-secondary)]">
+                <p className="text-xs font-bold uppercase tracking-widest text-foreground/50 border-b border-border pb-1">
                   {t("events.dayTasks")}
                 </p>
                 {selectedDayTasks.length === 0 ? (
-                  <p className="text-sm text-[color:var(--color-secondary)]">{t("events.dayEmpty")}</p>
+                  <p className="text-sm text-foreground/60 italic py-2">{t("events.dayEmpty")}</p>
                 ) : (
                   selectedDayTasks.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3"
+                      className="rounded-theme border border-border bg-background/60 px-3 py-3 transition-colors hover:border-primary/50"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <p
                           className={[
-                            "font-medium text-[color:var(--color-text)]",
-                            item.done ? "line-through opacity-60" : "",
+                            "font-semibold text-sm text-foreground transition-all",
+                            item.done ? "line-through opacity-50" : "",
                           ].join(" ")}
                         >
                           {item.title}
@@ -649,9 +637,9 @@ export default function EventsPage() {
                           <button
                             type="button"
                             onClick={() => void removeTask(item.id)}
-                            className="rounded-lg px-2 py-1 text-xs text-[color:var(--color-secondary)] underline"
+                            className="rounded-md px-2 py-1 text-xs font-medium text-foreground/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                           >
-                            {t("events.delete")}
+                            ✕
                           </button>
                         </div>
                       </div>
@@ -664,17 +652,18 @@ export default function EventsPage() {
         </div>
       </GlassPanel>
 
+      {/* Tuvākie notikumi & pievienošana */}
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("events.upcoming")} />
-        <div className="grid gap-3 sm:grid-cols-[1.2fr_0.8fr]">
+        <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-3">
             {events.length === 0 ? (
-              <p className="text-sm text-[color:var(--color-secondary)]">{t("events.empty")}</p>
+              <p className="text-sm text-foreground/60 italic">{t("events.empty")}</p>
             ) : (
               events.map((item) => (
                 <div
                   key={item.id}
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left"
+                  className="flex w-full items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-4 py-3 text-left transition-all hover:border-primary/40 hover:bg-background/60 group"
                 >
                   <button
                     type="button"
@@ -682,16 +671,14 @@ export default function EventsPage() {
                     className="min-w-0 flex-1 text-left"
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-[color:var(--color-text)]">
+                      <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
                         {item.title}
                       </p>
                       <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
-                        {item.style === "shared"
-                          ? t("events.shared")
-                          : t("events.personal")}
+                        {item.style === "shared" ? t("events.shared") : t("events.personal")}
                       </StatusPill>
                     </div>
-                    <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
+                    <p className="mt-1 text-xs font-medium text-foreground/60">
                       {formatAppDate(item.date, locale)}
                     </p>
                   </button>
@@ -705,7 +692,7 @@ export default function EventsPage() {
                         e.stopPropagation();
                         void removeEvent(item.id);
                       }}
-                      className="text-xs text-[color:var(--color-secondary)] underline"
+                      className="text-xs font-medium text-foreground/50 hover:text-red-500 transition-colors"
                     >
                       {t("events.delete")}
                     </button>
@@ -714,8 +701,9 @@ export default function EventsPage() {
               ))
             )}
           </div>
-          <div className="space-y-3 rounded-2xl border border-[color:var(--color-surface-border)] p-3">
-            <p className="text-sm font-semibold text-[color:var(--color-text)]">
+          
+          <div className="space-y-3 rounded-theme border border-border bg-background/30 p-4">
+            <p className="text-sm font-bold text-foreground">
               {t("events.add")}
             </p>
             <input
@@ -723,25 +711,27 @@ export default function EventsPage() {
               value={eventTitle}
               onChange={(e) => setEventTitle(e.target.value)}
               placeholder={t("events.form.title")}
-              className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
-            <input
-              type="date"
-              lang={locale === "lv" ? "lv-LV" : "en-US"}
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
-            />
-            <p className="text-xs text-[color:var(--color-secondary)]">{t("events.form.date")}</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div>
+              <input
+                type="date"
+                lang={locale === "lv" ? "lv-LV" : "en-US"}
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+              />
+              <p className="mt-1 text-xs text-foreground/60 px-1">{t("events.form.date")}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setEventStyle("shared")}
                 className={[
-                  "rounded-xl border px-3 py-2 text-sm",
+                  "rounded-theme border px-3 py-2 text-sm font-bold transition-all",
                   eventStyle === "shared"
-                    ? "border-[color:var(--color-primary)] bg-[color:var(--color-surface)]"
-                    : "border-[color:var(--color-surface-border)]",
+                    ? "border-primary bg-primary/10 text-primary shadow-sm"
+                    : "border-border text-foreground/60 hover:bg-background/50",
                 ].join(" ")}
               >
                 {t("events.shared")}
@@ -750,10 +740,10 @@ export default function EventsPage() {
                 type="button"
                 onClick={() => setEventStyle("personal")}
                 className={[
-                  "rounded-xl border px-3 py-2 text-sm",
+                  "rounded-theme border px-3 py-2 text-sm font-bold transition-all",
                   eventStyle === "personal"
-                    ? "border-[color:var(--color-primary)] bg-[color:var(--color-surface)]"
-                    : "border-[color:var(--color-surface-border)]",
+                    ? "border-primary bg-primary/10 text-primary shadow-sm"
+                    : "border-border text-foreground/60 hover:bg-background/50",
                 ].join(" ")}
               >
                 {t("events.personal")}
@@ -762,7 +752,7 @@ export default function EventsPage() {
             <button
               type="button"
               onClick={() => void addEvent()}
-              className="w-full rounded-xl bg-[color:var(--color-primary)] px-4 py-3 text-sm font-semibold text-[color:var(--color-background)]"
+              className="mt-2 w-full rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {t("events.form.save")}
             </button>
@@ -773,32 +763,33 @@ export default function EventsPage() {
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("events.todo.title")} detail={openTasks.length.toString()} />
         {profile?.household_id && members.length === 0 ? (
-          <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
+          <p className="text-sm font-medium text-foreground/70 bg-background/50 p-3 rounded-theme border border-border">
             {t("events.todo.needHousehold")}
           </p>
         ) : null}
-        <div className="grid gap-3 sm:grid-cols-[1.15fr_0.85fr]">
+        
+        <div className="grid gap-4 sm:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-3">
             {tasks.length === 0 ? (
-              <p className="text-sm text-[color:var(--color-secondary)]">{t("events.todo.empty")}</p>
+              <p className="text-sm text-foreground/60 italic">{t("events.todo.empty")}</p>
             ) : (
               tasks.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-start gap-3 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3"
+                  className="flex items-start gap-3 rounded-theme border border-border bg-background/40 px-4 py-3 transition-colors hover:border-primary/40"
                 >
                   <input
                     type="checkbox"
                     checked={item.done}
                     onChange={() => void toggleTask(item.id)}
-                    className="mt-1 h-4 w-4"
+                    className="mt-1 h-4 w-4 cursor-pointer accent-primary"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p
                         className={[
-                          "font-medium text-[color:var(--color-text)]",
-                          item.done ? "line-through opacity-60" : "",
+                          "font-semibold text-sm text-foreground transition-all",
+                          item.done ? "line-through opacity-50" : "",
                         ].join(" ")}
                       >
                         {item.title}
@@ -807,23 +798,24 @@ export default function EventsPage() {
                         {item.assigneeName}
                       </StatusPill>
                     </div>
-                    <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
+                    <p className="mt-1 text-xs font-medium text-foreground/60">
                       {formatAppDate(item.dueDate, locale)}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => void removeTask(item.id)}
-                    className="shrink-0 text-xs text-[color:var(--color-secondary)] underline"
+                    className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-foreground/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                   >
-                    {t("events.delete")}
+                    ✕
                   </button>
                 </div>
               ))
             )}
           </div>
-          <div className="space-y-3 rounded-2xl border border-[color:var(--color-surface-border)] p-3">
-            <p className="text-sm font-semibold text-[color:var(--color-text)]">
+          
+          <div className="space-y-3 rounded-theme border border-border bg-background/30 p-4">
+            <p className="text-sm font-bold text-foreground">
               {t("events.todo.add")}
             </p>
             <input
@@ -831,37 +823,41 @@ export default function EventsPage() {
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
               placeholder={t("events.todo.form.title")}
-              className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+              className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
-            <select
-              value={taskAssigneeId}
-              onChange={(e) => setTaskAssigneeId(e.target.value)}
-              className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
-            >
-              {members.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.display_name ?? t("events.todo.unassigned")}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-[color:var(--color-secondary)]">{t("events.todo.form.assignee")}</p>
-            <input
-              type="date"
-              lang={locale === "lv" ? "lv-LV" : "en-US"}
-              value={taskDueDate}
-              onChange={(e) => setTaskDueDate(e.target.value)}
-              className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
-            />
-            <p className="text-xs text-[color:var(--color-secondary)]">{t("events.todo.form.date")}</p>
+            <div>
+              <select
+                value={taskAssigneeId}
+                onChange={(e) => setTaskAssigneeId(e.target.value)}
+                className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+              >
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.display_name ?? t("events.todo.unassigned")}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-foreground/60 px-1">{t("events.todo.form.assignee")}</p>
+            </div>
+            <div>
+              <input
+                type="date"
+                lang={locale === "lv" ? "lv-LV" : "en-US"}
+                value={taskDueDate}
+                onChange={(e) => setTaskDueDate(e.target.value)}
+                className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+              />
+              <p className="mt-1 text-xs text-foreground/60 px-1">{t("events.todo.form.date")}</p>
+            </div>
             <button
               type="button"
               onClick={() => void addTask()}
               disabled={!profile?.household_id || members.length === 0}
               className={[
-                "w-full rounded-xl px-4 py-3 text-sm font-semibold",
+                "mt-2 w-full rounded-theme px-4 py-3 text-sm font-bold shadow-sm transition-all",
                 !profile?.household_id || members.length === 0
-                  ? "cursor-not-allowed opacity-50 bg-[color:var(--color-surface-border)] text-[color:var(--color-secondary)]"
-                  : "bg-[color:var(--color-primary)] text-[color:var(--color-background)]",
+                  ? "cursor-not-allowed opacity-50 bg-border text-foreground/50"
+                  : "bg-primary text-primary-foreground hover:scale-[1.02] active:scale-[0.98]",
               ].join(" ")}
             >
               {t("events.todo.form.save")}
@@ -873,19 +869,19 @@ export default function EventsPage() {
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("events.celebration")} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3">
-            <p className="text-sm font-semibold text-[color:var(--color-text)]">
+          <div className="rounded-theme border border-border bg-background/30 p-4 transition-colors hover:border-primary/30">
+            <p className="text-sm font-bold text-foreground">
               {t("events.plan.sharedTitle")}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-[color:var(--color-secondary)]">
+            <p className="mt-2 text-sm leading-relaxed text-foreground/70">
               {t("events.plan.sharedBody")}
             </p>
           </div>
-          <div className="rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3">
-            <p className="text-sm font-semibold text-[color:var(--color-text)]">
+          <div className="rounded-theme border border-border bg-background/30 p-4 transition-colors hover:border-primary/30">
+            <p className="text-sm font-bold text-foreground">
               {t("events.plan.personalTitle")}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-[color:var(--color-secondary)]">
+            <p className="mt-2 text-sm leading-relaxed text-foreground/70">
               {t("events.plan.personalBody")}
             </p>
           </div>
@@ -895,22 +891,26 @@ export default function EventsPage() {
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("events.feed")} detail={feedItems.length.toString()} />
         <div className="space-y-3">
-          {feedItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex gap-3 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3"
-            >
-              <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[color:var(--color-primary)]" />
-              <div className="min-w-0">
-                <p className="text-sm text-[color:var(--color-text)]">
-                  {item.line}
-                </p>
-                <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
-                  {item.time}
-                </p>
+          {feedItems.length === 0 ? (
+            <p className="text-sm text-foreground/60 italic">{t("finance.activityEmpty")}</p>
+          ) : (
+            feedItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex gap-3 rounded-theme border border-border bg-background/40 px-4 py-3 transition-all hover:border-primary/30"
+              >
+                <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary shadow-[0_0_5px_var(--color-primary)]" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">
+                    {item.line}
+                  </p>
+                  <p className="mt-1 text-xs text-foreground/60">
+                    {item.time}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </GlassPanel>
     </ModuleShell>

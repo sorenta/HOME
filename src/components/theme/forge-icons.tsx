@@ -10,7 +10,8 @@ export type ForgeNavId =
   | "kitchen"
   | "finance"
   | "pharmacy"
-  | "reset";
+  | "reset"
+  | "settings";
 
 const base = {
   xmlns: "http://www.w3.org/2000/svg",
@@ -77,6 +78,16 @@ export function ForgeNavIcon({
         <svg {...base} className={cn} width={s} height={s} viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="8.5" />
           <path d="M12 8v8M8.5 12h7" strokeWidth={1.35} />
+        </svg>
+      );
+    case "settings":
+      return (
+        <svg {...base} className={cn} width={s} height={s} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" strokeWidth={1.35} />
+          <path
+            d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+            strokeWidth={1.35}
+          />
         </svg>
       );
   }

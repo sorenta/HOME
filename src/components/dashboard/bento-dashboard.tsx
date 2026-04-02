@@ -62,6 +62,7 @@ const MODULE_META: Record<
     tier: "featured",
   },
   pharmacy: { href: "/pharmacy", titleKey: "tile.pharmacy", emoji: "💊", tier: "compact" },
+  settings: { href: "/settings", titleKey: "tile.settings", emoji: "⚙️", tier: "compact" },
 };
 
 function memberInitials(name: string | null | undefined): string {
