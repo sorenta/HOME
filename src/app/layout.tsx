@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import {
   Barlow_Condensed,
   Fraunces,
@@ -9,6 +10,7 @@ import {
   Manrope,
   Nunito,
   Playfair_Display,
+  Rajdhani,
   Space_Grotesk,
 } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
@@ -67,6 +69,13 @@ const nunito = Nunito({
   weight: ["400", "500", "600", "700"],
 });
 
+/** FORGE UI: technical, legible, slightly condensed — industrial dashboard tone (not display). */
+const rajdhani = Rajdhani({
+  variable: "--font-rajdhani",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "H:0",
   description:
@@ -105,7 +114,7 @@ export default function RootLayout({
   const rootStyle: CSSProperties = {
     ...buildRootThemeCssVars(defaultThemeManifest),
     colorScheme:
-      defaultThemeManifest.id === "forge" || defaultThemeManifest.id === "canopy"
+      defaultThemeManifest.id === "forge" || defaultThemeManifest.id === "botanical"
         ? "dark"
         : "light",
   };
@@ -122,7 +131,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className={`${inter.variable} ${manrope.variable} ${laila.variable} ${lora.variable} ${playfair.variable} ${barlowCondensed.variable} ${fraunces.variable} ${spaceGrotesk.variable} ${nunito.variable} min-h-full bg-[color:var(--color-background)] font-[family-name:var(--font-theme-sans)] text-[color:var(--color-text)] antialiased`}
+        className={`${inter.variable} ${manrope.variable} ${laila.variable} ${lora.variable} ${playfair.variable} ${barlowCondensed.variable} ${fraunces.variable} ${spaceGrotesk.variable} ${nunito.variable} ${rajdhani.variable} min-h-full bg-[color:var(--color-background)] font-[family-name:var(--font-theme-sans)] text-[color:var(--color-text)] antialiased`}
       >
         <AppProviders>
           <div className="relative isolate mx-auto flex min-h-full max-w-lg flex-col">
@@ -130,8 +139,9 @@ export default function RootLayout({
             <div className="relative z-10 flex min-h-[100dvh] flex-1 flex-col">
               {children}
             </div>
-            <ThemeBottomNav />
+            <ThemeSwitcher />
           </div>
+          <ThemeBottomNav />
         </AppProviders>
       </body>
     </html>

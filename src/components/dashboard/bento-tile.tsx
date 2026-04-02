@@ -12,22 +12,15 @@ type Props = {
   title: string;
   emoji: string;
   highlight?: boolean;
-  /** Extra motion when tile should draw attention (e.g. RESET pending). */
   attention?: boolean;
   themeId: ThemeId;
   colSpan?: 1 | 2;
-  /** Compact = dense utility row; featured = primary destinations (larger, more presence). */
   tier?: BentoTileTier;
 };
 
 function transitionForTheme(themeId: ThemeId): Transition {
-  const kind = THEMES[themeId].motion;
-  if (kind === "organic") {
-    return { type: "spring", stiffness: 280, damping: 28 };
-  }
-  if (kind === "snappy") {
-    return { type: "spring", stiffness: 520, damping: 32 };
-  }
+  if (themeId === "botanical") return { type: "spring", stiffness: 280, damping: 28 };
+  if (themeId === "pulse") return { type: "spring", stiffness: 520, damping: 32 };
   return { type: "spring", stiffness: 200, damping: 36 };
 }
 
@@ -44,29 +37,40 @@ export function BentoTile({
   const t = transitionForTheme(themeId);
   const isFeatured = tier === "featured";
 
-  const shell = isFeatured
-    ? `maj-bento-tile maj-dashboard-tile maj-tile-shell maj-tile-shell--${themeId}`
-    : `maj-bento-tile maj-bento-tile--compact maj-dashboard-tile maj-dashboard-tile--compact maj-tile-shell maj-tile-shell--${themeId}`;
+  // 1. BĀZES KLASE (Strādā automātiski visām tēmām)
+  const baseClass = "group relative flex overflow-hidden bg-card text-card-foreground rounded-theme shadow-theme transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]";
+
+  // 2. TĒMAS SPECIFIKA (Mūsu dizaina odziņas)
+  let themeClass = "border border-border"; // Noklusējums
+  if (themeId === "lucent") themeClass = "border border-border/50 backdrop-blur-md bg-card/60";
+  if (themeId === "hive") themeClass = "border-4 border-border";
+  if (themeId === "pulse") themeClass = "border-4 border-black hover:shadow-[6px_6px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5";
+  if (themeId === "forge") themeClass = "metal-gradient border-t-4 border-primary shadow-inner";
+  if (themeId === "botanical") themeClass = "border border-border shadow-[inset_0_0_20px_rgba(255,255,255,0.3)]";
+
+  // 3. IZMĒRS UN IZKĀRTOJUMS
+  const layoutClass = isFeatured
+    ? "min-h-[5.25rem] flex-col justify-between gap-2 p-4"
+    : "min-h-0 flex-row items-center gap-3 px-4 py-3";
+
+  const highlightClass = highlight ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "";
+  const attentionClass = attention ? "animate-pulse" : "";
 
   const featuredBody = (
     <>
-      <span className="text-2xl" aria-hidden>
+      <span className="text-2xl drop-shadow-sm transition-transform group-hover:scale-110" aria-hidden>
         {emoji}
       </span>
-      <span className="maj-tile-title text-sm leading-tight text-[color:var(--color-text)]">
-        {title}
-      </span>
+      <span className="font-bold text-sm tracking-wide z-10">{title}</span>
     </>
   );
 
   const compactBody = (
     <>
-      <span className="text-lg leading-none" aria-hidden>
+      <span className="text-xl drop-shadow-sm transition-transform group-hover:scale-110" aria-hidden>
         {emoji}
       </span>
-      <span className="maj-tile-title min-w-0 flex-1 text-sm leading-snug text-[color:var(--color-text)]">
-        {title}
-      </span>
+      <span className="font-medium min-w-0 flex-1 text-sm tracking-wide z-10">{title}</span>
     </>
   );
 
@@ -79,19 +83,21 @@ export function BentoTile({
       <Link
         href={href}
         onClick={() => hapticTap()}
-        className={[
-          shell,
-          isFeatured
-            ? "flex min-h-[5.25rem] flex-col justify-between gap-2 bg-[color:var(--color-surface)] p-4 transition-[transform,box-shadow]"
-            : "flex min-h-0 flex-row items-center gap-2.5 bg-[color:var(--color-surface)] px-3 py-2.5 transition-[transform,box-shadow]",
-          "active:scale-[0.98] hover:-translate-y-0.5",
-          attention ? "maj-pulse-attention" : "",
-          highlight
-            ? "ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-[color:var(--color-background)]"
-            : "",
-        ].join(" ")}
+        className={[baseClass, themeClass, layoutClass, highlightClass, attentionClass].join(" ")}
       >
         {isFeatured ? featuredBody : compactBody}
+
+        {/* --- DEKORĀCIJAS TĒMĀM --- */}
+        {/* Pulse fona spīdums */}
+        {themeId === "pulse" && isFeatured && (
+          <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-primary rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+        )}
+        {/* Forge spidometra līnija */}
+        {themeId === "forge" && isFeatured && (
+          <div className="absolute top-3 right-3 flex gap-1 opacity-50">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_5px_var(--color-primary)]"></div>
+          </div>
+        )}
       </Link>
     </motion.div>
   );

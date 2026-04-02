@@ -15,7 +15,7 @@ type Props = {
 
 /**
  * Primary app mark: **H:0** — light frosted surface, dark type (splash);
- * theme-aware on in-app surfaces (Forge / Canopy invert for contrast).
+ * theme-aware on in-app surfaces (Forge / botanical invert for contrast).
  */
 export function AppMark({
   size = "md",

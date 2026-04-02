@@ -1,17 +1,39 @@
+"use client";
+
+import { ReactNode } from "react";
+import { useTheme } from "@/components/providers/theme-provider";
+
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 };
 
 export function GlassPanel({ children, className = "" }: Props) {
+  const { themeId } = useTheme();
+
+  // Bāzes klases un maģiskais stils katrai tēmai
+  let themeClass = "bg-card text-card-foreground border border-border rounded-theme p-4 md:p-6";
+
+  if (themeId === "lucent") {
+    themeClass = "bg-card/60 backdrop-blur-xl border border-border/50 shadow-theme rounded-theme p-4 md:p-6";
+  } else if (themeId === "hive") {
+    themeClass = "bg-card border-4 border-border shadow-sm rounded-theme p-4 md:p-6 relative overflow-hidden";
+  } else if (themeId === "pulse") {
+    themeClass = "bg-background border-4 border-black shadow-[6px_6px_0px_#000] rounded-xl p-4 md:p-6";
+  } else if (themeId === "forge") {
+    themeClass = "metal-gradient border-t-4 border-primary shadow-inner rounded-sm p-4 md:p-6 text-foreground";
+  } else if (themeId === "botanical") {
+    themeClass = "bg-card border border-border shadow-[inset_0_0_20px_rgba(255,255,255,0.3)] rounded-[2.5rem] p-4 md:p-6";
+  }
+
   return (
-    <div
-      className={[
-        "maj-glass-panel bg-[color:var(--color-surface)] p-4 backdrop-blur-sm",
-        className,
-      ].join(" ")}
-    >
-      {children}
+    <div className={`${themeClass} transition-all duration-500 ${className}`}>
+      {/* Īpašās tēmu dekorācijas konteineriem */}
+      {themeId === "hive" && (
+        <div className="absolute -right-4 -top-4 w-12 h-12 bg-primary/10 octagon rotate-12 pointer-events-none" />
+      )}
+      
+      <div className="relative z-10">{children}</div>
     </div>
   );
 }

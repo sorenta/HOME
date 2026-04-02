@@ -29,44 +29,46 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
   if (themeId === "forge") {
     return (
       <div className="maj-dash-compose maj-dash-compose--forge">
-        {header}
-        <div className="maj-forge-command maj-section-gap rounded-[var(--radius-card)] border border-[color:var(--color-border-strong)] bg-[color:color-mix(in_srgb,var(--color-surface)_94%,transparent)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="maj-forge-control-deck maj-section-gap">{header}</div>
+        <section className="maj-forge-module-rail maj-section-gap" aria-label="Modules">
+          {modules}
+        </section>
+        <div className="maj-forge-ops-stack maj-section-gap">
           {notice}
-          <div className="mt-3">{metrics}</div>
+          <div className="maj-forge-ops-stack__metrics">{metrics}</div>
         </div>
-        <div className="maj-section-gap">{modules}</div>
         <div className="maj-section-gap">{householdSummary}</div>
         {water}
-        <div className="maj-section-gap">{householdPanel}</div>
-        {feed}
+        <div className="maj-forge-sleeve maj-section-gap">{householdPanel}</div>
+        <div className="maj-forge-sleeve maj-section-gap">{feed}</div>
       </div>
     );
   }
 
-  if (themeId === "canopy") {
+  if (themeId === "botanical") {
     return (
-      <div className="maj-dash-compose maj-dash-compose--canopy">
+      <div className="maj-dash-compose maj-dash-compose--botanical">
         {header}
-        <section className="maj-canopy-shelf maj-section-gap">
-          <p className="maj-canopy-shelf-label">Spaces</p>
-          <div className="maj-canopy-shelf-plate">{modules}</div>
+        <section className="maj-botanical-shelf maj-section-gap">
+          <p className="maj-botanical-shelf-label">Spaces</p>
+          <div className="maj-botanical-shelf-plate">{modules}</div>
         </section>
-        <section className="maj-canopy-shelf maj-section-gap">
-          <p className="maj-canopy-shelf-label">Today</p>
-          <div className="maj-canopy-shelf-plate space-y-3">
+        <section className="maj-botanical-shelf maj-section-gap">
+          <p className="maj-botanical-shelf-label">Today</p>
+          <div className="maj-botanical-shelf-plate space-y-3">
             {notice}
             {water}
           </div>
         </section>
         <div className="maj-section-gap">{householdSummary}</div>
-        <section className="maj-canopy-shelf maj-section-gap">
-          <p className="maj-canopy-shelf-label">At a glance</p>
-          <div className="maj-canopy-shelf-plate">{metrics}</div>
+        <section className="maj-botanical-shelf maj-section-gap">
+          <p className="maj-botanical-shelf-label">At a glance</p>
+          <div className="maj-botanical-shelf-plate">{metrics}</div>
         </section>
         <div className="maj-section-gap">{householdPanel}</div>
-        <section className="maj-canopy-shelf maj-section-gap">
-          <p className="maj-canopy-shelf-label">Live</p>
-          <div className="maj-canopy-shelf-plate">{feed}</div>
+        <section className="maj-botanical-shelf maj-section-gap">
+          <p className="maj-botanical-shelf-label">Live</p>
+          <div className="maj-botanical-shelf-plate">{feed}</div>
         </section>
       </div>
     );
