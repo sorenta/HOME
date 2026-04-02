@@ -243,11 +243,11 @@ function HiveBottomNav() {
 
 export function ThemeBottomNav() {
   const pathname = usePathname();
+  const { themeId } = useTheme();
+
   if (pathname.startsWith("/auth")) {
     return null;
   }
-
-  const { themeId } = useTheme();
 
   switch (themeId) {
     case "forge":
