@@ -151,62 +151,62 @@ export default function PharmacyPage() {
 
   return (
     <ModuleShell title={t("tile.pharmacy")} moduleId="pharmacy">
-      <GlassPanel className="space-y-3">
+      <GlassPanel className="space-y-4">
         <SectionHeading title={t("pharmacy.stock")} />
-        <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
+        <p className="text-sm leading-relaxed text-foreground/70">
           {t("pharmacy.overviewHint")}
         </p>
-        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
+        <p className="text-sm leading-relaxed text-foreground">
           {t("module.pharmacy.blurb")}
         </p>
 
         <form
           onSubmit={handleAddItem}
-          className="grid gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/30 p-3 sm:grid-cols-2"
+          className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2"
         >
-          <label className="text-sm text-[color:var(--color-text)]">
+          <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
             {t("pharmacy.form.name")}
             <input
               type="text"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+              className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </label>
-          <label className="text-sm text-[color:var(--color-text)]">
+          <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
             {t("pharmacy.form.quantity")}
             <input
               type="number"
               min="1"
               value={itemQuantity}
               onChange={(e) => setItemQuantity(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+              className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </label>
-          <label className="text-sm text-[color:var(--color-text)]">
+          <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
             {t("pharmacy.form.unit")}
             <input
               type="text"
               value={itemUnit}
               onChange={(e) => setItemUnit(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+              className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </label>
-          <label className="text-sm text-[color:var(--color-text)]">
+          <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
             {t("pharmacy.form.expiry")}
             <input
               type="date"
               lang={locale === "lv" ? "lv-LV" : "en-US"}
               value={itemExpiry}
               onChange={(e) => setItemExpiry(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+              className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </label>
-          <div className="sm:col-span-2">
+          <div className="sm:col-span-2 mt-1">
             <button
               type="submit"
               disabled={saving || !profile?.household_id}
-              className="w-full rounded-xl border border-[color:var(--color-primary)] bg-[color:var(--color-surface)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)] disabled:opacity-60"
+              className="w-full rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
             >
               {t("pharmacy.form.save")}
             </button>
@@ -214,38 +214,38 @@ export default function PharmacyPage() {
         </form>
 
         {error ? (
-          <p className="text-sm text-[color:var(--color-danger)]">{error}</p>
+          <p className="text-sm font-medium text-red-500 bg-red-500/10 p-2 rounded-md">{error}</p>
         ) : null}
 
-        <div className="space-y-2">
+        <div className="space-y-2 mt-4">
           {items.length === 0 ? (
-            <p className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3 text-sm text-[color:var(--color-secondary)]">
+            <p className="rounded-theme border border-border bg-background/40 px-3 py-3 text-sm text-foreground/60 italic">
               {t("pharmacy.empty")}
             </p>
           ) : (
             items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-4 py-3 transition-colors hover:border-primary/50"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-[color:var(--color-text)]">{item.name}</p>
-                  <p className="mt-0.5 text-sm text-[color:var(--color-secondary)]">
+                  <p className="font-semibold text-sm text-foreground">{item.name}</p>
+                  <p className="mt-0.5 text-xs font-medium text-foreground/60">
                     {item.quantity}
                     {item.unit ? ` ${item.unit}` : ""}
                     {item.expiry_date ? ` · ${formatAppDate(item.expiry_date, locale)}` : ""}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex shrink-0 items-center gap-2">
                   <StatusPill tone={statusTone(item.status as "ok" | "warning" | "critical")}>
                     {statusLabel(item.status as "ok" | "warning" | "critical")}
                   </StatusPill>
                   <button
                     type="button"
                     onClick={() => void handleDeleteItem(item.id)}
-                    className="rounded-lg border border-[color:var(--color-surface-border)] px-2 py-1 text-xs text-[color:var(--color-secondary)]"
+                    className="rounded-md px-2 py-1.5 text-xs font-bold text-foreground/50 hover:bg-red-500/10 hover:text-red-500 transition-colors"
                   >
-                    {t("pharmacy.form.delete")}
+                    ✕
                   </button>
                 </div>
               </div>
@@ -258,14 +258,14 @@ export default function PharmacyPage() {
         <SectionHeading title={t("pharmacy.reminders")} />
         <div className="space-y-2">
           {reminders.length === 0 ? (
-            <div className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3 text-sm text-[color:var(--color-secondary)]">
+            <div className="rounded-theme border border-border bg-background/40 px-3 py-3 text-sm text-foreground/60 italic">
               {t("pharmacy.remindersEmpty")}
             </div>
           ) : (
             reminders.map((reminder) => (
               <div
                 key={reminder}
-                className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3 text-sm text-[color:var(--color-text)]"
+                className="rounded-theme border border-rose-500/30 bg-rose-500/10 px-3 py-3 text-sm font-medium text-foreground"
               >
                 {reminder}
               </div>
@@ -277,13 +277,13 @@ export default function PharmacyPage() {
       <GlassPanel className="space-y-3">
         <SectionHeading title={t("pharmacy.compatibility")} />
         {pharmacyAiEnabled ? (
-          <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
+          <p className="text-sm leading-relaxed text-foreground">
             {t("pharmacy.aiNote")}
           </p>
         ) : (
-          <div className="space-y-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 p-4">
+          <div className="space-y-3 rounded-theme border border-primary/20 bg-primary/5 p-4">
             <StatusPill tone="warn">{t("billing.plan.premium")}</StatusPill>
-            <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
+            <p className="text-sm leading-relaxed text-foreground">
               {t("billing.pharmacyLocked")}
             </p>
           </div>

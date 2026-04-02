@@ -71,9 +71,7 @@ export default function ResetPage() {
     });
 
     void loadWellnessStateSynced(user?.id ?? null).then((next) => {
-      if (alive) {
-        setWellness(next);
-      }
+      if (alive) setWellness(next);
     });
 
     return () => {
@@ -94,13 +92,9 @@ export default function ResetPage() {
   useEffect(() => {
     let alive = true;
     void fetchMyHouseholdMembers().then((next) => {
-      if (alive) {
-        setMembers(next);
-      }
+      if (alive) setMembers(next);
     });
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [profile?.household_id]);
 
   useEffect(() => {
@@ -126,9 +120,7 @@ export default function ResetPage() {
           .reset_empathy_recipient_ids;
         setEmpathyRecipientIds(Array.isArray(raw) ? raw : []);
       });
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [user?.id]);
 
   useEffect(() => {
@@ -141,9 +133,7 @@ export default function ResetPage() {
     void fetchTodaySignals(user.id, day).then((row) => {
       if (alive) setTodaySignals(row);
     });
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [user?.id, signalsVersion]);
 
   const persistWellness = useCallback((next: ResetWellnessV1) => {
@@ -188,22 +178,12 @@ export default function ResetPage() {
     score += Math.min(20, wellness.measurements.length * 4);
     score += Math.min(20, wellness.weighIns.length * 5);
     return score;
-  }, [
-    bodies.length,
-    quits.length,
-    wellness.measurements.length,
-    wellness.onboardingDone,
-    wellness.weighIns.length,
-  ]);
+  }, [bodies.length, quits.length, wellness.measurements.length, wellness.onboardingDone, wellness.weighIns.length]);
 
   const checkInBonus = Math.min(15, checkInCount * 5);
 
   const resetScoreValue = useMemo(
-    () =>
-      Math.min(
-        100,
-        Math.max(0, baseWellnessScore + checkInBonus + signalsScoreDelta(todaySignals)),
-      ),
+    () => Math.min(100, Math.max(0, baseWellnessScore + checkInBonus + signalsScoreDelta(todaySignals))),
     [baseWellnessScore, checkInBonus, todaySignals],
   );
 
@@ -215,40 +195,21 @@ export default function ResetPage() {
 
   const scoreAfterCheckIn = useMemo(() => {
     const d = signalsScoreDelta(todaySignals);
-    if (!canCheckInToday()) {
-      return Math.min(100, baseWellnessScore + checkInBonus + d);
-    }
+    if (!canCheckInToday()) return Math.min(100, baseWellnessScore + checkInBonus + d);
     const nextBonus = Math.min(15, (checkInCount + 1) * 5);
     return Math.min(100, baseWellnessScore + nextBonus + d);
   }, [baseWellnessScore, checkInCount, todaySignals]);
 
-  const liveMetrics = useMemo(
-    () => [
-      { label: t("reset.metric.goals"), value: String(wellness.goals.length), tone: "good" as const },
-      { label: t("reset.metric.quit"), value: String(quits.length), tone: quits.length > 0 ? ("good" as const) : ("warn" as const) },
-      {
-        label: t("reset.metric.body"),
-        value: String(wellness.measurements.length + wellness.weighIns.length),
-        tone:
-          wellness.measurements.length + wellness.weighIns.length > 0
-            ? ("good" as const)
-            : ("warn" as const),
-      },
-      {
-        label: t("reset.metric.training"),
-        value: String(trainingModes.length),
-        tone: trainingModes.length > 0 ? ("good" as const) : ("warn" as const),
-      },
-    ],
-    [
-      quits.length,
-      t,
-      trainingModes.length,
-      wellness.goals.length,
-      wellness.measurements.length,
-      wellness.weighIns.length,
-    ],
-  );
+  const liveMetrics = useMemo((): Array<{
+    label: string;
+    value: string;
+    tone: "neutral" | "good" | "warn" | "critical";
+  }> => [
+    { label: t("reset.metric.goals"), value: String(wellness.goals.length), tone: "good" },
+    { label: t("reset.metric.quit"), value: String(quits.length), tone: quits.length > 0 ? "good" : "warn" },
+    { label: t("reset.metric.body"), value: String(wellness.measurements.length + wellness.weighIns.length), tone: wellness.measurements.length + wellness.weighIns.length > 0 ? "good" : "warn" },
+    { label: t("reset.metric.training"), value: String(trainingModes.length), tone: trainingModes.length > 0 ? "good" : "warn" },
+  ], [quits.length, t, trainingModes.length, wellness.goals.length, wellness.measurements.length, wellness.weighIns.length]);
 
   async function onCheckIn() {
     if (!canCheckInToday()) return;
@@ -263,11 +224,8 @@ export default function ResetPage() {
         loggedOnLocal: localDateIso(),
       });
       if (!res.ok) {
-        if (res.code === "LIMIT") {
-          setCheckInMessage("limit");
-        } else if (res.code === "RPC_UNAVAILABLE") {
-          setCheckInMessage("rpc");
-        }
+        if (res.code === "LIMIT") setCheckInMessage("limit");
+        else if (res.code === "RPC_UNAVAILABLE") setCheckInMessage("rpc");
         return;
       }
       appendCheckInLocal();
@@ -280,22 +238,8 @@ export default function ResetPage() {
   }
 
   const privacyMembers = useMemo(() => {
-    const base =
-      members.length > 0
-        ? members
-        : user
-          ? [
-              {
-                id: user.id,
-                display_name: profile?.display_name ?? user.email?.split("@")[0] ?? null,
-                role_label: profile?.role_label ?? null,
-                is_me: true,
-              } satisfies HouseholdMember,
-            ]
-          : [];
-    if (empathyRecipientIds != null && empathyRecipientIds.length > 0) {
-      return base.filter((m) => empathyRecipientIds.includes(m.id));
-    }
+    const base = members.length > 0 ? members : user ? [{ id: user.id, display_name: profile?.display_name ?? user.email?.split("@")[0] ?? null, role_label: profile?.role_label ?? null, is_me: true } satisfies HouseholdMember] : [];
+    if (empathyRecipientIds != null && empathyRecipientIds.length > 0) return base.filter((m) => empathyRecipientIds.includes(m.id));
     return base;
   }, [empathyRecipientIds, members, profile?.display_name, profile?.role_label, user]);
 
@@ -303,76 +247,58 @@ export default function ResetPage() {
 
   return (
     <ModuleShell title={t("tile.reset")} moduleId="reset">
-      {showOnboarding ? (
+      {showOnboarding && (
         <ResetWellnessOnboarding
-          onComplete={(goals, _startedAtIso) => onSurveyComplete(goals)}
+          onComplete={(goals) => onSurveyComplete(goals)}
           onSkip={onSurveySkip}
         />
-      ) : null}
+      )}
 
-      {hydrated && wellness.onboardingDone ? (
-        <GlassPanel className="space-y-3">
+      {hydrated && wellness.onboardingDone && (
+        <GlassPanel className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <SectionHeading title={t("reset.wellness.summaryTitle")} />
             <button
-              type="button"
-              onClick={() => {
-                hapticTap();
-                setShowGoalEditor(true);
-              }}
-              className="rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-xs font-semibold text-[color:var(--color-text)]"
+              onClick={() => { hapticTap(); setShowGoalEditor(true); }}
+              className="rounded-theme border border-border bg-background/50 px-4 py-2 text-xs font-bold text-foreground hover:bg-primary/5 transition-all"
             >
               {t("reset.wellness.editGoals")}
             </button>
           </div>
           {wellness.goals.length === 0 ? (
-            <p className="text-sm text-[color:var(--color-secondary)]">
-              {t("reset.wellness.noGoalsHint")}
-            </p>
+            <p className="text-sm text-foreground/60 italic">{t("reset.wellness.noGoalsHint")}</p>
           ) : (
-            <ul className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {wellness.goals.map((g) => (
                 <StatusPill key={g.id} tone="neutral">
                   {g.kind === "quit"
-                    ? g.subkind === "custom" && g.customLabel
-                      ? g.customLabel
-                      : t(`reset.wellness.quit.${g.subkind}`)
+                    ? (g.subkind === "custom" && g.customLabel ? g.customLabel : t(`reset.wellness.quit.${g.subkind}`))
                     : t(`reset.wellness.body.${g.mode}`)}
                 </StatusPill>
               ))}
-            </ul>
+            </div>
           )}
         </GlassPanel>
-      ) : null}
+      )}
 
-      {hydrated && quits.length > 0 ? <ResetQuitStreak goals={quits} /> : null}
+      {hydrated && quits.length > 0 && <ResetQuitStreak goals={quits} />}
+      {hydrated && bodies.length > 0 && <ResetBodyTracking state={wellness} onUpdate={persistWellness} />}
+      
+      {hydrated && hasTrainingRelevantBodyGoal(wellness.goals) && trainingModes.map((mode) => (
+        <ResetTrainingPlan key={mode} mode={mode} state={wellness} onUpdate={persistWellness} />
+      ))}
 
-      {hydrated && bodyGoals(wellness.goals).length > 0 ? (
-        <ResetBodyTracking state={wellness} onUpdate={persistWellness} />
-      ) : null}
+      {hydrated && wellness.onboardingDone && <ResetHealthSourcesPanel />}
 
-      {hydrated && hasTrainingRelevantBodyGoal(wellness.goals)
-        ? trainingModes.map((mode) => (
-            <ResetTrainingPlan
-              key={mode}
-              mode={mode}
-              state={wellness}
-              onUpdate={persistWellness}
-            />
-          ))
-        : null}
-
-      {hydrated && wellness.onboardingDone ? <ResetHealthSourcesPanel /> : null}
-
-      {hydrated && wellness.onboardingDone ? (
+      {hydrated && wellness.onboardingDone && (
         <ResetDailySignalsForm
           userId={user?.id ?? null}
           onSaved={() => setSignalsVersion((v) => v + 1)}
         />
-      ) : null}
+      )}
 
-      <GlassPanel className="space-y-3">
-        <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
+      <GlassPanel className="space-y-4">
+        <p className="text-sm leading-relaxed text-foreground/80">
           {t("module.reset.blurb")}
         </p>
         <ResetAuraGlow
@@ -384,26 +310,24 @@ export default function ResetPage() {
         />
       </GlassPanel>
 
-      <GlassPanel className="space-y-3">
+      <GlassPanel className="space-y-4">
         <SectionHeading title={t("reset.metrics")} />
-        <div className="space-y-2">
+        <div className="grid gap-2">
           {liveMetrics.map((metric) => (
             <div
               key={metric.label}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3"
+              className="flex items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-4 py-3"
             >
-              <p className="text-sm font-medium text-[color:var(--color-text)]">{metric.label}</p>
-              <StatusPill tone={metric.tone === "good" ? "good" : "warn"}>
-                {metric.value}
-              </StatusPill>
+              <p className="text-sm font-bold text-foreground">{metric.label}</p>
+              <StatusPill tone={metric.tone}>{metric.value}</StatusPill>
             </div>
           ))}
         </div>
       </GlassPanel>
 
-      <GlassPanel className="space-y-3">
+      <GlassPanel className="space-y-4">
         <SectionHeading title={t("reset.privacy")} />
-        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
+        <p className="text-sm leading-relaxed text-foreground/70">
           {t("reset.privacyBody")}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -415,21 +339,23 @@ export default function ResetPage() {
         </div>
       </GlassPanel>
 
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("reset.recommendation")} />
-        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">{t("reset.aiBody")}</p>
-        <p className="text-xs text-[color:var(--color-secondary)]">
-          {t("reset.checkin.limitHint", { max: String(MAX_RESET_CHECKINS_PER_DAY) })}
-        </p>
+      <GlassPanel className="space-y-5">
+        <div className="space-y-2">
+          <SectionHeading title={t("reset.recommendation")} />
+          <p className="text-sm leading-relaxed text-foreground">{t("reset.aiBody")}</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">
+            {t("reset.checkin.limitHint", { max: String(MAX_RESET_CHECKINS_PER_DAY) })}
+          </p>
+        </div>
+        
         <button
-          type="button"
           onClick={() => void onCheckIn()}
           disabled={!canCheckInToday()}
           className={[
-            "w-full rounded-xl px-4 py-3 text-sm font-semibold transition-opacity",
+            "w-full rounded-theme py-4 text-sm font-black tracking-tight transition-all shadow-md",
             !canCheckInToday()
-              ? "cursor-default bg-[color:var(--color-surface-border)] text-[color:var(--color-secondary)]"
-              : "bg-[color:var(--color-primary)] text-[color:var(--color-background)]",
+              ? "bg-border text-foreground/40 cursor-not-allowed"
+              : "bg-primary text-primary-foreground hover:scale-[1.02] active:scale-[0.98]",
           ].join(" ")}
         >
           {!canCheckInToday()
@@ -439,11 +365,12 @@ export default function ResetPage() {
                 max: String(MAX_RESET_CHECKINS_PER_DAY),
               })}
         </button>
-        {checkInMessage === "limit" ? (
-          <p className="text-sm text-rose-600 dark:text-rose-400">{t("reset.checkin.limitReached")}</p>
-        ) : checkInMessage === "rpc" ? (
-          <p className="text-sm text-rose-600 dark:text-rose-400">{t("reset.checkin.rpcUnavailable")}</p>
-        ) : null}
+        
+        {checkInMessage && (
+          <p className="text-xs font-bold text-center text-red-500">
+            {checkInMessage === "limit" ? t("reset.checkin.limitReached") : t("reset.checkin.rpcUnavailable")}
+          </p>
+        )}
       </GlassPanel>
     </ModuleShell>
   );

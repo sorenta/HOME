@@ -1,4 +1,4 @@
-export type ThemeId = "forge" | "canopy" | "pulse" | "lucent" | "hive";
+export type ThemeId = "forge" | "botanical" | "pulse" | "lucent" | "hive";
 
 export type LegacyThemeId =
   | "soft-spa"
@@ -18,7 +18,7 @@ export type ThemeMotion = "organic" | "snappy" | "soft";
  */
 export type HomeScreenLayout =
   | "forge-rail"
-  | "canopy-shelf"
+  | "botanical-shelf"
   | "pulse-poster"
   | "lucent-float"
   | "hive-cluster";
@@ -110,7 +110,7 @@ export const LEGACY_THEME_MIGRATION: Record<LegacyThemeId, ThemeId> = {
   "soft-spa": "lucent",
   "zephyr-soft": "lucent",
   "calla-grace": "hive",
-  "forest-sunset": "canopy",
+  "forest-sunset": "botanical",
   "ocean-depth": "pulse",
   "ember-wood": "forge",
 };
@@ -156,46 +156,50 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
       inputBackground: "#141414",
       inputBorder: "rgba(255,255,255,0.14)",
       focusRing: "rgba(225,29,46,0.45)",
-      navBackground: "#0A0A0A",
+      navBackground: "#040404",
       navActive: "#E11D2E",
       navInactive: "#6B6E73",
       heroGlow:
-        "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(225,29,46,0.35), transparent 55%)",
-      panelShadow: "0 20px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
+        "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(225,29,46,0.28), transparent 55%)",
+      /* Plated panels: rim light + weight, not floating glass cards */
+      panelShadow:
+        "inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.45)",
       authBackground:
         "linear-gradient(165deg, #0A0A0A 0%, #050505 45%, #080303 100%), radial-gradient(ellipse 90% 60% at 50% 0%, rgba(225,29,46,0.2), transparent 50%)",
       authCard: "#121212",
       authBorder: "rgba(255,255,255,0.12)",
     },
     fonts: {
-      ui: "var(--font-inter)",
+      /* Rajdhani: engineered UI rhythm; Barlow Condensed: authoritative module / hero titles */
+      ui: "var(--font-rajdhani)",
       display: "var(--font-barlow-condensed)",
     },
     radius: {
-      card: "16px",
-      button: "12px",
-      input: "12px",
-      nav: "16px",
-      chip: "14px",
+      card: "10px",
+      button: "8px",
+      input: "8px",
+      nav: "2px",
+      chip: "8px",
     },
-    spacing: { sectionScale: 0.9, basePx: 4 },
+    spacing: { sectionScale: 0.82, basePx: 4 },
     layoutDensity: "compact",
     motion: "snappy",
     homeScreenLayout: "forge-rail",
     ui: {
       backgroundImage:
-        "radial-gradient(circle at 50% 0%, rgba(225,29,46,0.12), transparent 42%), linear-gradient(180deg, #0A0A0A 0%, #050505 55%)",
-      panelHighlight: "rgba(255,255,255,0.04)",
-      tileShadow: "0 14px 36px rgba(0,0,0,0.45)",
-      headerGlow: "rgba(225,29,46,0.18)",
-      panelBorderStyle: "1px solid rgba(255,255,255,0.08)",
-      tileBorderStyle: "1px solid rgba(255,255,255,0.07)",
-      bodyOverlayStrength: 0.35,
+        "linear-gradient(180deg, #0B0B0B 0%, #050505 38%, #070303 100%), radial-gradient(ellipse 120% 45% at 50% -8%, rgba(225,29,46,0.14), transparent 52%), radial-gradient(ellipse 90% 35% at 50% 108%, rgba(225,29,46,0.08), transparent 50%)",
+      panelHighlight: "rgba(255,255,255,0.035)",
+      tileShadow:
+        "inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -2px 4px rgba(0,0,0,0.35), 0 1px 0 rgba(0,0,0,0.5)",
+      headerGlow: "rgba(225,29,46,0.14)",
+      panelBorderStyle: "1px solid rgba(255,255,255,0.1)",
+      tileBorderStyle: "1px solid rgba(255,255,255,0.09)",
+      bodyOverlayStrength: 0.3,
     },
   },
-  canopy: {
-    id: "canopy",
-    labelKey: "theme.canopy",
+  botanical: {
+    id: "botanical",
+    labelKey: "theme.botanical",
     emoji: "🌿",
     colors: {
       background: "#0C1210",
@@ -248,7 +252,7 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
     spacing: { sectionScale: 1.02, basePx: 4 },
     layoutDensity: "comfortable",
     motion: "organic",
-    homeScreenLayout: "canopy-shelf",
+    homeScreenLayout: "botanical-shelf",
     ui: {
       backgroundImage:
         "radial-gradient(circle at 20% 15%, rgba(46,230,168,0.08), transparent 35%), radial-gradient(circle at 85% 20%, rgba(34,211,238,0.06), transparent 30%), linear-gradient(180deg, rgba(21,32,26,0.5), transparent 50%)",

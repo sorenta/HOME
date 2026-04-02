@@ -143,7 +143,7 @@ export default function FinancePage() {
     <ModuleShell title={t("tile.finance")} moduleId="finance">
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("finance.overview")} />
-        <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
+        <p className="text-sm leading-relaxed text-foreground/70">
           {t("finance.overviewHint")}
         </p>
         <div className="grid grid-cols-3 gap-3">
@@ -159,16 +159,16 @@ export default function FinancePage() {
 
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("finance.buckets")} />
-        <p className="text-xs text-[color:var(--color-secondary)]">{t("finance.bucketsHint")}</p>
+        <p className="text-xs text-foreground/70">{t("finance.bucketsHint")}</p>
         {buckets.length === 0 ? (
-          <p className="text-sm text-[color:var(--color-secondary)]">{t("finance.empty")}</p>
+          <p className="text-sm text-foreground/60 italic">{t("finance.empty")}</p>
         ) : (
           <div className="space-y-4">
             {buckets.map((bucket) => (
               <div key={bucket.id}>
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-sm font-medium text-[color:var(--color-text)]">{bucket.label}</p>
-                  <p className="text-sm font-semibold text-[color:var(--color-primary)]">
+                  <p className="text-sm font-medium text-foreground">{bucket.label}</p>
+                  <p className="text-sm font-bold text-primary">
                     {formatEuro(bucket.total, locale)}
                   </p>
                 </div>
@@ -178,15 +178,16 @@ export default function FinancePage() {
         )}
       </GlassPanel>
 
-      <GlassPanel className="space-y-3">
+      <GlassPanel className="space-y-4">
         <SectionHeading title={t("finance.bills")} />
-        <form onSubmit={handleAddBill} className="grid gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/30 p-3 sm:grid-cols-2">
+        
+        <form onSubmit={handleAddBill} className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
           <input
             type="text"
             value={billTitle}
             onChange={(e) => setBillTitle(e.target.value)}
             placeholder={t("finance.form.billTitle")}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <input
             type="number"
@@ -195,7 +196,7 @@ export default function FinancePage() {
             value={billAmount}
             onChange={(e) => setBillAmount(e.target.value)}
             placeholder={t("finance.form.amount")}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <input
             type="number"
@@ -204,39 +205,40 @@ export default function FinancePage() {
             value={billDueDay}
             onChange={(e) => setBillDueDay(e.target.value)}
             placeholder={t("finance.form.dueDay")}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <input
             type="text"
             value={billCategory}
             onChange={(e) => setBillCategory(e.target.value)}
             placeholder={t("finance.form.category")}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <div className="sm:col-span-2">
             <button
               type="submit"
               disabled={saving || !profile?.household_id}
-              className="w-full rounded-xl border border-[color:var(--color-primary)] bg-[color:var(--color-surface)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)] disabled:opacity-60"
+              className="w-full rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
             >
               {t("finance.form.addBill")}
             </button>
           </div>
         </form>
+
         <div className="space-y-2">
           {fixedCosts.length === 0 ? (
-            <p className="text-sm text-[color:var(--color-secondary)]">{t("finance.empty")}</p>
+            <p className="text-sm text-foreground/60 italic">{t("finance.empty")}</p>
           ) : (
             fixedCosts.map((bill) => {
               const paid = fixedCostPaidThisMonth(bill.id, transactions);
               return (
                 <div
                   key={bill.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3"
+                  className="flex items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-[color:var(--color-text)]">{bill.label}</p>
-                    <p className="text-xs text-[color:var(--color-secondary)]">
+                    <p className="font-semibold text-sm text-foreground">{bill.label}</p>
+                    <p className="mt-0.5 text-xs text-foreground/60 font-medium">
                       {formatEuro(bill.amount, locale)}
                       {bill.due_day ? ` · ${bill.due_day}.` : ""}
                       {bill.category ? ` · ${bill.category}` : ""}
@@ -252,15 +254,16 @@ export default function FinancePage() {
         </div>
       </GlassPanel>
 
-      <GlassPanel className="space-y-3">
+      <GlassPanel className="space-y-4">
         <SectionHeading title={t("finance.activity")} />
-        <form onSubmit={handleAddTransaction} className="grid gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/30 p-3 sm:grid-cols-2">
+        
+        <form onSubmit={handleAddTransaction} className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
           <input
             type="text"
             value={txnTitle}
             onChange={(e) => setTxnTitle(e.target.value)}
             placeholder={t("finance.form.transactionTitle")}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <input
             type="number"
@@ -269,12 +272,12 @@ export default function FinancePage() {
             value={txnAmount}
             onChange={(e) => setTxnAmount(e.target.value)}
             placeholder={t("finance.form.amount")}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <select
             value={txnDirection}
             onChange={(e) => setTxnDirection(e.target.value as "income" | "expense")}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           >
             <option value="expense">{t("finance.form.expense")}</option>
             <option value="income">{t("finance.form.income")}</option>
@@ -284,12 +287,12 @@ export default function FinancePage() {
             lang={locale === "lv" ? "lv-LV" : "en-US"}
             value={txnDate}
             onChange={(e) => setTxnDate(e.target.value)}
-            className="w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           />
           <select
             value={txnFixedCostId}
             onChange={(e) => setTxnFixedCostId(e.target.value)}
-            className="sm:col-span-2 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+            className="sm:col-span-2 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
           >
             <option value="">{t("finance.form.none")}</option>
             {fixedCosts.map((bill) => (
@@ -302,24 +305,26 @@ export default function FinancePage() {
             <button
               type="submit"
               disabled={saving || !profile?.household_id}
-              className="w-full rounded-xl bg-[color:var(--color-primary)] px-4 py-3 text-sm font-semibold text-[color:var(--color-background)] disabled:opacity-60"
+              className="w-full rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
             >
               {t("finance.form.addTransaction")}
             </button>
           </div>
         </form>
-        {error ? <p className="text-sm text-[color:var(--color-danger)]">{error}</p> : null}
+
+        {error ? <p className="text-sm font-medium text-red-500">{error}</p> : null}
+
         <div className="space-y-2">
           {transactions.length === 0 ? (
-            <p className="text-sm text-[color:var(--color-secondary)]">{t("finance.activityEmpty")}</p>
+            <p className="text-sm text-foreground/60 italic">{t("finance.activityEmpty")}</p>
           ) : (
             transactions.slice(0, 6).map((item) => (
               <div
                 key={item.id}
-                className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3"
+                className="rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm leading-snug text-[color:var(--color-text)]">
+                  <p className="text-sm font-semibold text-foreground">
                     {item.label}
                   </p>
                   <StatusPill tone={item.direction === "income" ? "good" : "warn"}>
@@ -327,7 +332,7 @@ export default function FinancePage() {
                     {formatEuro(item.amount, locale)}
                   </StatusPill>
                 </div>
-                <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
+                <p className="mt-1 text-xs font-medium text-foreground/60">
                   {formatAppDate(item.happened_at, locale)}
                 </p>
               </div>
@@ -338,10 +343,10 @@ export default function FinancePage() {
 
       <GlassPanel className="space-y-3">
         <SectionHeading title={t("finance.insight")} />
-        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
+        <p className="text-sm leading-relaxed text-foreground">
           {insight}
         </p>
-        <p className="text-xs leading-relaxed text-[color:var(--color-secondary)]">
+        <p className="text-xs leading-relaxed text-foreground/70">
           {t("finance.partnerHint")}
         </p>
       </GlassPanel>

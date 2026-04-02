@@ -420,7 +420,9 @@ export default function KitchenPage() {
 
   return (
     <ModuleShell title={t("tile.kitchen")} moduleId="kitchen">
-      <GlassPanel className="space-y-3">
+      
+      {/* AI ASSISTANT PANELIS */}
+      <GlassPanel className="space-y-4">
         <SectionHeading title={t("kitchen.section.ai")} detail={t("kitchen.assistant")} />
         <KitchenAiPanel
           householdId={householdId}
@@ -431,25 +433,27 @@ export default function KitchenPage() {
         />
       </GlassPanel>
 
-      <GlassPanel className="space-y-3">
+      {/* IEPIRKUMU GROZS */}
+      <GlassPanel className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <SectionHeading title={t("kitchen.section.cart")} detail={`${shopping.length}`} />
           <button
             type="button"
             onClick={() => setShowShoppingForm((v) => !v)}
-            className="rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-sm text-[color:var(--color-text)]"
+            className="rounded-theme border border-border bg-background/50 px-4 py-2 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
           >
             {showShoppingForm ? t("kitchen.hideForm") : t("kitchen.form.shopping")}
           </button>
         </div>
+        
         {aiSuggestions.length > 0 ? (
-          <div className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/30 p-3">
-            <p className="text-sm font-medium text-[color:var(--color-text)]">{t("kitchen.applyAiList")}</p>
-            <p className="mt-1 text-xs text-[color:var(--color-secondary)]">{t("kitchen.applyAiList.hint")}</p>
+          <div className="rounded-theme border border-primary/30 bg-primary/5 p-4 shadow-sm">
+            <p className="text-sm font-bold text-foreground">{t("kitchen.applyAiList")}</p>
+            <p className="mt-1 text-xs text-foreground/70">{t("kitchen.applyAiList.hint")}</p>
             <button
               type="button"
               onClick={() => void applyAllAiSuggestions()}
-              className="mt-2 w-full rounded-xl bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--color-background)]"
+              className="mt-3 w-full rounded-theme bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {t("kitchen.applyAiList")}
             </button>
@@ -457,98 +461,85 @@ export default function KitchenPage() {
         ) : null}
 
         {loading ? (
-          <p className="text-sm text-[color:var(--color-secondary)]">{t("kitchen.loading")}</p>
+          <p className="text-sm text-foreground/60 p-2">{t("kitchen.loading")}</p>
         ) : shopping.length === 0 ? (
-          <p className="text-sm text-[color:var(--color-secondary)]">{t("kitchen.empty.cart")}</p>
+          <p className="text-sm text-foreground/60 italic p-2">{t("kitchen.empty.cart")}</p>
         ) : (
           <div className="space-y-2">
             {shopping.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-[color:var(--color-surface-border)] p-2">
-                <div className="flex items-start justify-between gap-2">
+              <div key={item.id} className="rounded-theme border border-border p-3 bg-background/40 transition-all hover:border-primary/50">
+                <div className="flex items-start justify-between gap-3">
                   <button
                     type="button"
-                    onClick={() =>
-                      setSelectedId((current) => (current === item.id ? null : item.id))
-                    }
+                    onClick={() => setSelectedId((current) => (current === item.id ? null : item.id))}
                     className="min-w-0 flex-1 text-left"
                   >
-                    <p
-                      className={[
-                        "font-medium text-[color:var(--color-text)]",
-                        item.status === "picked" ? "line-through opacity-70" : "",
-                      ].join(" ")}
-                    >
+                    <p className={`font-semibold text-foreground text-sm ${item.status === "picked" ? "line-through opacity-50" : ""}`}>
                       {item.title}
                     </p>
-                    <p className="text-xs text-[color:var(--color-secondary)]">
+                    <p className="text-xs text-foreground/60 font-medium mt-0.5">
                       {formatQuantity(item.quantity, item.unit)}
                       {item.suggested_by_ai ? ` · ${t("kitchen.ai.tag")}` : ""}
                     </p>
                   </button>
                   <StatusPill tone={shoppingTone(item.status)}>{item.status}</StatusPill>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {item.status === "open" ? (
+                
+                {selectedId === item.id && (
+                  <div className="mt-3 flex flex-wrap gap-2 pt-3 border-t border-border/50">
+                    {item.status === "open" ? (
+                      <button
+                        type="button"
+                        onClick={() => void handleShoppingStatus(item.id, "picked")}
+                        className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground hover:bg-foreground/5 transition-colors"
+                      >
+                        {t("kitchen.action.picked")}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
-                      onClick={() => void handleShoppingStatus(item.id, "picked")}
-                      className="rounded-lg border border-[color:var(--color-surface-border)] px-2 py-1 text-xs font-medium text-[color:var(--color-text)]"
+                      onClick={() =>
+                        item.status === "picked"
+                          ? void handleShoppingStatus(item.id, "open")
+                          : void handleMoveToInventory(item.id)
+                      }
+                      className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground hover:bg-foreground/5 transition-colors"
                     >
-                      {t("kitchen.action.picked")}
+                      {item.status === "picked" ? t("kitchen.action.reopen") : t("kitchen.action.moveToInventory")}
                     </button>
-                  ) : null}
-                  {selectedId === item.id ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          item.status === "picked"
-                            ? void handleShoppingStatus(item.id, "open")
-                            : void handleMoveToInventory(item.id)
-                        }
-                        className="rounded-lg border border-[color:var(--color-surface-border)] px-2 py-1 text-xs text-[color:var(--color-text)]"
-                      >
-                        {item.status === "picked"
-                          ? t("kitchen.action.reopen")
-                          : t("kitchen.action.moveToInventory")}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void handleShoppingStatus(item.id, "archived")}
-                        className="rounded-lg border border-[color:var(--color-surface-border)] px-2 py-1 text-xs text-[color:var(--color-secondary)]"
-                      >
-                        {t("kitchen.action.archive")}
-                      </button>
-                    </>
-                  ) : null}
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleShoppingStatus(item.id, "archived")}
+                      className="rounded-md border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors"
+                    >
+                      {t("kitchen.action.archive")}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
 
         {showShoppingForm ? (
-          <form
-            className="grid grid-cols-2 gap-3 border-t border-[color:var(--color-surface-border)] pt-3"
-            onSubmit={handleShoppingSubmit}
-          >
-            <label className="col-span-2 text-sm text-[color:var(--color-text)]">
+          <form className="grid grid-cols-2 gap-3 border-t border-border pt-4" onSubmit={handleShoppingSubmit}>
+            <label className="col-span-2 text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.form.name")}
               <input
                 type="text"
                 value={shoppingName}
                 onChange={(e) => setShoppingName(e.target.value)}
                 list={autofillListId}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                 required
               />
             </label>
-            <label className="col-span-2 text-sm text-[color:var(--color-text)]">
+            <label className="col-span-2 text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.category")}
               <select
                 value={shoppingCategorySlug}
                 onChange={(e) => setShoppingCategorySlug(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm text-[color:var(--color-text)]"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               >
                 <option value="">{t("kitchen.category.none")}</option>
                 {KITCHEN_CATEGORY_SLUGS.map((slug) => (
@@ -558,7 +549,7 @@ export default function KitchenPage() {
                 ))}
               </select>
             </label>
-            <label className="text-sm text-[color:var(--color-text)]">
+            <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.form.quantity")}
               <input
                 type="number"
@@ -566,22 +557,22 @@ export default function KitchenPage() {
                 step="1"
                 value={shoppingQuantity}
                 onChange={(e) => setShoppingQuantity(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                 required
               />
             </label>
-            <label className="text-sm text-[color:var(--color-text)]">
+            <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.form.unit")}
               <input
                 type="text"
                 value={shoppingUnit}
                 onChange={(e) => setShoppingUnit(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               />
             </label>
             <button
               type="submit"
-              className="col-span-2 rounded-xl bg-[color:var(--color-primary)] px-4 py-3 text-sm font-semibold text-[color:var(--color-background)]"
+              className="col-span-2 rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {t("kitchen.form.addToCart")}
             </button>
@@ -589,13 +580,13 @@ export default function KitchenPage() {
         ) : null}
       </GlassPanel>
 
-      <GlassPanel className="space-y-3">
+      <GlassPanel className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <SectionHeading title={t("kitchen.section.home")} detail={`${inventory.length}`} />
           <button
             type="button"
             onClick={() => setShowInventoryForm((v) => !v)}
-            className="rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-sm text-[color:var(--color-text)]"
+            className="rounded-theme border border-border bg-background/50 px-4 py-2 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
           >
             {showInventoryForm ? t("kitchen.hideForm") : t("kitchen.form.inventory")}
           </button>
@@ -606,10 +597,10 @@ export default function KitchenPage() {
             type="button"
             onClick={() => setHomeCategoryFilter("__all__")}
             className={[
-              "rounded-full border px-3 py-1 text-xs font-medium",
+              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
               homeCategoryFilter === "__all__"
-                ? "border-[color:var(--color-primary)] bg-[color:var(--color-surface-border)]"
-                : "border-[color:var(--color-surface-border)] text-[color:var(--color-secondary)]",
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-border text-foreground/70 hover:bg-foreground/5",
             ].join(" ")}
           >
             {t("kitchen.filter.all")}
@@ -620,10 +611,10 @@ export default function KitchenPage() {
               type="button"
               onClick={() => setHomeCategoryFilter(cat === "__none__" ? "__none__" : cat)}
               className={[
-                "rounded-full border px-3 py-1 text-xs font-medium",
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                 (cat === "__none__" ? homeCategoryFilter === "__none__" : homeCategoryFilter === cat)
-                  ? "border-[color:var(--color-primary)] bg-[color:var(--color-surface-border)]"
-                  : "border-[color:var(--color-surface-border)] text-[color:var(--color-secondary)]",
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border text-foreground/70 hover:bg-foreground/5",
               ].join(" ")}
             >
               {cat === "__none__" ? t("kitchen.category.none") : t(kitchenCategoryLabelKey(cat))}
@@ -632,32 +623,30 @@ export default function KitchenPage() {
         </div>
 
         {loading ? (
-          <p className="text-sm text-[color:var(--color-secondary)]">{t("kitchen.loading")}</p>
+          <p className="text-sm text-foreground/60 p-2">{t("kitchen.loading")}</p>
         ) : filteredHomeInventory.length === 0 ? (
-          <p className="text-sm text-[color:var(--color-secondary)]">{t("kitchen.empty.stock")}</p>
+          <p className="text-sm text-foreground/60 italic p-2">{t("kitchen.empty.stock")}</p>
         ) : (
           <div className="space-y-3">
             {inventoryByCategorySection.map(([catKey, items]) => (
               <details
                 key={catKey || "none"}
-                className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/25"
+                className="rounded-theme border border-border bg-background/40 shadow-sm"
                 open
               >
-                <summary className="cursor-pointer list-none px-3 py-3 font-semibold text-[color:var(--color-text)] [&::-webkit-details-marker]:hidden">
+                <summary className="cursor-pointer list-none px-3 py-3 font-semibold text-foreground [&::-webkit-details-marker]:hidden">
                   {catKey === "__none__" ? t("kitchen.category.none") : t(kitchenCategoryLabelKey(catKey))}
-                  <span className="ml-2 text-xs font-normal text-[color:var(--color-secondary)]">
-                    ({items.length})
-                  </span>
+                  <span className="ml-2 text-xs font-normal text-foreground/60">({items.length})</span>
                 </summary>
-                <div className="space-y-2 border-t border-[color:var(--color-surface-border)] px-2 pb-3 pt-2">
+                <div className="space-y-2 border-t border-border/50 px-2 pb-3 pt-2">
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[color:var(--color-surface-border)] px-2 py-2"
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-theme border border-border bg-background/30 px-3 py-2.5"
                     >
                       <div className="min-w-0">
-                        <p className="font-medium text-[color:var(--color-text)]">{item.name}</p>
-                        <p className="text-xs text-[color:var(--color-secondary)]">
+                        <p className="font-semibold text-sm text-foreground">{item.name}</p>
+                        <p className="text-xs text-foreground/60 font-medium mt-0.5">
                           {formatQuantity(item.quantity, item.unit)}
                           {item.expiry_date
                             ? ` · ${formatAppDate(item.expiry_date, locale) ?? item.expiry_date}`
@@ -669,14 +658,14 @@ export default function KitchenPage() {
                         <button
                           type="button"
                           onClick={() => void addProductToCart(item)}
-                          className="rounded-lg border border-[color:var(--color-primary)] px-2 py-1 text-xs font-medium text-[color:var(--color-primary)]"
+                          className="rounded-md border border-primary/40 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/10 transition-colors"
                         >
                           {t("kitchen.toCart")}
                         </button>
                         <button
                           type="button"
                           onClick={() => void handleInventoryDelete(item.id)}
-                          className="rounded-lg border border-[color:var(--color-surface-border)] px-2 py-1 text-xs text-[color:var(--color-secondary)]"
+                          className="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground/70 hover:bg-foreground/5 transition-colors"
                         >
                           {t("kitchen.action.remove")}
                         </button>
@@ -690,10 +679,7 @@ export default function KitchenPage() {
         )}
 
         {showInventoryForm ? (
-          <form
-            className="grid grid-cols-2 gap-3 border-t border-[color:var(--color-surface-border)] pt-3"
-            onSubmit={handleInventorySubmit}
-          >
+          <form className="grid grid-cols-2 gap-3 border-t border-border pt-4" onSubmit={handleInventorySubmit}>
             <datalist id={autofillListId}>
               {(householdId ? kitchenAutofillOptions(householdId, inventoryCategorySlug || undefined) : []).map(
                 (name) => (
@@ -701,23 +687,23 @@ export default function KitchenPage() {
                 ),
               )}
             </datalist>
-            <label className="col-span-2 text-sm text-[color:var(--color-text)]">
+            <label className="col-span-2 text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.form.name")}
               <input
                 type="text"
                 value={inventoryName}
                 onChange={(e) => setInventoryName(e.target.value)}
                 list={autofillListId}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                 required
               />
             </label>
-            <label className="col-span-2 text-sm text-[color:var(--color-text)]">
+            <label className="col-span-2 text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.category")}
               <select
                 value={inventoryCategorySlug}
                 onChange={(e) => setInventoryCategorySlug(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm text-[color:var(--color-text)]"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               >
                 <option value="">{t("kitchen.category.none")}</option>
                 {KITCHEN_CATEGORY_SLUGS.map((slug) => (
@@ -727,7 +713,7 @@ export default function KitchenPage() {
                 ))}
               </select>
             </label>
-            <label className="text-sm text-[color:var(--color-text)]">
+            <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.form.quantity")}
               <input
                 type="number"
@@ -735,32 +721,32 @@ export default function KitchenPage() {
                 step="1"
                 value={inventoryQuantity}
                 onChange={(e) => setInventoryQuantity(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                 required
               />
             </label>
-            <label className="text-sm text-[color:var(--color-text)]">
+            <label className="text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.form.unit")}
               <input
                 type="text"
                 value={inventoryUnit}
                 onChange={(e) => setInventoryUnit(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               />
             </label>
-            <label className="col-span-2 text-sm text-[color:var(--color-text)]">
+            <label className="col-span-2 text-xs font-bold uppercase tracking-wider text-foreground/70">
               {t("kitchen.form.expiry")}
               <input
                 type="date"
                 lang={locale === "lv" ? "lv-LV" : "en-US"}
                 value={inventoryExpiry}
                 onChange={(e) => setInventoryExpiry(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
+                className="mt-1.5 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               />
             </label>
             <button
               type="submit"
-              className="col-span-2 rounded-xl bg-[color:var(--color-primary)] px-4 py-3 text-sm font-semibold text-[color:var(--color-background)]"
+              className="col-span-2 rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {t("kitchen.form.submit")}
             </button>
@@ -778,13 +764,13 @@ export default function KitchenPage() {
 
       {error ? (
         <GlassPanel>
-          <p className="text-sm text-[color:var(--color-text)]">{error}</p>
+          <p className="text-sm text-foreground">{error}</p>
         </GlassPanel>
       ) : null}
 
       {message ? (
         <GlassPanel>
-          <p className="text-sm text-[color:var(--color-text)]">{message}</p>
+          <p className="text-sm text-foreground">{message}</p>
         </GlassPanel>
       ) : null}
     </ModuleShell>

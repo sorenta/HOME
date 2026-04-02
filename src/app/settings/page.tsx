@@ -44,52 +44,13 @@ type LocalSettings = {
   showResetAura: boolean;
 };
 
-type NotificationPreferencesRow = {
-  finance_enabled: boolean;
-  pharmacy_enabled: boolean;
-  reset_empathy_enabled: boolean;
-  reset_empathy_recipient_ids?: string[] | null;
-};
-
-type AiPreferenceRow = {
-  provider: AiProvider;
-  is_enabled: boolean;
-  key_last_four: string | null;
-};
-
-type ByokProviderState = {
-  value: string;
-  savedValue: string;
-  status: "idle" | "testing" | "error";
-  error: string | null;
-};
-
-const EMPTY_PROVIDER_STATE: ByokProviderState = {
-  value: "",
-  savedValue: "",
-  status: "idle",
-  error: null,
-};
-
 function readLocalSettings(): LocalSettings {
-  const fallback: LocalSettings = {
-    pushFinance: true,
-    pushPharmacy: true,
-    showResetAura: true,
-  };
-
+  const fallback: LocalSettings = { pushFinance: true, pushPharmacy: true, showResetAura: true };
   if (typeof window === "undefined") return fallback;
-
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return fallback;
-    return {
-      ...fallback,
-      ...(JSON.parse(raw) as Partial<LocalSettings>),
-    };
-  } catch {
-    return fallback;
-  }
+    return raw ? { ...fallback, ...JSON.parse(raw) } : fallback;
+  } catch { return fallback; }
 }
 
 export default function SettingsPage() {
@@ -97,926 +58,203 @@ export default function SettingsPage() {
   const { t, locale, setLocale } = useI18n();
   const { themeId, setThemeId } = useTheme();
   const { user, profile, refreshProfile, signOut } = useAuth();
-  const [byok, setByok] = useState<Record<AiProvider, ByokProviderState>>({
-    gemini: EMPTY_PROVIDER_STATE,
-    openai: EMPTY_PROVIDER_STATE,
+  
+  const [byok, setByok] = useState<Record<AiProvider, any>>({
+    gemini: { value: "", savedValue: "", status: "idle", error: null },
+    openai: { value: "", savedValue: "", status: "idle", error: null },
   });
-  const [settings, setSettings] = useState<LocalSettings>({
-    pushFinance: true,
-    pushPharmacy: true,
-    showResetAura: true,
-  });
+  
+  const [settings, setSettings] = useState<LocalSettings>(readLocalSettings());
   const [empathyRecipientIds, setEmpathyRecipientIds] = useState<string[]>([]);
   const [members, setMembers] = useState<HouseholdMember[]>([]);
-  const settingsRef = useRef(settings);
-  const empathyRef = useRef(empathyRecipientIds);
   const supabaseReady = createClient() !== null;
 
   useEffect(() => {
-    settingsRef.current = settings;
-  }, [settings]);
-
-  useEffect(() => {
-    empathyRef.current = empathyRecipientIds;
-  }, [empathyRecipientIds]);
-
-  useEffect(() => {
     void fetchMyHouseholdMembers().then(setMembers);
+    setByok({
+      gemini: { value: getProviderKeyFromStorage("gemini") ?? "", savedValue: getProviderKeyFromStorage("gemini") ?? "", status: "idle", error: null },
+      openai: { value: getProviderKeyFromStorage("openai") ?? "", savedValue: getProviderKeyFromStorage("openai") ?? "", status: "idle", error: null },
+    });
   }, [profile?.household_id]);
-
-  useEffect(() => {
-    let alive = true;
-    const frame = requestAnimationFrame(() => {
-      setByok({
-        gemini: (() => {
-          const saved = getProviderKeyFromStorage("gemini") ?? "";
-          return {
-            value: saved,
-            savedValue: saved,
-            status: "idle",
-            error: null,
-          };
-        })(),
-        openai: (() => {
-          const saved = getProviderKeyFromStorage("openai") ?? "";
-          return {
-            value: saved,
-            savedValue: saved,
-            status: "idle",
-            error: null,
-          };
-        })(),
-      });
-      setSettings(readLocalSettings());
-    });
-
-    const loadRemotePreferences = async () => {
-      if (!user) return;
-      const supabase = getBrowserClient();
-      if (!supabase) return;
-
-      const [{ data: notificationData }, { data: aiPreferenceRows }] = await Promise.all([
-        supabase
-          .from("notification_preferences")
-          .select(
-            "finance_enabled, pharmacy_enabled, reset_empathy_enabled, reset_empathy_recipient_ids",
-          )
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("ai_preferences")
-          .select("provider, is_enabled, key_last_four")
-          .eq("user_id", user.id),
-      ]);
-
-      if (!alive) return;
-
-      if (notificationData) {
-        const row = notificationData as NotificationPreferencesRow;
-        setSettings({
-          pushFinance: row.finance_enabled,
-          pushPharmacy: row.pharmacy_enabled,
-          showResetAura: row.reset_empathy_enabled,
-        });
-        const ids = row.reset_empathy_recipient_ids;
-        setEmpathyRecipientIds(Array.isArray(ids) ? ids : []);
-      }
-
-      if (aiPreferenceRows?.length) {
-        setByok((current) => {
-          const next = { ...current };
-          for (const row of aiPreferenceRows as AiPreferenceRow[]) {
-            const saved = getProviderKeyFromStorage(row.provider) ?? "";
-            next[row.provider] = {
-              value: saved,
-              savedValue: saved,
-              status: "idle",
-              error: null,
-            };
-          }
-          return next;
-        });
-      }
-    };
-
-    void loadRemotePreferences();
-
-    return () => {
-      alive = false;
-      cancelAnimationFrame(frame);
-    };
-  }, [user]);
-
-  async function persistSettings(next: LocalSettings) {
-    setSettings(next);
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
-
-    if (!user) return;
-    const supabase = getBrowserClient();
-    if (!supabase) return;
-
-    const { error } = await supabase.from("notification_preferences").upsert({
-      user_id: user.id,
-      finance_enabled: next.pushFinance,
-      pharmacy_enabled: next.pushPharmacy,
-      reset_empathy_enabled: next.showResetAura,
-      reset_empathy_recipient_ids: empathyRef.current,
-      updated_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      console.error("Failed to save notification preferences", error);
-    }
-  }
-
-  async function persistEmpathyRecipients(ids: string[]) {
-    if (!user) return;
-    const supabase = getBrowserClient();
-    if (!supabase) return;
-    const s = settingsRef.current;
-    const { error } = await supabase.from("notification_preferences").upsert({
-      user_id: user.id,
-      finance_enabled: s.pushFinance,
-      pharmacy_enabled: s.pushPharmacy,
-      reset_empathy_enabled: s.showResetAura,
-      reset_empathy_recipient_ids: ids,
-      updated_at: new Date().toISOString(),
-    });
-    if (error) {
-      console.error("Failed to save empathy recipients", error);
-    }
-  }
-
-  function toggleEmpathyRecipient(memberId: string) {
-    hapticTap();
-    setEmpathyRecipientIds((prev) => {
-      const next = prev.includes(memberId)
-        ? prev.filter((x) => x !== memberId)
-        : [...prev, memberId];
-      empathyRef.current = next;
-      void persistEmpathyRecipients(next);
-      return next;
-    });
-  }
-
-  function setProviderValue(provider: AiProvider, value: string) {
-    setByok((current) => ({
-      ...current,
-      [provider]: {
-        ...current[provider],
-        value,
-        status: "idle",
-        error: null,
-      },
-    }));
-  }
-
-  function resolveByokMessage(message: string) {
-    switch (message) {
-      case "missing":
-        return t("settings.byok.missing");
-      case "invalid_gemini":
-        return t("settings.byok.invalidGemini");
-      case "invalid_openai":
-        return t("settings.byok.invalidOpenai");
-      default:
-        return message || t("settings.byok.verifyFailed");
-    }
-  }
-
-  async function verifyAndSaveProvider(provider: AiProvider) {
-    const value = byok[provider].value.trim();
-    const validationError = validateProviderKey(provider, value);
-
-    if (validationError) {
-      setByok((current) => ({
-        ...current,
-        [provider]: {
-          ...current[provider],
-          status: "error",
-          error: resolveByokMessage(validationError),
-        },
-      }));
-      return;
-    }
-
-    hapticTap();
-    setByok((current) => ({
-      ...current,
-      [provider]: {
-        ...current[provider],
-        status: "testing",
-        error: null,
-      },
-    }));
-
-    try {
-      const response = await fetch("/api/ai/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ provider, key: value }),
-      });
-
-      const data = (await response.json()) as { ok?: boolean; message?: string };
-
-      if (!response.ok || !data.ok) {
-        throw new Error(resolveByokMessage(data.message ?? ""));
-      }
-
-      setProviderKeyInStorage(provider, value);
-      if (user) {
-        const supabase = getBrowserClient();
-        if (supabase) {
-          const { error } = await supabase.from("ai_preferences").upsert({
-            user_id: user.id,
-            provider,
-            label: provider === "gemini" ? "Gemini" : "OpenAI",
-            is_enabled: true,
-            key_last_four: getKeyLastFour(value),
-            updated_at: new Date().toISOString(),
-          });
-          if (error) {
-            console.error("Failed to sync AI preference metadata", error);
-          }
-        }
-      }
-      setByok((current) => ({
-        ...current,
-        [provider]: {
-          value,
-          savedValue: value,
-          status: "idle",
-          error: null,
-        },
-      }));
-    } catch (error) {
-      setByok((current) => ({
-        ...current,
-        [provider]: {
-          ...current[provider],
-          status: "error",
-          error:
-            error instanceof Error
-              ? error.message
-              : t("settings.byok.verifyFailed"),
-        },
-      }));
-    }
-  }
-
-  function removeProvider(provider: AiProvider) {
-    hapticTap();
-    removeProviderKeyFromStorage(provider);
-    if (user) {
-      const supabase = getBrowserClient();
-      if (supabase) {
-        void supabase
-          .from("ai_preferences")
-          .upsert({
-            user_id: user.id,
-            provider,
-            label: provider === "gemini" ? "Gemini" : "OpenAI",
-            is_enabled: false,
-            key_last_four: null,
-            updated_at: new Date().toISOString(),
-          })
-          .then(({ error }) => {
-            if (error) {
-              console.error("Failed to clear AI preference metadata", error);
-            }
-          });
-      }
-    }
-    setByok((current) => ({
-      ...current,
-      [provider]: EMPTY_PROVIDER_STATE,
-    }));
-  }
-
-  async function onSignOut() {
-    await signOut();
-    router.push("/auth");
-  }
 
   async function handleThemeChange(id: ThemeId) {
     hapticTap();
     setThemeId(id);
-
     if (!user) return;
-
     const supabase = getBrowserClient();
-    if (!supabase) return;
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({ theme_id: id })
-      .eq("id", user.id);
-
-    if (!error) {
+    if (supabase) {
+      await supabase.from("profiles").update({ theme_id: id }).eq("id", user.id);
       await refreshProfile();
     }
   }
 
-  function renderProviderCard(provider: AiProvider, label: string) {
+  async function persistSettings(next: LocalSettings) {
+    setSettings(next);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+    if (!user) return;
+    const supabase = getBrowserClient();
+    if (supabase) {
+      await supabase.from("notification_preferences").upsert({
+        user_id: user.id,
+        finance_enabled: next.pushFinance,
+        pharmacy_enabled: next.pushPharmacy,
+        reset_empathy_enabled: next.showResetAura,
+        reset_empathy_recipient_ids: empathyRecipientIds,
+        updated_at: new Date().toISOString(),
+      });
+    }
+  }
+
+  const toggleEmpathyRecipient = async (id: string) => {
+    hapticTap();
+    const next = empathyRecipientIds.includes(id) 
+      ? empathyRecipientIds.filter(x => x !== id) 
+      : [...empathyRecipientIds, id];
+    setEmpathyRecipientIds(next);
+    if (user) {
+      const supabase = getBrowserClient();
+      if (supabase) {
+        await supabase.from("notification_preferences").upsert({
+          user_id: user.id,
+          reset_empathy_recipient_ids: next,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    }
+  };
+
+  const verifyAndSaveProvider = async (provider: AiProvider) => {
+    hapticTap();
+    const value = byok[provider].value.trim();
+    const validationError = validateProviderKey(provider, value);
+    if (validationError) {
+      setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "error", error: validationError } }));
+      return;
+    }
+    setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "testing" } }));
+    try {
+      const response = await fetch("/api/ai/verify", { method: "POST", body: JSON.stringify({ provider, key: value }) });
+      if (!response.ok) throw new Error("Verification failed");
+      setProviderKeyInStorage(provider, value);
+      setByok(prev => ({ ...prev, [provider]: { ...prev[provider], savedValue: value, status: "idle", error: null } }));
+    } catch (e) {
+      setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "error", error: "Invalid Key" } }));
+    }
+  };
+
+  const renderProviderControl = (provider: AiProvider, label: string, isForge: boolean) => {
     const state = byok[provider];
-    const isSaved = Boolean(
-      state.savedValue && state.savedValue === state.value.trim(),
-    );
-
-    const tone =
-      state.status === "error"
-        ? "warn"
-        : state.status === "testing"
-          ? "neutral"
-          : isSaved
-            ? "good"
-            : "neutral";
-
-    const statusLabel =
-      state.status === "error"
-        ? t("settings.byok.state.error")
-        : state.status === "testing"
-          ? t("settings.byok.state.testing")
-          : isSaved
-            ? t("settings.byok.state.saved")
-            : t("settings.byok.state.notSaved");
-
-    const helperText = state.error
-      ? state.error
-      : isSaved
-        ? `${t("settings.byok.savedDevice")} ${maskKey(state.savedValue)}`
-        : state.value.trim()
-          ? t("settings.byok.unsaved")
-          : t("settings.byok.notSaved");
+    const isSaved = state.savedValue && state.savedValue === state.value.trim();
+    const helperText = isSaved ? `${t("settings.byok.savedDevice")} ${maskKey(state.savedValue)}` : state.value.trim() ? t("settings.byok.unsaved") : t("settings.byok.notSaved");
 
     return (
-      <div
-        key={provider}
-        className="space-y-3 rounded-2xl border border-[color:var(--color-surface-border)] p-3"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-[color:var(--color-text)]">
-            {label}
-          </p>
-          <StatusPill tone={tone}>{statusLabel}</StatusPill>
+      <div className={`space-y-3 ${isForge ? 'p-3' : 'rounded-xl border border-border p-4 bg-background/40'}`}>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-bold">{label}</p>
+          <StatusPill tone={state.status === "error" ? "warn" : isSaved ? "good" : "neutral"}>
+            {state.status === "testing" ? "..." : isSaved ? "OK" : "!"}
+          </StatusPill>
         </div>
-        <label className="block text-sm text-[color:var(--color-text)]">
-          {label}
-          <input
-            type="password"
-            autoComplete="off"
-            value={state.value}
-            onChange={(e) => setProviderValue(provider, e.target.value)}
-            placeholder={provider === "gemini" ? "AIza..." : "sk-..."}
-            className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
-          />
-        </label>
-        <p className="text-xs text-[color:var(--color-secondary)]">
-          {helperText}
-        </p>
+        <input
+          type="password"
+          value={state.value}
+          onChange={e => setByok(prev => ({ ...prev, [provider]: { ...prev[provider], value: e.target.value, status: "idle" } }))}
+          className="w-full rounded-theme border border-border bg-background/50 px-3 py-2 text-sm outline-none focus:border-primary"
+          placeholder={provider === "gemini" ? "AIza..." : "sk-..."}
+        />
+        <p className="text-[10px] uppercase font-bold tracking-widest text-foreground/40">{helperText}</p>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => verifyAndSaveProvider(provider)}
-            disabled={state.status === "testing"}
-            className="flex-1 rounded-xl border border-[color:var(--color-primary)] bg-[color:var(--color-surface)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)] disabled:opacity-60"
-          >
-            {state.status === "testing"
-              ? t("settings.byok.action.testing")
-              : t("settings.byok.action.verify")}
+          <button onClick={() => verifyAndSaveProvider(provider)} className="flex-1 rounded-theme bg-primary py-2 text-xs font-bold text-primary-foreground shadow-sm">
+            {t("settings.byok.action.verify")}
           </button>
-          <button
-            type="button"
-            onClick={() => removeProvider(provider)}
-            disabled={!state.value && !state.savedValue}
-            className="rounded-xl border border-[color:var(--color-surface-border)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)] disabled:opacity-50"
-          >
-            {t("settings.byok.action.remove")}
+          <button onClick={() => { removeProviderKeyFromStorage(provider); setByok(prev => ({ ...prev, [provider]: { value: "", savedValue: "", status: "idle", error: null } })); }} className="rounded-theme border border-border px-3 py-2 text-xs font-bold">
+            ✕
           </button>
         </div>
       </div>
     );
-  }
-
-  function renderForgeProviderBlock(provider: AiProvider, label: string) {
-    const state = byok[provider];
-    const isSaved = Boolean(
-      state.savedValue && state.savedValue === state.value.trim(),
-    );
-
-    const tone =
-      state.status === "error"
-        ? "warn"
-        : state.status === "testing"
-          ? "neutral"
-          : isSaved
-            ? "good"
-            : "neutral";
-
-    const statusLabel =
-      state.status === "error"
-        ? t("settings.byok.state.error")
-        : state.status === "testing"
-          ? t("settings.byok.state.testing")
-          : isSaved
-            ? t("settings.byok.state.saved")
-            : t("settings.byok.state.notSaved");
-
-    const helperText = state.error
-      ? state.error
-      : isSaved
-        ? `${t("settings.byok.savedDevice")} ${maskKey(state.savedValue)}`
-        : state.value.trim()
-          ? t("settings.byok.unsaved")
-          : t("settings.byok.notSaved");
-
-    return (
-      <div key={provider} className="space-y-2 p-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">{label}</p>
-          <StatusPill tone={tone}>{statusLabel}</StatusPill>
-        </div>
-        <label className="block text-xs text-[color:var(--color-text-secondary)]">
-          {label}
-          <input
-            type="password"
-            autoComplete="off"
-            value={state.value}
-            onChange={(e) => setProviderValue(provider, e.target.value)}
-            placeholder={provider === "gemini" ? "AIza..." : "sk-..."}
-            className="maj-forge-field mt-1 w-full px-3 py-2 text-sm"
-          />
-        </label>
-        <p className="text-[0.7rem] leading-snug text-[color:var(--color-text-secondary)]">
-          {helperText}
-        </p>
-        <div className="flex gap-2 pt-1">
-          <button
-            type="button"
-            onClick={() => verifyAndSaveProvider(provider)}
-            disabled={state.status === "testing"}
-            className="flex-1 rounded-md border border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-background))] px-3 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] disabled:opacity-60"
-          >
-            {state.status === "testing"
-              ? t("settings.byok.action.testing")
-              : t("settings.byok.action.verify")}
-          </button>
-          <button
-            type="button"
-            onClick={() => removeProvider(provider)}
-            disabled={!state.value && !state.savedValue}
-            className="rounded-md border border-[color:color-mix(in_srgb,var(--color-border)_90%,transparent)] px-3 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] disabled:opacity-50"
-          >
-            {t("settings.byok.action.remove")}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
-    <ModuleShell
-      shellVariant={themeId === "forge" ? "forge" : "default"}
-      title={t("settings.title")}
-    >
+    <ModuleShell title={t("settings.title")} moduleId="settings">
       {themeId === "forge" ? (
-        <>
+        <div className="space-y-1">
           <ForgeMainDeck>
             <ForgeSubLabel>{t("settings.theme")}</ForgeSubLabel>
             <ForgeDeckList>
-              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-                <ForgeRowButton
-                  key={id}
-                  onClick={() => void handleThemeChange(id)}
-                  className={[
-                    themeId === id
-                      ? "border-l-[3px] border-l-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] pl-[calc(0.75rem-3px)]"
-                      : "border-l-[3px] border-l-transparent",
-                  ].join(" ")}
-                >
-                  <span className="min-w-0">
-                    {THEMES[id].emoji} {t(THEMES[id].labelKey)}
-                  </span>
-                  {themeId === id ? (
-                    <ForgeMetricDot active />
-                  ) : (
-                    <span className="text-[color:var(--color-text-secondary)] opacity-40">·</span>
-                  )}
+              {(Object.keys(THEMES) as ThemeId[]).map(id => (
+                <ForgeRowButton key={id} onClick={() => handleThemeChange(id)}>
+                  <span className={themeId === id ? "text-primary font-bold" : ""}>{THEMES[id].emoji} {t(THEMES[id].labelKey)}</span>
+                  {themeId === id && <ForgeMetricDot active />}
                 </ForgeRowButton>
               ))}
             </ForgeDeckList>
-
             <ForgeBandRule />
             <ForgeSubLabel>{t("settings.language")}</ForgeSubLabel>
-            <div className="px-3 pb-2.5 pt-0">
-              <div className="flex w-full gap-1.5">
-                {(["lv", "en"] as const).map((loc) => (
-                  <button
-                    key={loc}
-                    type="button"
-                    onClick={() => {
-                      hapticTap();
-                      setLocale(loc);
-                    }}
-                    className={[
-                      "min-h-[2.5rem] flex-1 rounded-[0.125rem] border text-sm font-semibold",
-                      locale === loc
-                        ? "border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-background))] text-[color:var(--color-text-primary)]"
-                        : "border-[color:color-mix(in_srgb,var(--color-border)_75%,transparent)] text-[color:var(--color-text-secondary)]",
-                    ].join(" ")}
-                  >
-                    {loc === "lv" ? "Latviešu" : "English"}
-                  </button>
-                ))}
-              </div>
+            <div className="flex gap-1 px-3 pb-3">
+              {["lv", "en"].map(l => (
+                <button key={l} onClick={() => setLocale(l as any)} className={`flex-1 py-2 text-xs font-bold border ${locale === l ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground/40'}`}>
+                  {l === "lv" ? "LATVIAN" : "ENGLISH"}
+                </button>
+              ))}
             </div>
-
-            <ForgeBandRule />
-            <ForgeSubLabel>{t("settings.household")}</ForgeSubLabel>
-            <div className="px-2 pb-2.5 pt-0">
-              {profile?.household_id ? (
-                <HouseholdSummary householdId={profile.household_id} density="compact" />
-              ) : (
-                <HouseholdOnboarding compact />
-              )}
-            </div>
-
-            <ForgeBandRule />
-            <ForgeSubLabel>{t("settings.notifications")}</ForgeSubLabel>
-            <ForgeDeckList>
-              <ForgeRowButton
-                onClick={() =>
-                  void persistSettings({
-                    ...settings,
-                    pushFinance: !settings.pushFinance,
-                  })
-                }
-              >
-                <span>{t("settings.notifications.finance")}</span>
-                <StatusPill tone={settings.pushFinance ? "good" : "neutral"}>
-                  {settings.pushFinance ? "ON" : "OFF"}
-                </StatusPill>
-              </ForgeRowButton>
-              <ForgeRowButton
-                onClick={() =>
-                  void persistSettings({
-                    ...settings,
-                    pushPharmacy: !settings.pushPharmacy,
-                  })
-                }
-              >
-                <span>{t("settings.notifications.pharmacy")}</span>
-                <StatusPill tone={settings.pushPharmacy ? "good" : "neutral"}>
-                  {settings.pushPharmacy ? "ON" : "OFF"}
-                </StatusPill>
-              </ForgeRowButton>
-            </ForgeDeckList>
-
-            <ForgeSubLabel tight>{t("settings.privacy")}</ForgeSubLabel>
-            <ForgeDeckList>
-              <ForgeRowButton
-                onClick={() =>
-                  void persistSettings({
-                    ...settings,
-                    showResetAura: !settings.showResetAura,
-                  })
-                }
-              >
-                <span>{t("settings.privacy.resetAura")}</span>
-                <StatusPill tone={settings.showResetAura ? "warn" : "neutral"}>
-                  {settings.showResetAura
-                    ? t("settings.state.allowed")
-                    : t("settings.state.hidden")}
-                </StatusPill>
-              </ForgeRowButton>
-            </ForgeDeckList>
-
-            {members.length > 0 ? (
-              <>
-                <ForgeSubLabel tight>{t("settings.empathy.recipients")}</ForgeSubLabel>
-                <p className="px-3 pb-1 text-[0.65rem] leading-snug text-[color:var(--color-text-secondary)]">
-                  {t("settings.empathy.hint")}
-                </p>
-                <ForgeDeckList>
-                  {members.map((m) => {
-                    const on = empathyRecipientIds.includes(m.id);
-                    return (
-                      <ForgeRowButton key={m.id} onClick={() => toggleEmpathyRecipient(m.id)}>
-                        <span className="min-w-0">
-                          {m.display_name ?? m.id.slice(0, 8)}
-                          {m.is_me ? ` (${t("household.membersList.you")})` : ""}
-                        </span>
-                        <StatusPill tone={on ? "good" : "neutral"}>{on ? "ON" : "OFF"}</StatusPill>
-                      </ForgeRowButton>
-                    );
-                  })}
-                </ForgeDeckList>
-              </>
-            ) : null}
           </ForgeMainDeck>
-
+          
           <ForgeSystemSlab>
             <ForgeSubLabel>{t("settings.byok.title")}</ForgeSubLabel>
-            <div className="space-y-1.5 px-3 pb-2 pt-0 text-[0.7rem] leading-snug text-[color:var(--color-text-secondary)]">
-              <p>{t("settings.byok.hint")}</p>
-              <p className="text-[0.65rem] opacity-90">{t("settings.byok.localStorageNote")}</p>
+            <div className="space-y-1">
+              {renderProviderControl("gemini", "GEMINI AI", true)}
+              {renderProviderControl("openai", "OPENAI GPT", true)}
             </div>
-            <ForgeDeckList>
-              {renderForgeProviderBlock("gemini", "Gemini")}
-              {renderForgeProviderBlock("openai", "OpenAI")}
-            </ForgeDeckList>
-
             <ForgeBandRule />
-            <ForgeSubLabel tight>{t("settings.supabase")}</ForgeSubLabel>
-            <div className="space-y-1.5 px-3 pb-2.5 pt-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <ForgeMetricDot active={supabaseReady} />
-                <StatusPill tone={supabaseReady ? "good" : "warn"}>
-                  {supabaseReady ? t("settings.connected") : t("settings.localOnly")}
-                </StatusPill>
-              </div>
-              <p className="text-sm leading-relaxed text-[color:var(--color-text-primary)]">
-                {supabaseReady
-                  ? "Supabase klientu var savienot ar reālajiem datiem."
-                  : t("supabase.missing")}
-              </p>
-              {user?.email ? (
-                <p className="text-[0.7rem] text-[color:var(--color-text-secondary)]">{user.email}</p>
-              ) : null}
-            </div>
-
-            <ForgeBandRule />
-            <ForgeSubLabel tight>{t("settings.gdpr.title")}</ForgeSubLabel>
-            <div className="space-y-3 px-3 pb-2 pt-0">
-              <p className="text-sm leading-relaxed text-[color:var(--color-text-primary)]">
-                {t("settings.gdpr.body")}
-              </p>
-              {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL ? (
-                <a
-                  href={`mailto:${process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}`}
-                  className="block text-sm font-medium text-[color:var(--color-primary)] underline"
-                >
-                  {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}
-                </a>
-              ) : (
-                <p className="text-xs text-[color:var(--color-text-secondary)]">
-                  {t("legal.privacy.contactMissing")}
-                </p>
-              )}
-              <Link
-                href="/legal/privacy"
-                className="inline-flex rounded-[0.125rem] border border-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-primary)]"
-                onClick={() => hapticTap()}
-              >
-                {t("settings.gdpr.openPrivacy")}
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  hapticTap();
-                  clearStoredConsent();
-                  window.location.reload();
-                }}
-                className="w-full rounded-[0.125rem] border border-[color:color-mix(in_srgb,var(--color-border)_85%,transparent)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-text-primary)]"
-              >
-                {t("settings.gdpr.resetConsent")}
-              </button>
-            </div>
-
-            <div className="maj-forge-system-signout border-t border-[color:color-mix(in_srgb,var(--color-border)_65%,transparent)]">
-              <button
-                type="button"
-                onClick={onSignOut}
-                className="w-full px-4 py-3.5 text-left text-sm font-semibold text-[color:var(--color-text-primary)]"
-              >
-                {t("auth.signout")}
-              </button>
-            </div>
+            <button onClick={() => signOut()} className="w-full py-4 text-center text-xs font-black tracking-tighter text-red-500 hover:bg-red-500/10">
+              TERMINATE SESSION (SIGN OUT)
+            </button>
           </ForgeSystemSlab>
-        </>
+        </div>
       ) : (
-        <>
-      <GlassPanel className="space-y-4">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-secondary)]">
-            {t("settings.theme")}
-          </p>
-          <div className="flex flex-col gap-2">
-            {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => void handleThemeChange(id)}
-                className={[
-                  "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm",
-                  themeId === id
-                    ? "border-[color:var(--color-primary)] bg-[color:var(--color-surface)]"
-                    : "border-[color:var(--color-surface-border)]",
-                ].join(" ")}
-              >
-                <span>
-                  {THEMES[id].emoji} {t(THEMES[id].labelKey)}
-                </span>
-                {themeId === id ? "✓" : ""}
-              </button>
-            ))}
+        <div className="space-y-6">
+          <GlassPanel className="space-y-4">
+            <SectionHeading title={t("settings.theme")} />
+            <div className="grid grid-cols-1 gap-2">
+              {(Object.keys(THEMES) as ThemeId[]).map(id => (
+                <button key={id} onClick={() => handleThemeChange(id)} className={`flex items-center justify-between rounded-theme border p-4 text-sm font-bold transition-all ${themeId === id ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-background/40'}`}>
+                  <span>{THEMES[id].emoji} {t(THEMES[id].labelKey)}</span>
+                  {themeId === id && <span className="text-primary">✓</span>}
+                </button>
+              ))}
+            </div>
+          </GlassPanel>
+
+          <GlassPanel className="space-y-4">
+            <SectionHeading title={t("settings.notifications")} />
+            <div className="space-y-2">
+              {[
+                { key: 'pushFinance' as const, label: t("settings.notifications.finance") },
+                { key: 'pushPharmacy' as const, label: t("settings.notifications.pharmacy") }
+              ].map(item => (
+                <button key={item.key} onClick={() => persistSettings({ ...settings, [item.key]: !settings[item.key] })} className="flex w-full items-center justify-between rounded-theme border border-border bg-background/40 p-4 text-sm font-bold">
+                  {item.label}
+                  <StatusPill tone={settings[item.key] ? "good" : "neutral"}>{settings[item.key] ? "ON" : "OFF"}</StatusPill>
+                </button>
+              ))}
+            </div>
+          </GlassPanel>
+
+          <GlassPanel className="space-y-4">
+            <SectionHeading title={t("settings.byok.title")} />
+            <div className="space-y-3">
+              {renderProviderControl("gemini", "Gemini AI", false)}
+              {renderProviderControl("openai", "OpenAI GPT", false)}
+            </div>
+          </GlassPanel>
+
+          <div className="px-4 py-2 text-center">
+            <button onClick={() => signOut()} className="text-sm font-bold text-foreground/40 underline decoration-primary/30 underline-offset-4">
+              {t("auth.signout")}
+            </button>
           </div>
         </div>
-
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-secondary)]">
-            {t("settings.language")}
-          </p>
-          <div className="flex gap-2">
-            {(["lv", "en"] as const).map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                onClick={() => {
-                  hapticTap();
-                  setLocale(loc);
-                }}
-                className={[
-                  "flex-1 rounded-xl border px-3 py-2 text-sm font-medium",
-                  locale === loc
-                    ? "border-[color:var(--color-primary)] bg-[color:var(--color-surface)]"
-                    : "border-[color:var(--color-surface-border)]",
-                ].join(" ")}
-              >
-                {loc === "lv" ? "Latviešu" : "English"}
-              </button>
-            ))}
-          </div>
-        </div>
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("settings.household")} />
-        {profile?.household_id ? (
-          <HouseholdSummary householdId={profile.household_id} />
-        ) : (
-          <HouseholdOnboarding compact />
-        )}
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("settings.notifications")} />
-        <button
-          type="button"
-          onClick={() =>
-            void persistSettings({
-              ...settings,
-              pushFinance: !settings.pushFinance,
-            })
-          }
-          className="flex w-full items-center justify-between rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left text-sm"
-        >
-          <span>{t("settings.notifications.finance")}</span>
-          <StatusPill tone={settings.pushFinance ? "good" : "neutral"}>
-            {settings.pushFinance ? "ON" : "OFF"}
-          </StatusPill>
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            void persistSettings({
-              ...settings,
-              pushPharmacy: !settings.pushPharmacy,
-            })
-          }
-          className="flex w-full items-center justify-between rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left text-sm"
-        >
-          <span>{t("settings.notifications.pharmacy")}</span>
-          <StatusPill tone={settings.pushPharmacy ? "good" : "neutral"}>
-            {settings.pushPharmacy ? "ON" : "OFF"}
-          </StatusPill>
-        </button>
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("settings.privacy")} />
-        <button
-          type="button"
-          onClick={() =>
-            void persistSettings({
-              ...settings,
-              showResetAura: !settings.showResetAura,
-            })
-          }
-          className="flex w-full items-center justify-between rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left text-sm"
-        >
-          <span>{t("settings.privacy.resetAura")}</span>
-          <StatusPill tone={settings.showResetAura ? "warn" : "neutral"}>
-            {settings.showResetAura ? t("settings.state.allowed") : t("settings.state.hidden")}
-          </StatusPill>
-        </button>
-        {members.length > 0 ? (
-          <div className="space-y-2 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3">
-            <p className="text-sm font-medium text-[color:var(--color-text)]">
-              {t("settings.empathy.recipients")}
-            </p>
-            <p className="text-xs text-[color:var(--color-secondary)]">{t("settings.empathy.hint")}</p>
-            <ul className="flex flex-col gap-2 pt-1">
-              {members.map((m) => {
-                const on = empathyRecipientIds.includes(m.id);
-                return (
-                  <li key={m.id}>
-                    <button
-                      type="button"
-                      onClick={() => toggleEmpathyRecipient(m.id)}
-                      className="flex w-full items-center justify-between rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-left text-sm"
-                    >
-                      <span>
-                        {m.display_name ?? m.id.slice(0, 8)}
-                        {m.is_me ? ` (${t("household.membersList.you")})` : ""}
-                      </span>
-                      <StatusPill tone={on ? "good" : "neutral"}>{on ? "ON" : "OFF"}</StatusPill>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-secondary)]">
-          {t("settings.byok.title")}
-        </p>
-        <p className="text-xs text-[color:var(--color-secondary)]">
-          {t("settings.byok.hint")}
-        </p>
-        <p className="text-xs text-[color:var(--color-secondary)]">
-          {t("settings.byok.localStorageNote")}
-        </p>
-        {renderProviderCard("gemini", "Gemini")}
-        {renderProviderCard("openai", "OpenAI")}
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("settings.supabase")} />
-        <StatusPill tone={supabaseReady ? "good" : "warn"}>
-          {supabaseReady ? t("settings.connected") : t("settings.localOnly")}
-        </StatusPill>
-        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">
-          {supabaseReady ? "Supabase klientu var savienot ar reālajiem datiem." : t("supabase.missing")}
-        </p>
-        {user?.email ? (
-          <p className="text-xs text-[color:var(--color-secondary)]">{user.email}</p>
-        ) : null}
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("settings.gdpr.title")} />
-        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">{t("settings.gdpr.body")}</p>
-        {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL ? (
-          <a
-            href={`mailto:${process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}`}
-            className="block text-sm font-medium text-[color:var(--color-primary)] underline"
-          >
-            {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}
-          </a>
-        ) : (
-          <p className="text-xs text-[color:var(--color-secondary)]">{t("legal.privacy.contactMissing")}</p>
-        )}
-        <Link
-          href="/legal/privacy"
-          className="inline-flex rounded-xl border border-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-primary)]"
-          onClick={() => hapticTap()}
-        >
-          {t("settings.gdpr.openPrivacy")}
-        </Link>
-        <button
-          type="button"
-          onClick={() => {
-            hapticTap();
-            clearStoredConsent();
-            window.location.reload();
-          }}
-          className="w-full rounded-xl border border-[color:var(--color-surface-border)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)]"
-        >
-          {t("settings.gdpr.resetConsent")}
-        </button>
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("auth.signout")} />
-        <button
-          type="button"
-          onClick={onSignOut}
-          className="w-full rounded-xl border border-[color:var(--color-surface-border)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)]"
-        >
-          {t("auth.signout")}
-        </button>
-      </GlassPanel>
-        </>
       )}
     </ModuleShell>
   );

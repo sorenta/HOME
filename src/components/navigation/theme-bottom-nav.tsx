@@ -9,22 +9,23 @@ import type { ThemeId } from "@/lib/theme-logic";
 
 type BottomNavId = "home" | "calendar" | "kitchen" | "finance" | "pharmacy" | "reset";
 
-export const THEME_NAV_ICONS: Record<
-  BottomNavId,
-  Record<ThemeId, string>
-> = {
-  home: { forge: "⬛", canopy: "⌂", pulse: "◆", lucent: "◠", hive: "⬡" },
-  calendar: { forge: "✦", canopy: "✿", pulse: "✺", lucent: "✽", hive: "✶" },
-  kitchen: { forge: "▣", canopy: "❀", pulse: "▤", lucent: "◍", hive: "◈" },
-  finance: { forge: "◆", canopy: "◎", pulse: "◫", lucent: "◌", hive: "◇" },
-  pharmacy: { forge: "✚", canopy: "✚", pulse: "✚", lucent: "✚", hive: "✚" },
-  reset: { forge: "⬡", canopy: "☽", pulse: "◇", lucent: "◎", hive: "✧" },
+// Ikonas katrai tēmai (canopy aizvietots ar botanical)
+export const THEME_NAV_ICONS: Record<BottomNavId, Record<ThemeId, string>> = {
+  home: { forge: "⬛", botanical: "⌂", pulse: "◆", lucent: "☁", hive: "⬡" },
+  calendar: { forge: "✦", botanical: "✿", pulse: "✺", lucent: "✽", hive: "✶" },
+  kitchen: { forge: "▣", botanical: "❀", pulse: "▤", lucent: "◍", hive: "◈" },
+  finance: { forge: "◆", botanical: "◎", pulse: "◫", lucent: "◌", hive: "◇" },
+  pharmacy: { forge: "✚", botanical: "✚", pulse: "✚", lucent: "✚", hive: "✚" },
+  reset: { forge: "⬡", botanical: "☽", pulse: "◇", lucent: "◎", hive: "✧" },
 };
 
-function useNavState() {
+export function ThemeBottomNav() {
   const { t } = useI18n();
   const pathname = usePathname();
   const { themeId } = useTheme();
+
+  // Nerādām navigāciju autentifikācijas lapā
+  if (pathname.startsWith("/auth")) return null;
 
   const navItems = [
     { id: "home" as const, href: "/", label: t("nav.home") },
@@ -37,233 +38,69 @@ function useNavState() {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
-    if (href === "/events") {
-      return pathname.startsWith("/events") || pathname.startsWith("/calendar");
-    }
+    if (href === "/events") return pathname.startsWith("/events") || pathname.startsWith("/calendar");
     return pathname.startsWith(href);
   };
 
-  return { themeId, navItems, isActive };
-}
+  // 1. GUDRAIS KONTEINERS (Maina formu atkarībā no tēmas)
+  let wrapperClass = "fixed w-full max-w-lg left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ";
+  let innerClass = "flex items-center justify-between ";
 
-/** Dense control strip: equal columns, top accent for active — no floating pill. */
-function ForgeBottomNav() {
-  const { themeId, navItems, isActive } = useNavState();
-  return (
-    <nav
-      className="maj-forge-bottom-nav fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 border-t border-[color:color-mix(in_srgb,var(--color-border)_80%,transparent)]"
-      aria-label="Primary"
-    >
-      <div className="grid grid-cols-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-0">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => hapticTap()}
-              className={[
-                "relative flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 px-0.5 pt-1 text-[0.58rem] font-semibold leading-tight",
-                active
-                  ? "text-[color:var(--color-primary)]"
-                  : "text-[color:var(--color-nav-inactive)]",
-              ].join(" ")}
-            >
-              {active ? (
-                <span className="absolute left-1 right-1 top-0 h-0.5 rounded-full bg-[color:var(--color-primary)]" />
-              ) : null}
-              <span className="text-base leading-none" aria-hidden>
-                {THEME_NAV_ICONS[item.id][themeId]}
-              </span>
-              <span className="max-w-[4.2rem] truncate text-center">{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
-/** Rounded dock inside the bar — botanical “tray”. */
-function CanopyBottomNav() {
-  const { themeId, navItems, isActive } = useNavState();
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 bg-gradient-to-t from-[color:var(--color-background)] via-[color:var(--color-background)] to-transparent pt-2"
-      aria-label="Primary"
-    >
-      <div className="px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-stretch justify-between gap-1 rounded-[1.35rem] border border-[color:var(--color-border)] bg-[color:color-mix(in_srgb,var(--color-surface)_92%,transparent)] px-1 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-          {navItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => hapticTap()}
-                className={[
-                  "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 py-1 text-[0.62rem] font-medium",
-                  active
-                    ? "bg-[color:color-mix(in_srgb,var(--color-accent)_16%,var(--color-surface))] text-[color:var(--color-accent)]"
-                    : "text-[color:var(--color-nav-inactive)]",
-                ].join(" ")}
-              >
-                <span className="text-[1.05rem] leading-none" aria-hidden>
-                  {THEME_NAV_ICONS[item.id][themeId]}
-                </span>
-                <span className="max-w-full truncate">{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </nav>
-  );
-}
-
-/** Poster / brutal: lighter strip — chips stay readable without dominating the canvas. */
-function PulseBottomNav() {
-  const { themeId, navItems, isActive } = useNavState();
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 border-t border-[color:var(--color-border)] bg-[color:var(--color-nav-background)] shadow-[0_-6px_24px_rgba(43,45,66,0.06)]"
-      aria-label="Primary"
-    >
-      <div className="scrollbar-none flex gap-1.5 overflow-x-auto px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => hapticTap()}
-              className={[
-                "flex min-w-[3.85rem] shrink-0 flex-col items-center gap-0.5 border border-[color:var(--color-border)] px-1.5 py-1.5 text-[0.6rem] font-bold leading-tight",
-                active
-                  ? "bg-[color:color-mix(in_srgb,var(--color-border)_88%,var(--color-background))] text-[color:var(--color-background)] shadow-[2px_2px_0_rgba(255,107,107,0.22)]"
-                  : "bg-[color:var(--color-surface)] text-[color:var(--color-text-primary)] shadow-[1px_1px_0_rgba(43,45,66,0.08)]",
-              ].join(" ")}
-              style={{ borderRadius: "var(--radius-button)" }}
-            >
-              <span className="text-base leading-none" aria-hidden>
-                {THEME_NAV_ICONS[item.id][themeId]}
-              </span>
-              <span className="max-w-[4.5rem] text-center leading-tight">{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
-/** One frosted capsule — single backdrop layer, inset from screen edge. */
-function LucentBottomNav() {
-  const { themeId, navItems, isActive } = useNavState();
-  return (
-    <nav
-      className="pointer-events-none fixed bottom-3 left-1/2 z-50 w-[min(calc(100%-1.25rem),28rem)] -translate-x-1/2"
-      aria-label="Primary"
-    >
-      <div
-        className="pointer-events-auto flex items-stretch gap-0.5 rounded-[2rem] border border-white/45 bg-[color:color-mix(in_srgb,var(--color-nav-background)_88%,transparent)] px-1.5 py-1.5 shadow-[0_12px_40px_rgba(77,49,61,0.12)] backdrop-blur-md"
-        style={{ WebkitBackdropFilter: "blur(14px)" }}
-      >
-        {navItems.map((item) => {
-          const act = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => hapticTap()}
-              className={[
-                "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[1.35rem] px-1 py-1.5 text-[0.6rem] font-medium",
-                act
-                  ? "bg-[color:color-mix(in_srgb,var(--color-primary)_18%,#fff)] text-[color:var(--color-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
-                  : "text-[color:var(--color-nav-inactive)]",
-              ].join(" ")}
-            >
-              <span className="text-[1.1rem] leading-none" aria-hidden>
-                {THEME_NAV_ICONS[item.id][themeId]}
-              </span>
-              <span className="max-w-full truncate">{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-      <div className="h-[env(safe-area-inset-bottom)]" aria-hidden />
-    </nav>
-  );
-}
-
-/** Warm modular cells — slimmer rail so content stays primary. */
-function HiveBottomNav() {
-  const { themeId, navItems, isActive } = useNavState();
-  return (
-    <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 rounded-t-[1.35rem] border-x border-t border-[color:color-mix(in_srgb,var(--color-accent)_28%,var(--color-border))] bg-[color:var(--color-nav-background)] shadow-[0_-6px_22px_rgba(120,90,40,0.1)]"
-      aria-label="Primary"
-    >
-      <div className="h-0.5 w-full rounded-t-[1.35rem] bg-[color:color-mix(in_srgb,var(--color-accent)_45%,transparent)]" aria-hidden />
-      <div className="flex items-stretch justify-between gap-0.5 px-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-1.5">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => hapticTap()}
-              className={[
-                "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[0.58rem] font-bold",
-                active
-                  ? "bg-[color:var(--color-surface)] text-[color:var(--color-primary)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_38%,transparent)]"
-                  : "text-[color:var(--color-nav-inactive)]",
-              ].join(" ")}
-            >
-              <span
-                className="flex h-8 w-8 items-center justify-center text-[0.95rem]"
-                style={{
-                  borderRadius: "30%",
-                  background: active
-                    ? "color-mix(in srgb, var(--color-accent) 18%, var(--color-surface))"
-                    : "transparent",
-                }}
-                aria-hidden
-              >
-                {THEME_NAV_ICONS[item.id][themeId]}
-              </span>
-              <span className="max-w-full truncate">{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
-export function ThemeBottomNav() {
-  const pathname = usePathname();
-  const { themeId } = useTheme();
-
-  if (pathname.startsWith("/auth")) {
-    return null;
+  if (themeId === "lucent") {
+    wrapperClass += "bottom-4 w-[calc(100%-2rem)] bg-card/60 backdrop-blur-xl border border-border/50 rounded-[2rem] shadow-theme";
+    innerClass += "px-2 py-2 gap-1";
+  } else if (themeId === "hive") {
+    wrapperClass += "bottom-0 bg-background border-t-4 border-border shadow-[0_-4px_10px_rgba(0,0,0,0.05)]";
+    innerClass += "px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 gap-1";
+  } else if (themeId === "pulse") {
+    wrapperClass += "bottom-4 w-[calc(100%-2rem)] bg-background border-4 border-black shadow-[6px_6px_0px_#000] rounded-xl";
+    innerClass += "px-2 py-2 gap-1";
+  } else if (themeId === "forge") {
+    wrapperClass += "bottom-0 metal-gradient border-t-4 border-primary shadow-[0_-10px_30px_rgba(220,38,38,0.1)]";
+    innerClass += "px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 gap-1";
+  } else if (themeId === "botanical") {
+    wrapperClass += "bottom-4 w-[calc(100%-2rem)] bg-card border border-border shadow-[inset_0_0_20px_rgba(255,255,255,0.3)] rounded-[3rem]";
+    innerClass += "px-2 py-2 gap-1";
   }
 
-  switch (themeId) {
-    case "forge":
-      return <ForgeBottomNav />;
-    case "canopy":
-      return <CanopyBottomNav />;
-    case "pulse":
-      return <PulseBottomNav />;
-    case "lucent":
-      return <LucentBottomNav />;
-    case "hive":
-      return <HiveBottomNav />;
-    default:
-      return <ForgeBottomNav />;
-  }
+  return (
+    <nav className={wrapperClass} aria-label="Primary Navigation">
+      <div className={innerClass}>
+        {navItems.map((item) => {
+          const active = isActive(item.href);
+          
+          // 2. BĀZES POGAS DIZAINS
+          let itemClass = "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 text-[0.65rem] font-bold transition-all duration-300 ";
+          
+          // 3. AKTĪVĀS POGAS TĒMAS ODZIŅA
+          if (active) {
+            if (themeId === "lucent") itemClass += "bg-primary/20 text-foreground shadow-inner scale-105";
+            else if (themeId === "hive") itemClass += "octagon bg-primary text-primary-foreground scale-110 shadow-md";
+            else if (themeId === "pulse") itemClass += "bg-primary text-primary-foreground border-2 border-black shadow-[2px_2px_0px_#000] -translate-y-1";
+            else if (themeId === "forge") itemClass += "text-primary bg-black/50 shadow-inner scale-105";
+            else if (themeId === "botanical") itemClass += "organic-shape bg-primary text-primary-foreground scale-110";
+          } else {
+            itemClass += "text-foreground/60 hover:text-foreground hover:bg-foreground/5";
+          }
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => hapticTap()}
+              className={itemClass}
+            >
+              <span className="text-xl leading-none mb-0.5" aria-hidden>
+                {THEME_NAV_ICONS[item.id][themeId]}
+              </span>
+              <span className="max-w-full truncate px-1">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
 }
 
-/** @deprecated Use ThemeBottomNav — alias for layout imports */
+// Saglabājam eksportu saderībai ar pārējo kodu
 export const AppBottomNav = ThemeBottomNav;

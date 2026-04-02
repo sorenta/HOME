@@ -59,7 +59,7 @@ function applyThemeManifest(root: HTMLElement, m: ThemeManifestV2): void {
   root.dataset.themeMotion = m.motion;
   root.dataset.homeLayout = m.homeScreenLayout;
 
-  const isDark = m.id === "forge" || m.id === "canopy";
+  const isDark = m.id === "forge" || m.id === "botanical";
   style.colorScheme = isDark ? "dark" : "light";
 }
 
