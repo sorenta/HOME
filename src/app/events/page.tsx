@@ -6,8 +6,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
-import { householdMembers } from "@/lib/demo-data";
 import { formatAppDate } from "@/lib/date-format";
+import { getBrowserClient } from "@/lib/supabase/client";
 import {
   buildMonthGrid,
   sortByDate,
@@ -23,6 +23,8 @@ import { useAuth } from "@/components/providers/auth-provider";
 import {
   addPlannerEventSynced,
   addPlannerTaskSynced,
+  deletePlannerEventSynced,
+  deletePlannerTaskSynced,
   loadPlannerStateSynced,
   subscribePlannerState,
   togglePlannerTaskSynced,
@@ -58,11 +60,33 @@ export default function EventsPage() {
   const [activityRows, setActivityRows] = useState<ActivityFeedRow[]>([]);
   const [selectedDate, setSelectedDate] = useState(() => isoForDate(new Date()));
   const [eventTitle, setEventTitle] = useState("");
-  const [eventDate, setEventDate] = useState("");
+  const [eventDate, setEventDate] = useState(() => isoForDate(new Date()));
   const [eventStyle, setEventStyle] = useState<"shared" | "personal">("shared");
   const [taskTitle, setTaskTitle] = useState("");
-  const [taskDueDate, setTaskDueDate] = useState("");
+  const [taskDueDate, setTaskDueDate] = useState(() => isoForDate(new Date()));
   const [taskAssigneeId, setTaskAssigneeId] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+
+  function mapSyncMessage(msg: string) {
+    const dictKey = `events.sync.${msg}`;
+    const translated = t(dictKey);
+    if (translated !== dictKey) return translated;
+    if (msg.length > 2 && !msg.includes("_")) return msg;
+    return t("events.sync.generic");
+  }
+
+  async function reloadPlannerFromRemote() {
+    const state = await loadPlannerStateSynced({
+      householdId: profile?.household_id ?? null,
+      userId: user?.id ?? null,
+      memberNameById,
+      fallbackMemberName: t("events.todo.unassigned"),
+    });
+    setEvents(sortByDate(state.events));
+    setTasks(sortByDate(state.tasks));
+    writePlannerEvents(state.events);
+    writePlannerTasks(state.tasks);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -71,20 +95,12 @@ export default function EventsPage() {
       const fetched = await fetchMyHouseholdMembers();
       if (!alive) return;
 
+      setMembers(fetched);
       if (fetched.length > 0) {
-        setMembers(fetched);
         setTaskAssigneeId((current) => current || fetched[0].id);
-        return;
+      } else {
+        setTaskAssigneeId("");
       }
-
-      const fallback = householdMembers.map((member, index) => ({
-        id: member.id,
-        display_name: member.name,
-        role_label: member.role,
-        is_me: index === 0,
-      }));
-      setMembers(fallback);
-      setTaskAssigneeId((current) => current || fallback[0]?.id || "");
     };
 
     void loadMembers();
@@ -93,6 +109,11 @@ export default function EventsPage() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    setEventDate(selectedDate);
+    setTaskDueDate(selectedDate);
+  }, [selectedDate]);
 
   const memberNameById = useMemo(
     () =>
@@ -219,78 +240,109 @@ export default function EventsPage() {
     }
   }, [calendarMonth, selectedDate]);
 
+  function goToToday() {
+    const now = new Date();
+    setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+    const iso = isoForDate(now);
+    setSelectedDate(iso);
+    setEventDate(iso);
+    setTaskDueDate(iso);
+  }
+
   async function addEvent() {
+    setFormError(null);
     if (!eventTitle.trim() || !eventDate) return;
 
-    const nextEvents = sortByDate([
-      ...events,
-      {
-        id: crypto.randomUUID(),
-        title: eventTitle.trim(),
-        date: eventDate,
-        style: eventStyle,
-      },
-    ]);
-    setEvents(nextEvents);
-    writePlannerEvents(nextEvents);
-    const synced = await addPlannerEventSynced({
+    const client = getBrowserClient();
+    if (!client) {
+      const nextEvents = sortByDate([
+        ...events,
+        {
+          id: crypto.randomUUID(),
+          title: eventTitle.trim(),
+          date: eventDate,
+          style: eventStyle,
+        },
+      ]);
+      setEvents(nextEvents);
+      writePlannerEvents(nextEvents);
+      setEventTitle("");
+      setEventStyle("shared");
+      setEventDate(selectedDate);
+      return;
+    }
+
+    const res = await addPlannerEventSynced({
       householdId: profile?.household_id ?? null,
       userId: user?.id ?? null,
       title: eventTitle,
       date: eventDate,
       style: eventStyle,
     });
-    if (synced) {
-      const state = await loadPlannerStateSynced({
-        householdId: profile?.household_id ?? null,
-        userId: user?.id ?? null,
-        memberNameById,
-        fallbackMemberName: t("events.todo.unassigned"),
-      });
-      setEvents(sortByDate(state.events));
+    if (!res.ok) {
+      setFormError(mapSyncMessage(res.message));
+      return;
     }
+    await reloadPlannerFromRemote();
     setEventTitle("");
-    setEventDate("");
     setEventStyle("shared");
+    setEventDate(selectedDate);
   }
 
   async function addTask() {
-    if (!taskTitle.trim() || !taskDueDate || !taskAssigneeId) return;
+    setFormError(null);
+    if (!taskTitle.trim() || !taskDueDate) return;
+    if (!profile?.household_id) {
+      setFormError(mapSyncMessage("HOUSEHOLD_REQUIRED"));
+      return;
+    }
+    if (members.length === 0) {
+      setFormError(t("events.todo.needHousehold"));
+      return;
+    }
 
     const assignee = members.find((member) => member.id === taskAssigneeId);
-    const nextTasks = sortByDate([
-      ...tasks,
-      {
-        id: crypto.randomUUID(),
-        title: taskTitle.trim(),
-        assigneeId: taskAssigneeId,
-        assigneeName: assignee?.display_name ?? t("events.todo.unassigned"),
-        dueDate: taskDueDate,
-        done: false,
-      },
-    ]);
-    setTasks(nextTasks);
-    writePlannerTasks(nextTasks);
-    const synced = await addPlannerTaskSynced({
-      householdId: profile?.household_id ?? null,
+    const assigneeId = taskAssigneeId || members[0]?.id || "";
+
+    const client = getBrowserClient();
+    if (!client) {
+      const nextTasks = sortByDate([
+        ...tasks,
+        {
+          id: crypto.randomUUID(),
+          title: taskTitle.trim(),
+          assigneeId,
+          assigneeName: assignee?.display_name ?? t("events.todo.unassigned"),
+          dueDate: taskDueDate,
+          done: false,
+        },
+      ]);
+      setTasks(nextTasks);
+      writePlannerTasks(nextTasks);
+      setTaskTitle("");
+      setTaskDueDate(selectedDate);
+      return;
+    }
+
+    const res = await addPlannerTaskSynced({
+      householdId: profile.household_id,
+      userId: user?.id ?? null,
       title: taskTitle,
-      assigneeId: taskAssigneeId,
+      assigneeId,
       dueDate: taskDueDate,
     });
-    if (synced) {
-      const state = await loadPlannerStateSynced({
-        householdId: profile?.household_id ?? null,
-        userId: user?.id ?? null,
-        memberNameById,
-        fallbackMemberName: t("events.todo.unassigned"),
-      });
-      setTasks(sortByDate(state.tasks));
+    if (!res.ok) {
+      setFormError(mapSyncMessage(res.message));
+      return;
     }
+    await reloadPlannerFromRemote();
     setTaskTitle("");
-    setTaskDueDate("");
+    setTaskDueDate(selectedDate);
   }
 
   async function toggleTask(taskId: string) {
+    setFormError(null);
+    const prevTasks = tasks;
     const nextTasks = tasks.map((item) =>
       item.id === taskId ? { ...item, done: !item.done } : item,
     );
@@ -298,24 +350,87 @@ export default function EventsPage() {
     writePlannerTasks(nextTasks);
     const current = nextTasks.find((item) => item.id === taskId);
     if (!current) return;
-    const synced = await togglePlannerTaskSynced({
+
+    const client = getBrowserClient();
+    if (!client) return;
+
+    const res = await togglePlannerTaskSynced({
       householdId: profile?.household_id ?? null,
       taskId,
       done: current.done,
     });
-    if (synced) {
-      const state = await loadPlannerStateSynced({
-        householdId: profile?.household_id ?? null,
-        userId: user?.id ?? null,
-        memberNameById,
-        fallbackMemberName: t("events.todo.unassigned"),
-      });
-      setTasks(sortByDate(state.tasks));
+    if (!res.ok) {
+      setTasks(prevTasks);
+      writePlannerTasks(prevTasks);
+      setFormError(mapSyncMessage(res.message));
+      return;
     }
+    await reloadPlannerFromRemote();
+  }
+
+  async function removeEvent(eventId: string) {
+    setFormError(null);
+    const event = events.find((e) => e.id === eventId);
+    if (!event) {
+      setFormError(mapSyncMessage("EVENT_DELETE_NOT_FOUND"));
+      return;
+    }
+    const client = getBrowserClient();
+    if (!client) {
+      const next = events.filter((e) => e.id !== eventId);
+      setEvents(next);
+      writePlannerEvents(next);
+      return;
+    }
+    const res = await deletePlannerEventSynced({
+      eventId,
+      style: event.style,
+      householdId: profile?.household_id ?? null,
+      userId: user?.id ?? null,
+    });
+    if (!res.ok) {
+      setFormError(mapSyncMessage(res.message));
+      return;
+    }
+    await reloadPlannerFromRemote();
+  }
+
+  async function removeTask(taskId: string) {
+    setFormError(null);
+    const hid = profile?.household_id ?? null;
+    const client = getBrowserClient();
+    if (!client) {
+      const next = tasks.filter((x) => x.id !== taskId);
+      setTasks(next);
+      writePlannerTasks(next);
+      return;
+    }
+    if (!hid) {
+      setFormError(mapSyncMessage("HOUSEHOLD_REQUIRED"));
+      return;
+    }
+    const res = await deletePlannerTaskSynced({ householdId: hid, taskId });
+    if (!res.ok) {
+      setFormError(mapSyncMessage(res.message));
+      return;
+    }
+    await reloadPlannerFromRemote();
   }
 
   return (
     <ModuleShell title={t("tile.calendarEvents")} moduleId="calendar">
+      {formError ? (
+        <GlassPanel className="border border-rose-400/35 bg-[color-mix(in_srgb,var(--color-surface)_88%,#fecaca)]">
+          <p className="text-sm text-[color:var(--color-text)]">{formError}</p>
+          <button
+            type="button"
+            onClick={() => setFormError(null)}
+            className="mt-2 text-xs font-medium text-[color:var(--color-secondary)] underline"
+          >
+            {locale === "lv" ? "Aizvērt" : "Dismiss"}
+          </button>
+        </GlassPanel>
+      ) : null}
       <GlassPanel className="space-y-4">
         <SectionHeading
           eyebrow={t("tile.events")}
@@ -361,7 +476,14 @@ export default function EventsPage() {
       <GlassPanel className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <SectionHeading title={t("events.calendar")} detail={formatAppDate(selectedDate, locale) ?? ""} />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => goToToday()}
+              className="rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text)]"
+            >
+              {t("events.today")}
+            </button>
             <button
               type="button"
               onClick={() =>
@@ -481,9 +603,18 @@ export default function EventsPage() {
                     >
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-medium text-[color:var(--color-text)]">{item.title}</p>
-                        <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
-                          {item.style === "shared" ? t("events.shared") : t("events.personal")}
-                        </StatusPill>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
+                            {item.style === "shared" ? t("events.shared") : t("events.personal")}
+                          </StatusPill>
+                          <button
+                            type="button"
+                            onClick={() => void removeEvent(item.id)}
+                            className="rounded-lg px-2 py-1 text-xs text-[color:var(--color-secondary)] underline"
+                          >
+                            {t("events.delete")}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -511,9 +642,18 @@ export default function EventsPage() {
                         >
                           {item.title}
                         </p>
-                        <StatusPill tone={item.done ? "neutral" : "good"}>
-                          {item.assigneeName}
-                        </StatusPill>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <StatusPill tone={item.done ? "neutral" : "good"}>
+                            {item.assigneeName}
+                          </StatusPill>
+                          <button
+                            type="button"
+                            onClick={() => void removeTask(item.id)}
+                            className="rounded-lg px-2 py-1 text-xs text-[color:var(--color-secondary)] underline"
+                          >
+                            {t("events.delete")}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -532,13 +672,15 @@ export default function EventsPage() {
               <p className="text-sm text-[color:var(--color-secondary)]">{t("events.empty")}</p>
             ) : (
               events.map((item) => (
-                <button
+                <div
                   key={item.id}
-                  type="button"
-                  onClick={() => setSelectedDate(item.date)}
                   className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3 text-left"
                 >
-                  <div className="min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDate(item.date)}
+                    className="min-w-0 flex-1 text-left"
+                  >
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium text-[color:var(--color-text)]">
                         {item.title}
@@ -552,11 +694,23 @@ export default function EventsPage() {
                     <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
                       {formatAppDate(item.date, locale)}
                     </p>
+                  </button>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
+                      {t("events.calendarTag")}
+                    </StatusPill>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void removeEvent(item.id);
+                      }}
+                      className="text-xs text-[color:var(--color-secondary)] underline"
+                    >
+                      {t("events.delete")}
+                    </button>
                   </div>
-                  <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
-                    {t("events.calendarTag")}
-                  </StatusPill>
-                </button>
+                </div>
               ))
             )}
           </div>
@@ -618,13 +772,18 @@ export default function EventsPage() {
 
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("events.todo.title")} detail={openTasks.length.toString()} />
+        {profile?.household_id && members.length === 0 ? (
+          <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
+            {t("events.todo.needHousehold")}
+          </p>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-3">
             {tasks.length === 0 ? (
               <p className="text-sm text-[color:var(--color-secondary)]">{t("events.todo.empty")}</p>
             ) : (
               tasks.map((item) => (
-                <label
+                <div
                   key={item.id}
                   className="flex items-start gap-3 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3"
                 >
@@ -652,7 +811,14 @@ export default function EventsPage() {
                       {formatAppDate(item.dueDate, locale)}
                     </p>
                   </div>
-                </label>
+                  <button
+                    type="button"
+                    onClick={() => void removeTask(item.id)}
+                    className="shrink-0 text-xs text-[color:var(--color-secondary)] underline"
+                  >
+                    {t("events.delete")}
+                  </button>
+                </div>
               ))
             )}
           </div>
@@ -690,7 +856,13 @@ export default function EventsPage() {
             <button
               type="button"
               onClick={() => void addTask()}
-              className="w-full rounded-xl bg-[color:var(--color-primary)] px-4 py-3 text-sm font-semibold text-[color:var(--color-background)]"
+              disabled={!profile?.household_id || members.length === 0}
+              className={[
+                "w-full rounded-xl px-4 py-3 text-sm font-semibold",
+                !profile?.household_id || members.length === 0
+                  ? "cursor-not-allowed opacity-50 bg-[color:var(--color-surface-border)] text-[color:var(--color-secondary)]"
+                  : "bg-[color:var(--color-primary)] text-[color:var(--color-background)]",
+              ].join(" ")}
             >
               {t("events.todo.form.save")}
             </button>

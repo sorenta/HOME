@@ -1,5 +1,6 @@
 "use client";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getBrowserClient } from "@/lib/supabase/client";
 import {
   readPlannerEvents,
@@ -25,6 +26,26 @@ type HouseholdTaskRow = {
   is_done: boolean;
 };
 
+export type PlannerSyncResult =
+  | { ok: true }
+  | { ok: false; message: string };
+
+function syncErr(message: string): PlannerSyncResult {
+  return { ok: false, message };
+}
+
+function syncOk(): PlannerSyncResult {
+  return { ok: true };
+}
+
+function errorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "message" in error) {
+    const m = (error as { message?: string }).message;
+    if (typeof m === "string" && m.trim()) return m.trim();
+  }
+  return "Sync failed";
+}
+
 function isMissingRelation(error: unknown) {
   const message =
     typeof error === "object" && error
@@ -35,6 +56,64 @@ function isMissingRelation(error: unknown) {
 
 function hasLocalPlannerData(events: PlannerEvent[], tasks: PlannerTask[]) {
   return events.length > 0 || tasks.length > 0;
+}
+
+const CALENDAR_EVENT_SELECT = "id, title, starts_on, visibility" as const;
+
+async function loadCalendarEventRows(
+  supabase: SupabaseClient,
+  input: { householdId: string | null; userId: string | null },
+): Promise<{ rows: CalendarEventRow[]; error: unknown }> {
+  if (!input.householdId) {
+    if (!input.userId) {
+      return { rows: [], error: null };
+    }
+    const { data, error } = await supabase
+      .from("calendar_events")
+      .select(CALENDAR_EVENT_SELECT)
+      .eq("visibility", "individual")
+      .eq("user_id", input.userId)
+      .order("starts_on", { ascending: true });
+    return { rows: (data as CalendarEventRow[] | null) ?? [], error };
+  }
+
+  if (!input.userId) {
+    const { data, error } = await supabase
+      .from("calendar_events")
+      .select(CALENDAR_EVENT_SELECT)
+      .eq("visibility", "household")
+      .eq("household_id", input.householdId)
+      .order("starts_on", { ascending: true });
+    return { rows: (data as CalendarEventRow[] | null) ?? [], error };
+  }
+
+  const [householdRes, personalRes] = await Promise.all([
+    supabase
+      .from("calendar_events")
+      .select(CALENDAR_EVENT_SELECT)
+      .eq("visibility", "household")
+      .eq("household_id", input.householdId)
+      .order("starts_on", { ascending: true }),
+    supabase
+      .from("calendar_events")
+      .select(CALENDAR_EVENT_SELECT)
+      .eq("visibility", "individual")
+      .eq("user_id", input.userId)
+      .order("starts_on", { ascending: true }),
+  ]);
+
+  const error = householdRes.error ?? personalRes.error;
+  if (error) {
+    return { rows: [], error };
+  }
+
+  const householdRows = (householdRes.data as CalendarEventRow[] | null) ?? [];
+  const personalRows = (personalRes.data as CalendarEventRow[] | null) ?? [];
+  const rows = [...householdRows, ...personalRows].sort((a, b) =>
+    a.starts_on.localeCompare(b.starts_on),
+  );
+
+  return { rows, error: null };
 }
 
 export async function loadPlannerStateSynced(input: {
@@ -51,29 +130,19 @@ export async function loadPlannerStateSynced(input: {
     return { events: localEvents, tasks: localTasks };
   }
 
-  const eventQuery = input.householdId
-    ? supabase
-        .from("calendar_events")
-        .select("id, title, starts_on, visibility")
-        .or(`and(visibility.eq.household,household_id.eq.${input.householdId}),and(visibility.eq.individual,user_id.eq.${input.userId})`)
-        .order("starts_on", { ascending: true })
-    : supabase
-        .from("calendar_events")
-        .select("id, title, starts_on, visibility")
-        .eq("visibility", "individual")
-        .eq("user_id", input.userId ?? "")
-        .order("starts_on", { ascending: true });
-
   const taskQuery = input.householdId
     ? supabase
         .from("household_tasks")
         .select("id, title, assignee_user_id, due_on, is_done")
         .eq("household_id", input.householdId)
         .order("due_on", { ascending: true })
-    : Promise.resolve({ data: [], error: null });
+    : Promise.resolve({ data: [] as HouseholdTaskRow[], error: null });
 
-  const [eventsRes, tasksRes] = await Promise.all([eventQuery, taskQuery]);
-  const error = eventsRes.error ?? tasksRes.error;
+  const [eventsPart, tasksRes] = await Promise.all([
+    loadCalendarEventRows(supabase, input),
+    taskQuery,
+  ]);
+  const error = eventsPart.error ?? tasksRes.error;
 
   if (error) {
     if (!isMissingRelation(error)) {
@@ -82,7 +151,7 @@ export async function loadPlannerStateSynced(input: {
     return { events: localEvents, tasks: localTasks };
   }
 
-  const remoteEvents: PlannerEvent[] = ((eventsRes.data as CalendarEventRow[] | null) ?? []).map(
+  const remoteEvents: PlannerEvent[] = eventsPart.rows.map(
     (row) => ({
       id: row.id,
       title: row.title,
@@ -119,11 +188,18 @@ export async function addPlannerEventSynced(input: {
   title: string;
   date: string;
   style: "shared" | "personal";
-}) {
+}): Promise<PlannerSyncResult> {
   const supabase = getBrowserClient();
-  if (!supabase) return false;
+  if (!supabase) return syncErr("SUPABASE_MISSING");
 
   const visibility = input.style === "shared" ? "household" : "individual";
+  if (visibility === "household" && !input.householdId) {
+    return syncErr("HOUSEHOLD_REQUIRED");
+  }
+  if (visibility === "individual" && !input.userId) {
+    return syncErr("USER_REQUIRED");
+  }
+
   const { error } = await supabase.from("calendar_events").insert({
     household_id: visibility === "household" ? input.householdId : null,
     user_id: visibility === "individual" ? input.userId : null,
@@ -137,24 +213,30 @@ export async function addPlannerEventSynced(input: {
     if (!isMissingRelation(error)) {
       console.error("Failed to add planner event", error);
     }
-    return false;
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_CALENDAR_EVENTS" : errorMessage(error),
+    );
   }
 
-  return true;
+  return syncOk();
 }
 
 export async function addPlannerTaskSynced(input: {
   householdId: string | null;
+  userId: string | null;
   title: string;
   assigneeId: string;
   dueDate: string;
-}) {
-  if (!input.householdId) return false;
+}): Promise<PlannerSyncResult> {
+  if (!input.householdId) {
+    return syncErr("HOUSEHOLD_REQUIRED");
+  }
   const supabase = getBrowserClient();
-  if (!supabase) return false;
+  if (!supabase) return syncErr("SUPABASE_MISSING");
 
   const { error } = await supabase.from("household_tasks").insert({
     household_id: input.householdId,
+    created_by: input.userId ?? null,
     assignee_user_id: input.assigneeId || null,
     title: input.title.trim(),
     due_on: input.dueDate,
@@ -165,20 +247,22 @@ export async function addPlannerTaskSynced(input: {
     if (!isMissingRelation(error)) {
       console.error("Failed to add planner task", error);
     }
-    return false;
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_HOUSEHOLD_TASKS" : errorMessage(error),
+    );
   }
 
-  return true;
+  return syncOk();
 }
 
 export async function togglePlannerTaskSynced(input: {
   householdId: string | null;
   taskId: string;
   done: boolean;
-}) {
-  if (!input.householdId) return false;
+}): Promise<PlannerSyncResult> {
+  if (!input.householdId) return syncErr("HOUSEHOLD_REQUIRED");
   const supabase = getBrowserClient();
-  if (!supabase) return false;
+  if (!supabase) return syncErr("SUPABASE_MISSING");
 
   const { error } = await supabase
     .from("household_tasks")
@@ -190,10 +274,73 @@ export async function togglePlannerTaskSynced(input: {
     if (!isMissingRelation(error)) {
       console.error("Failed to toggle planner task", error);
     }
-    return false;
+    return syncErr(isMissingRelation(error) ? "SCHEMA_HOUSEHOLD_TASKS" : errorMessage(error));
   }
 
-  return true;
+  return syncOk();
+}
+
+export async function deletePlannerEventSynced(input: {
+  eventId: string;
+  style: "shared" | "personal";
+  householdId: string | null;
+  userId: string | null;
+}): Promise<PlannerSyncResult> {
+  const supabase = getBrowserClient();
+  if (!supabase) return syncErr("SUPABASE_MISSING");
+
+  let query = supabase.from("calendar_events").delete().eq("id", input.eventId);
+
+  if (input.style === "shared") {
+    if (!input.householdId) return syncErr("HOUSEHOLD_REQUIRED");
+    query = query.eq("visibility", "household").eq("household_id", input.householdId);
+  } else {
+    if (!input.userId) return syncErr("USER_REQUIRED");
+    query = query.eq("visibility", "individual").eq("user_id", input.userId);
+  }
+
+  const { data, error } = await query.select("id");
+
+  if (error) {
+    if (!isMissingRelation(error)) {
+      console.error("Failed to delete planner event", error);
+    }
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_DELETE_CALENDAR" : errorMessage(error),
+    );
+  }
+
+  if (!data?.length) {
+    return syncErr("EVENT_DELETE_NOT_FOUND");
+  }
+
+  return syncOk();
+}
+
+export async function deletePlannerTaskSynced(input: {
+  householdId: string | null;
+  taskId: string;
+}): Promise<PlannerSyncResult> {
+  if (!input.householdId) return syncErr("HOUSEHOLD_REQUIRED");
+  const supabase = getBrowserClient();
+  if (!supabase) return syncErr("SUPABASE_MISSING");
+
+  const { error } = await supabase
+    .from("household_tasks")
+    .delete()
+    .eq("household_id", input.householdId)
+    .eq("id", input.taskId);
+
+  if (error) {
+    if (!isMissingRelation(error)) {
+      console.error("Failed to delete planner task", error);
+    }
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_DELETE_TASKS" : errorMessage(error),
+    );
+  }
+
+  return syncOk();
 }
 
 export async function fetchOpenHouseholdTaskCount(householdId: string | null) {
@@ -224,20 +371,47 @@ export function subscribePlannerState(
 ): (() => void) | undefined {
   const supabase = getBrowserClient();
   if (!supabase) return undefined;
+  if (!householdId && !userId) return undefined;
 
-  const channel = supabase
-    .channel(`planner:${householdId ?? userId ?? "anon"}`)
-    .on(
+  const channel = supabase.channel(`planner:${householdId ?? userId ?? "anon"}`);
+
+  if (householdId) {
+    channel.on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "calendar_events" },
+      {
+        event: "*",
+        schema: "public",
+        table: "calendar_events",
+        filter: `household_id=eq.${householdId}`,
+      },
       onChange,
-    )
-    .on(
+    );
+    channel.on(
       "postgres_changes",
-      { event: "*", schema: "public", table: "household_tasks" },
+      {
+        event: "*",
+        schema: "public",
+        table: "household_tasks",
+        filter: `household_id=eq.${householdId}`,
+      },
       onChange,
-    )
-    .subscribe();
+    );
+  }
+
+  if (userId) {
+    channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "calendar_events",
+        filter: `user_id=eq.${userId}`,
+      },
+      onChange,
+    );
+  }
+
+  channel.subscribe();
 
   return () => {
     void supabase.removeChannel(channel);

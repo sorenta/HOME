@@ -11,8 +11,11 @@ import {
 import {
   DEFAULT_THEME,
   THEMES,
+  buildRootThemeCssVars,
+  migrateLegacyThemeId,
+  type HomeScreenLayout,
   type ThemeId,
-  isThemeId,
+  type ThemeManifestV2,
 } from "@/lib/theme-logic";
 
 type ThemeContextValue = {
@@ -22,16 +25,42 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = "majapps-theme";
+/** Persisted device theme; used by ThemeProfileSync to decide if DB theme may override. */
+export const MAJAPPS_THEME_STORAGE_KEY = "majapps-theme";
 
 function getInitialThemeId(): ThemeId {
   if (typeof window === "undefined") return DEFAULT_THEME;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw && isThemeId(raw) ? raw : DEFAULT_THEME;
+    const raw = localStorage.getItem(MAJAPPS_THEME_STORAGE_KEY);
+    if (!raw) return DEFAULT_THEME;
+    const resolved = migrateLegacyThemeId(raw);
+    if (resolved !== raw) {
+      localStorage.setItem(MAJAPPS_THEME_STORAGE_KEY, resolved);
+    }
+    return resolved;
   } catch {
     return DEFAULT_THEME;
   }
+}
+
+/**
+ * Applies ThemeManifestV2 to the document root: semantic tokens, legacy aliases,
+ * typography/radius/spacing, chrome vars, and `data-theme` / `data-layout-density` / `data-theme-motion` / `data-home-layout`.
+ */
+function applyThemeManifest(root: HTMLElement, m: ThemeManifestV2): void {
+  const { style } = root;
+  const vars = buildRootThemeCssVars(m);
+  for (const [key, value] of Object.entries(vars)) {
+    style.setProperty(key, value);
+  }
+
+  root.dataset.theme = m.id;
+  root.dataset.layoutDensity = m.layoutDensity;
+  root.dataset.themeMotion = m.motion;
+  root.dataset.homeLayout = m.homeScreenLayout;
+
+  const isDark = m.id === "forge" || m.id === "canopy";
+  style.colorScheme = isDark ? "dark" : "light";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -45,37 +74,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const manifest = THEMES[themeId];
-    const root = document.documentElement;
-    root.dataset.theme = themeId;
-    root.style.setProperty("--color-text", manifest.colors.text);
-    root.style.setProperty("--color-background", manifest.colors.background);
-    root.style.setProperty("--color-primary", manifest.colors.primary);
-    root.style.setProperty("--color-secondary", manifest.colors.secondary);
-    root.style.setProperty("--color-accent", manifest.colors.accent);
-    root.style.setProperty("--color-surface", manifest.colors.surface);
-    root.style.setProperty(
-      "--color-surface-border",
-      manifest.colors.surfaceBorder,
-    );
-    root.style.setProperty("--theme-background-image", manifest.ui.backgroundImage);
-    root.style.setProperty("--theme-panel-shadow", manifest.ui.panelShadow);
-    root.style.setProperty("--theme-panel-highlight", manifest.ui.panelHighlight);
-    root.style.setProperty("--theme-tile-shadow", manifest.ui.tileShadow);
-    root.style.setProperty("--theme-header-glow", manifest.ui.headerGlow);
-    root.style.setProperty("--theme-panel-radius", manifest.ui.panelRadius);
-    root.style.setProperty("--theme-tile-radius", manifest.ui.tileRadius);
-    root.style.setProperty("--theme-chip-radius", manifest.ui.chipRadius);
-    root.style.setProperty("--theme-panel-border", manifest.ui.panelBorderStyle);
-    root.style.setProperty("--theme-tile-border", manifest.ui.tileBorderStyle);
-    root.style.setProperty("--font-theme-sans", manifest.fontVars.sans);
-    root.style.setProperty("--font-theme-display", manifest.fontVars.display);
+    applyThemeManifest(document.documentElement, THEMES[themeId]);
   }, [themeId]);
 
   const setThemeId = useCallback((id: ThemeId) => {
     setThemeIdState(id);
     try {
-      localStorage.setItem(STORAGE_KEY, id);
+      localStorage.setItem(MAJAPPS_THEME_STORAGE_KEY, id);
     } catch {
       /* ignore */
     }
@@ -95,4 +100,10 @@ export function useTheme() {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error("ThemeProvider missing");
   return ctx;
+}
+
+/** Home dashboard layout id from the active theme (matches `html[data-home-layout]`). */
+export function useHomeScreenLayout(): HomeScreenLayout {
+  const { themeId } = useTheme();
+  return THEMES[themeId].homeScreenLayout;
 }

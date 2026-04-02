@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { HouseholdOnboarding } from "@/components/household/household-onboarding";
 import { HouseholdSummary } from "@/components/household/household-summary";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ModuleShell } from "@/components/layout/module-shell";
+import {
+  ForgeBandRule,
+  ForgeDeckList,
+  ForgeMainDeck,
+  ForgeMetricDot,
+  ForgeRowButton,
+  ForgeSubLabel,
+  ForgeSystemSlab,
+} from "@/components/layout/forge/forge-inner";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
@@ -23,6 +33,8 @@ import {
   validateProviderKey,
 } from "@/lib/ai/keys";
 import { createClient, getBrowserClient } from "@/lib/supabase/client";
+import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
+import { clearStoredConsent } from "@/lib/legal/consent-storage";
 
 const SETTINGS_KEY = "majapps-local-settings";
 
@@ -36,6 +48,7 @@ type NotificationPreferencesRow = {
   finance_enabled: boolean;
   pharmacy_enabled: boolean;
   reset_empathy_enabled: boolean;
+  reset_empathy_recipient_ids?: string[] | null;
 };
 
 type AiPreferenceRow = {
@@ -93,7 +106,23 @@ export default function SettingsPage() {
     pushPharmacy: true,
     showResetAura: true,
   });
+  const [empathyRecipientIds, setEmpathyRecipientIds] = useState<string[]>([]);
+  const [members, setMembers] = useState<HouseholdMember[]>([]);
+  const settingsRef = useRef(settings);
+  const empathyRef = useRef(empathyRecipientIds);
   const supabaseReady = createClient() !== null;
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
+  useEffect(() => {
+    empathyRef.current = empathyRecipientIds;
+  }, [empathyRecipientIds]);
+
+  useEffect(() => {
+    void fetchMyHouseholdMembers().then(setMembers);
+  }, [profile?.household_id]);
 
   useEffect(() => {
     let alive = true;
@@ -129,7 +158,9 @@ export default function SettingsPage() {
       const [{ data: notificationData }, { data: aiPreferenceRows }] = await Promise.all([
         supabase
           .from("notification_preferences")
-          .select("finance_enabled, pharmacy_enabled, reset_empathy_enabled")
+          .select(
+            "finance_enabled, pharmacy_enabled, reset_empathy_enabled, reset_empathy_recipient_ids",
+          )
           .eq("user_id", user.id)
           .maybeSingle(),
         supabase
@@ -147,6 +178,8 @@ export default function SettingsPage() {
           pushPharmacy: row.pharmacy_enabled,
           showResetAura: row.reset_empathy_enabled,
         });
+        const ids = row.reset_empathy_recipient_ids;
+        setEmpathyRecipientIds(Array.isArray(ids) ? ids : []);
       }
 
       if (aiPreferenceRows?.length) {
@@ -191,12 +224,43 @@ export default function SettingsPage() {
       finance_enabled: next.pushFinance,
       pharmacy_enabled: next.pushPharmacy,
       reset_empathy_enabled: next.showResetAura,
+      reset_empathy_recipient_ids: empathyRef.current,
       updated_at: new Date().toISOString(),
     });
 
     if (error) {
       console.error("Failed to save notification preferences", error);
     }
+  }
+
+  async function persistEmpathyRecipients(ids: string[]) {
+    if (!user) return;
+    const supabase = getBrowserClient();
+    if (!supabase) return;
+    const s = settingsRef.current;
+    const { error } = await supabase.from("notification_preferences").upsert({
+      user_id: user.id,
+      finance_enabled: s.pushFinance,
+      pharmacy_enabled: s.pushPharmacy,
+      reset_empathy_enabled: s.showResetAura,
+      reset_empathy_recipient_ids: ids,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.error("Failed to save empathy recipients", error);
+    }
+  }
+
+  function toggleEmpathyRecipient(memberId: string) {
+    hapticTap();
+    setEmpathyRecipientIds((prev) => {
+      const next = prev.includes(memberId)
+        ? prev.filter((x) => x !== memberId)
+        : [...prev, memberId];
+      empathyRef.current = next;
+      void persistEmpathyRecipients(next);
+      return next;
+    });
   }
 
   function setProviderValue(provider: AiProvider, value: string) {
@@ -440,8 +504,304 @@ export default function SettingsPage() {
     );
   }
 
+  function renderForgeProviderBlock(provider: AiProvider, label: string) {
+    const state = byok[provider];
+    const isSaved = Boolean(
+      state.savedValue && state.savedValue === state.value.trim(),
+    );
+
+    const tone =
+      state.status === "error"
+        ? "warn"
+        : state.status === "testing"
+          ? "neutral"
+          : isSaved
+            ? "good"
+            : "neutral";
+
+    const statusLabel =
+      state.status === "error"
+        ? t("settings.byok.state.error")
+        : state.status === "testing"
+          ? t("settings.byok.state.testing")
+          : isSaved
+            ? t("settings.byok.state.saved")
+            : t("settings.byok.state.notSaved");
+
+    const helperText = state.error
+      ? state.error
+      : isSaved
+        ? `${t("settings.byok.savedDevice")} ${maskKey(state.savedValue)}`
+        : state.value.trim()
+          ? t("settings.byok.unsaved")
+          : t("settings.byok.notSaved");
+
+    return (
+      <div key={provider} className="space-y-2 p-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">{label}</p>
+          <StatusPill tone={tone}>{statusLabel}</StatusPill>
+        </div>
+        <label className="block text-xs text-[color:var(--color-text-secondary)]">
+          {label}
+          <input
+            type="password"
+            autoComplete="off"
+            value={state.value}
+            onChange={(e) => setProviderValue(provider, e.target.value)}
+            placeholder={provider === "gemini" ? "AIza..." : "sk-..."}
+            className="maj-forge-field mt-1 w-full px-3 py-2 text-sm"
+          />
+        </label>
+        <p className="text-[0.7rem] leading-snug text-[color:var(--color-text-secondary)]">
+          {helperText}
+        </p>
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => verifyAndSaveProvider(provider)}
+            disabled={state.status === "testing"}
+            className="flex-1 rounded-md border border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-background))] px-3 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] disabled:opacity-60"
+          >
+            {state.status === "testing"
+              ? t("settings.byok.action.testing")
+              : t("settings.byok.action.verify")}
+          </button>
+          <button
+            type="button"
+            onClick={() => removeProvider(provider)}
+            disabled={!state.value && !state.savedValue}
+            className="rounded-md border border-[color:color-mix(in_srgb,var(--color-border)_90%,transparent)] px-3 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] disabled:opacity-50"
+          >
+            {t("settings.byok.action.remove")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <ModuleShell title={t("settings.title")}>
+    <ModuleShell
+      shellVariant={themeId === "forge" ? "forge" : "default"}
+      title={t("settings.title")}
+    >
+      {themeId === "forge" ? (
+        <>
+          <ForgeMainDeck>
+            <ForgeSubLabel>{t("settings.theme")}</ForgeSubLabel>
+            <ForgeDeckList>
+              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+                <ForgeRowButton
+                  key={id}
+                  onClick={() => void handleThemeChange(id)}
+                  className={[
+                    themeId === id
+                      ? "border-l-[3px] border-l-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] pl-[calc(0.75rem-3px)]"
+                      : "border-l-[3px] border-l-transparent",
+                  ].join(" ")}
+                >
+                  <span className="min-w-0">
+                    {THEMES[id].emoji} {t(THEMES[id].labelKey)}
+                  </span>
+                  {themeId === id ? (
+                    <ForgeMetricDot active />
+                  ) : (
+                    <span className="text-[color:var(--color-text-secondary)] opacity-40">·</span>
+                  )}
+                </ForgeRowButton>
+              ))}
+            </ForgeDeckList>
+
+            <ForgeBandRule />
+            <ForgeSubLabel>{t("settings.language")}</ForgeSubLabel>
+            <div className="px-3 pb-2.5 pt-0">
+              <div className="flex w-full gap-1.5">
+                {(["lv", "en"] as const).map((loc) => (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => {
+                      hapticTap();
+                      setLocale(loc);
+                    }}
+                    className={[
+                      "min-h-[2.5rem] flex-1 rounded-[0.125rem] border text-sm font-semibold",
+                      locale === loc
+                        ? "border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-background))] text-[color:var(--color-text-primary)]"
+                        : "border-[color:color-mix(in_srgb,var(--color-border)_75%,transparent)] text-[color:var(--color-text-secondary)]",
+                    ].join(" ")}
+                  >
+                    {loc === "lv" ? "Latviešu" : "English"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <ForgeBandRule />
+            <ForgeSubLabel>{t("settings.household")}</ForgeSubLabel>
+            <div className="px-2 pb-2.5 pt-0">
+              {profile?.household_id ? (
+                <HouseholdSummary householdId={profile.household_id} density="compact" />
+              ) : (
+                <HouseholdOnboarding compact />
+              )}
+            </div>
+
+            <ForgeBandRule />
+            <ForgeSubLabel>{t("settings.notifications")}</ForgeSubLabel>
+            <ForgeDeckList>
+              <ForgeRowButton
+                onClick={() =>
+                  void persistSettings({
+                    ...settings,
+                    pushFinance: !settings.pushFinance,
+                  })
+                }
+              >
+                <span>{t("settings.notifications.finance")}</span>
+                <StatusPill tone={settings.pushFinance ? "good" : "neutral"}>
+                  {settings.pushFinance ? "ON" : "OFF"}
+                </StatusPill>
+              </ForgeRowButton>
+              <ForgeRowButton
+                onClick={() =>
+                  void persistSettings({
+                    ...settings,
+                    pushPharmacy: !settings.pushPharmacy,
+                  })
+                }
+              >
+                <span>{t("settings.notifications.pharmacy")}</span>
+                <StatusPill tone={settings.pushPharmacy ? "good" : "neutral"}>
+                  {settings.pushPharmacy ? "ON" : "OFF"}
+                </StatusPill>
+              </ForgeRowButton>
+            </ForgeDeckList>
+
+            <ForgeSubLabel tight>{t("settings.privacy")}</ForgeSubLabel>
+            <ForgeDeckList>
+              <ForgeRowButton
+                onClick={() =>
+                  void persistSettings({
+                    ...settings,
+                    showResetAura: !settings.showResetAura,
+                  })
+                }
+              >
+                <span>{t("settings.privacy.resetAura")}</span>
+                <StatusPill tone={settings.showResetAura ? "warn" : "neutral"}>
+                  {settings.showResetAura
+                    ? t("settings.state.allowed")
+                    : t("settings.state.hidden")}
+                </StatusPill>
+              </ForgeRowButton>
+            </ForgeDeckList>
+
+            {members.length > 0 ? (
+              <>
+                <ForgeSubLabel tight>{t("settings.empathy.recipients")}</ForgeSubLabel>
+                <p className="px-3 pb-1 text-[0.65rem] leading-snug text-[color:var(--color-text-secondary)]">
+                  {t("settings.empathy.hint")}
+                </p>
+                <ForgeDeckList>
+                  {members.map((m) => {
+                    const on = empathyRecipientIds.includes(m.id);
+                    return (
+                      <ForgeRowButton key={m.id} onClick={() => toggleEmpathyRecipient(m.id)}>
+                        <span className="min-w-0">
+                          {m.display_name ?? m.id.slice(0, 8)}
+                          {m.is_me ? ` (${t("household.membersList.you")})` : ""}
+                        </span>
+                        <StatusPill tone={on ? "good" : "neutral"}>{on ? "ON" : "OFF"}</StatusPill>
+                      </ForgeRowButton>
+                    );
+                  })}
+                </ForgeDeckList>
+              </>
+            ) : null}
+          </ForgeMainDeck>
+
+          <ForgeSystemSlab>
+            <ForgeSubLabel>{t("settings.byok.title")}</ForgeSubLabel>
+            <div className="space-y-1.5 px-3 pb-2 pt-0 text-[0.7rem] leading-snug text-[color:var(--color-text-secondary)]">
+              <p>{t("settings.byok.hint")}</p>
+              <p className="text-[0.65rem] opacity-90">{t("settings.byok.localStorageNote")}</p>
+            </div>
+            <ForgeDeckList>
+              {renderForgeProviderBlock("gemini", "Gemini")}
+              {renderForgeProviderBlock("openai", "OpenAI")}
+            </ForgeDeckList>
+
+            <ForgeBandRule />
+            <ForgeSubLabel tight>{t("settings.supabase")}</ForgeSubLabel>
+            <div className="space-y-1.5 px-3 pb-2.5 pt-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <ForgeMetricDot active={supabaseReady} />
+                <StatusPill tone={supabaseReady ? "good" : "warn"}>
+                  {supabaseReady ? t("settings.connected") : t("settings.localOnly")}
+                </StatusPill>
+              </div>
+              <p className="text-sm leading-relaxed text-[color:var(--color-text-primary)]">
+                {supabaseReady
+                  ? "Supabase klientu var savienot ar reālajiem datiem."
+                  : t("supabase.missing")}
+              </p>
+              {user?.email ? (
+                <p className="text-[0.7rem] text-[color:var(--color-text-secondary)]">{user.email}</p>
+              ) : null}
+            </div>
+
+            <ForgeBandRule />
+            <ForgeSubLabel tight>{t("settings.gdpr.title")}</ForgeSubLabel>
+            <div className="space-y-3 px-3 pb-2 pt-0">
+              <p className="text-sm leading-relaxed text-[color:var(--color-text-primary)]">
+                {t("settings.gdpr.body")}
+              </p>
+              {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL ? (
+                <a
+                  href={`mailto:${process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}`}
+                  className="block text-sm font-medium text-[color:var(--color-primary)] underline"
+                >
+                  {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}
+                </a>
+              ) : (
+                <p className="text-xs text-[color:var(--color-text-secondary)]">
+                  {t("legal.privacy.contactMissing")}
+                </p>
+              )}
+              <Link
+                href="/legal/privacy"
+                className="inline-flex rounded-[0.125rem] border border-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-primary)]"
+                onClick={() => hapticTap()}
+              >
+                {t("settings.gdpr.openPrivacy")}
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  hapticTap();
+                  clearStoredConsent();
+                  window.location.reload();
+                }}
+                className="w-full rounded-[0.125rem] border border-[color:color-mix(in_srgb,var(--color-border)_85%,transparent)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-text-primary)]"
+              >
+                {t("settings.gdpr.resetConsent")}
+              </button>
+            </div>
+
+            <div className="maj-forge-system-signout border-t border-[color:color-mix(in_srgb,var(--color-border)_65%,transparent)]">
+              <button
+                type="button"
+                onClick={onSignOut}
+                className="w-full px-4 py-3.5 text-left text-sm font-semibold text-[color:var(--color-text-primary)]"
+              >
+                {t("auth.signout")}
+              </button>
+            </div>
+          </ForgeSystemSlab>
+        </>
+      ) : (
+        <>
       <GlassPanel className="space-y-4">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-secondary)]">
@@ -556,6 +916,34 @@ export default function SettingsPage() {
             {settings.showResetAura ? t("settings.state.allowed") : t("settings.state.hidden")}
           </StatusPill>
         </button>
+        {members.length > 0 ? (
+          <div className="space-y-2 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3">
+            <p className="text-sm font-medium text-[color:var(--color-text)]">
+              {t("settings.empathy.recipients")}
+            </p>
+            <p className="text-xs text-[color:var(--color-secondary)]">{t("settings.empathy.hint")}</p>
+            <ul className="flex flex-col gap-2 pt-1">
+              {members.map((m) => {
+                const on = empathyRecipientIds.includes(m.id);
+                return (
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => toggleEmpathyRecipient(m.id)}
+                      className="flex w-full items-center justify-between rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-left text-sm"
+                    >
+                      <span>
+                        {m.display_name ?? m.id.slice(0, 8)}
+                        {m.is_me ? ` (${t("household.membersList.you")})` : ""}
+                      </span>
+                      <StatusPill tone={on ? "good" : "neutral"}>{on ? "ON" : "OFF"}</StatusPill>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
       </GlassPanel>
 
       <GlassPanel className="space-y-3">
@@ -586,6 +974,39 @@ export default function SettingsPage() {
       </GlassPanel>
 
       <GlassPanel className="space-y-3">
+        <SectionHeading title={t("settings.gdpr.title")} />
+        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">{t("settings.gdpr.body")}</p>
+        {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL ? (
+          <a
+            href={`mailto:${process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}`}
+            className="block text-sm font-medium text-[color:var(--color-primary)] underline"
+          >
+            {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}
+          </a>
+        ) : (
+          <p className="text-xs text-[color:var(--color-secondary)]">{t("legal.privacy.contactMissing")}</p>
+        )}
+        <Link
+          href="/legal/privacy"
+          className="inline-flex rounded-xl border border-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-primary)]"
+          onClick={() => hapticTap()}
+        >
+          {t("settings.gdpr.openPrivacy")}
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            hapticTap();
+            clearStoredConsent();
+            window.location.reload();
+          }}
+          className="w-full rounded-xl border border-[color:var(--color-surface-border)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)]"
+        >
+          {t("settings.gdpr.resetConsent")}
+        </button>
+      </GlassPanel>
+
+      <GlassPanel className="space-y-3">
         <SectionHeading title={t("auth.signout")} />
         <button
           type="button"
@@ -595,6 +1016,8 @@ export default function SettingsPage() {
           {t("auth.signout")}
         </button>
       </GlassPanel>
+        </>
+      )}
     </ModuleShell>
   );
 }

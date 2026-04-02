@@ -58,7 +58,10 @@ export async function addPharmacyInventoryItem(input: {
   if (error) throw error;
 }
 
-export async function deletePharmacyInventoryItem(itemId: string) {
+export async function deletePharmacyInventoryItem(input: {
+  householdId: string;
+  itemId: string;
+}) {
   const supabase = getBrowserClient();
   if (!supabase) {
     throw new Error("Supabase is not configured.");
@@ -67,8 +70,10 @@ export async function deletePharmacyInventoryItem(itemId: string) {
   const { error } = await supabase
     .from("inventory_items")
     .delete()
-    .eq("id", itemId)
-    .eq("module", "pharmacy");
+    .eq("id", input.itemId)
+    .eq("household_id", input.householdId)
+    .eq("module", "pharmacy")
+    .eq("owner_scope", "household");
 
   if (error) throw error;
 }

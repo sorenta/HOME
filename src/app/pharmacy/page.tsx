@@ -135,9 +135,13 @@ export default function PharmacyPage() {
   }
 
   async function handleDeleteItem(itemId: string) {
+    if (!profile?.household_id) return;
     try {
       setError(null);
-      await deletePharmacyInventoryItem(itemId);
+      await deletePharmacyInventoryItem({
+        householdId: profile.household_id,
+        itemId,
+      });
       await reloadItems();
     } catch (nextError) {
       console.error(nextError);

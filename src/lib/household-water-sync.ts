@@ -6,6 +6,7 @@ import {
   defaultWaterState,
   loadWaterState,
   saveWaterState,
+  setMlForMember,
   type HouseholdWaterV1,
   type WaterAchievementCounts,
 } from "@/lib/household-water-local";
@@ -29,7 +30,11 @@ function isMissingRelation(error: unknown) {
     typeof error === "object" && error
       ? `${(error as { message?: string }).message ?? ""}`.toLowerCase()
       : "";
-  return message.includes("does not exist") || message.includes("could not find");
+  return (
+    message.includes("does not exist") ||
+    message.includes("could not find") ||
+    (message.includes("column") && message.includes("does not exist"))
+  );
 }
 
 function emptyAchievements(): WaterAchievementCounts {
@@ -63,31 +68,47 @@ function buildRemoteWaterState(
       silver: Number(row.silver_count ?? 0),
       bronze: Number(row.bronze_count ?? 0),
     };
+  }
+
+  const settledKeys = new Set<string>();
+  for (const row of medals) {
     if (row.last_settled_on) {
-      state.settledForDay.push(`remote-${row.last_settled_on}`);
+      settledKeys.add(`remote-${row.last_settled_on}`);
     }
   }
+  state.settledForDay = Array.from(settledKeys);
 
   return state;
 }
+
+export type LoadedHouseholdWater = {
+  state: HouseholdWaterV1;
+  /** Server medal settlement RPC failed (logs/medals may still have loaded). */
+  settleFailed?: boolean;
+  /** Could not read logs/medals from Supabase; `state` is local fallback. */
+  loadFailed?: boolean;
+};
 
 export async function loadWaterStateSynced(input: {
   scopeId: string;
   householdId: string | null;
   currentUserId: string | null;
-}): Promise<HouseholdWaterV1> {
+}): Promise<LoadedHouseholdWater> {
   const local = loadWaterState(input.scopeId);
   if (!input.householdId || !input.currentUserId) {
-    return local;
+    return { state: local };
   }
 
   const supabase = getBrowserClient();
-  if (!supabase) return local;
+  if (!supabase) {
+    return { state: local, loadFailed: true };
+  }
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayIso = yesterday.toISOString().slice(0, 10);
 
+  let settleFailed = false;
   const settleRes = await supabase.rpc("settle_household_water_medals", {
     p_household_id: input.householdId,
     p_target_date: yesterdayIso,
@@ -95,6 +116,7 @@ export async function loadWaterStateSynced(input: {
 
   if (settleRes.error && !isMissingRelation(settleRes.error)) {
     console.error("Failed to settle household water medals", settleRes.error);
+    settleFailed = true;
   }
 
   const [logsRes, medalsRes] = await Promise.all([
@@ -113,17 +135,23 @@ export async function loadWaterStateSynced(input: {
     if (!isMissingRelation(firstError)) {
       console.error("Failed to load synced household water", firstError);
     }
-    return local;
+    return { state: local, loadFailed: true, settleFailed: settleFailed || undefined };
   }
 
   const remote = buildRemoteWaterState(input.scopeId, logsRes.data ?? [], medalsRes.data ?? []);
   if (!hasLocalWaterData(remote) && hasLocalWaterData(local)) {
-    return local;
+    return { state: local, settleFailed: settleFailed || undefined };
   }
 
   saveWaterState(remote);
-  return remote;
+  return { state: remote, settleFailed: settleFailed || undefined };
 }
+
+export type WaterAddSyncResult = {
+  state: HouseholdWaterV1;
+  /** `ok` — reloaded from server; `partial` — RPC worked but full reload or settle had issues; `failed` — server rejected, state reverted; `local_only` / `offline` — no cloud confirmation path. */
+  sync: "ok" | "partial" | "failed" | "local_only" | "offline";
+};
 
 export async function addWaterSynced(input: {
   scopeId: string;
@@ -133,16 +161,19 @@ export async function addWaterSynced(input: {
   date: string;
   deltaMl: number;
   currentState: HouseholdWaterV1;
-}): Promise<HouseholdWaterV1> {
-  const optimistic = addWater(input.currentState, input.date, input.memberId, input.deltaMl);
-  saveWaterState(optimistic);
+}): Promise<WaterAddSyncResult> {
+  const pending = addWater(input.currentState, input.date, input.memberId, input.deltaMl);
 
   if (!input.householdId || !input.currentUserId || input.memberId !== input.currentUserId) {
-    return optimistic;
+    saveWaterState(pending);
+    return { state: pending, sync: "local_only" };
   }
 
   const supabase = getBrowserClient();
-  if (!supabase) return optimistic;
+  if (!supabase) {
+    saveWaterState(pending);
+    return { state: pending, sync: "offline" };
+  }
 
   const rpcRes = await supabase.rpc("add_household_water", {
     p_household_id: input.householdId,
@@ -154,14 +185,32 @@ export async function addWaterSynced(input: {
     if (!isMissingRelation(rpcRes.error)) {
       console.error("Failed to sync household water", rpcRes.error);
     }
-    return optimistic;
+    return { state: input.currentState, sync: "failed" };
   }
 
-  return loadWaterStateSynced({
+  const rawTotal = rpcRes.data;
+  const serverTotal = rawTotal != null && rawTotal !== "" ? Number(rawTotal) : NaN;
+
+  const loaded = await loadWaterStateSynced({
     scopeId: input.scopeId,
     householdId: input.householdId,
     currentUserId: input.currentUserId,
   });
+
+  if (loaded.loadFailed) {
+    if (Number.isFinite(serverTotal)) {
+      const merged = setMlForMember(pending, input.date, input.memberId, serverTotal);
+      saveWaterState(merged);
+      return { state: merged, sync: "partial" };
+    }
+    return { state: input.currentState, sync: "failed" };
+  }
+
+  if (loaded.settleFailed) {
+    return { state: loaded.state, sync: "partial" };
+  }
+
+  return { state: loaded.state, sync: "ok" };
 }
 
 export async function loadUserWaterMedals(input: {

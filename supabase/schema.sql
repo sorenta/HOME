@@ -31,7 +31,7 @@ create table if not exists public.profiles (
   role_label text,
   avatar_url text,
   preferred_locale text not null default 'lv',
-  theme_id text not null default 'soft-spa',
+  theme_id text not null default 'lucent',
   reset_score numeric not null default 0,
   reset_privacy_level text not null default 'aura_only',
   birthday_at date,
@@ -135,8 +135,12 @@ create table if not exists public.reset_checkins (
   aura text not null default 'steady' check (aura in ('low', 'steady', 'high')),
   summary text,
   private_notes text,
-  happened_at timestamptz not null default now()
+  happened_at timestamptz not null default now(),
+  logged_on_local date
 );
+
+create index if not exists reset_checkins_user_local_day_idx
+  on public.reset_checkins (user_id, logged_on_local);
 
 create table if not exists public.reset_metrics (
   id uuid primary key default gen_random_uuid(),
@@ -177,10 +181,21 @@ create table if not exists public.notification_preferences (
   pharmacy_enabled boolean not null default true,
   event_enabled boolean not null default true,
   reset_empathy_enabled boolean not null default true,
+  reset_empathy_recipient_ids uuid[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (user_id)
 );
+
+create table if not exists public.legal_consents (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  privacy_policy_version text not null,
+  accepted_at timestamptz not null default now()
+);
+
+create unique index if not exists legal_consents_user_version_idx
+  on public.legal_consents (user_id, privacy_policy_version);
 
 create table if not exists public.ai_preferences (
   id uuid primary key default gen_random_uuid(),
@@ -437,6 +452,7 @@ alter table public.reset_metrics enable row level security;
 alter table public.calendar_events enable row level security;
 alter table public.activity_feed enable row level security;
 alter table public.notification_preferences enable row level security;
+alter table public.legal_consents enable row level security;
 alter table public.ai_preferences enable row level security;
 
 drop policy if exists "profiles_self_select" on public.profiles;
@@ -552,6 +568,15 @@ create policy "notification_preferences_self_update" on public.notification_pref
   for update to authenticated
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
+
+drop policy if exists "legal_consents_self_insert" on public.legal_consents;
+drop policy if exists "legal_consents_self_select" on public.legal_consents;
+create policy "legal_consents_self_insert" on public.legal_consents
+  for insert to authenticated
+  with check (auth.uid() = user_id);
+create policy "legal_consents_self_select" on public.legal_consents
+  for select to authenticated
+  using (auth.uid() = user_id);
 
 drop policy if exists "ai_preferences_self_select" on public.ai_preferences;
 drop policy if exists "ai_preferences_self_insert" on public.ai_preferences;

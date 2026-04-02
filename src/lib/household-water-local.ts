@@ -109,6 +109,21 @@ export function addWater(
   };
 }
 
+/** Replace a member’s total for a day (e.g. authoritative value from `add_household_water` RPC). */
+export function setMlForMember(
+  state: HouseholdWaterV1,
+  date: string,
+  memberId: string,
+  ml: number,
+): HouseholdWaterV1 {
+  const day = { ...(state.byDate[date] ?? {}) };
+  day[memberId] = Math.max(0, ml);
+  return {
+    ...state,
+    byDate: { ...state.byDate, [date]: day },
+  };
+}
+
 function emptyAchievements(): WaterAchievementCounts {
   return { gold: 0, silver: 0, bronze: 0 };
 }
