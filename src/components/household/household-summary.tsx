@@ -55,40 +55,36 @@ export function HouseholdSummary({ householdId, showQr = false }: Props) {
 
   if (!household) {
     return (
-      <div className="rounded-3xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-5 text-sm text-[color:var(--color-secondary)]">
+      <div className="maj-surface-panel text-sm text-[color:var(--color-text-secondary)]">
         {t("household.loading")}
       </div>
     );
   }
 
   return (
-    <div className="rounded-3xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-5">
-      <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-secondary)]">
-        {t("app.household")}
-      </p>
-      <h2 className="mt-2 font-[family-name:var(--font-theme-display)] text-2xl font-semibold text-[color:var(--color-text)]">
-        {household.name}
-      </h2>
-      <div className="mt-4 flex flex-wrap gap-2">
+    <div className="maj-glass-panel p-[length:var(--maj-space-card-pad)]">
+      <p className="maj-theme-eyebrow">{t("app.household")}</p>
+      <h2 className="maj-theme-section-title mt-2">{household.name}</h2>
+      <div className="mt-4 flex flex-wrap gap-[var(--maj-space-stack)]">
         <StatusPill tone="good">
           {memberCount} {t("household.members")}
         </StatusPill>
         <StatusPill>{t(plan === "premium" ? "billing.plan.premium" : "billing.plan.free")}</StatusPill>
         {household.qr_code ? <StatusPill>{household.qr_code}</StatusPill> : null}
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-[color:var(--color-secondary)]">
+      <p className="maj-theme-subtitle mt-3 text-sm text-[color:var(--color-text-secondary)]">
         {t("household.shareHint")}
       </p>
       {showQr && inviteUrl ? (
-        <div className="mt-4 rounded-2xl border border-[color:var(--color-surface-border)] p-4">
-          <p className="text-sm font-semibold text-[color:var(--color-text)]">
+        <div className="maj-nested-surface mt-4 p-[length:var(--maj-space-card-pad)]">
+          <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">
             {t("household.qr.title")}
           </p>
-          <p className="mt-1 text-xs leading-relaxed text-[color:var(--color-secondary)]">
+          <p className="maj-theme-subtitle mt-1 text-xs">
             {t("household.qr.hint")}
           </p>
-          <div className="mt-4 flex flex-col items-center gap-3">
-            <div className="rounded-2xl bg-white p-3">
+          <div className="mt-4 flex flex-col items-center gap-[var(--maj-space-stack)]">
+            <div className="rounded-[var(--radius-card)] bg-[color:var(--color-card-elevated)] p-3">
               <QRCodeSVG
                 value={inviteUrl}
                 size={168}
@@ -100,7 +96,7 @@ export function HouseholdSummary({ householdId, showQr = false }: Props) {
             <button
               type="button"
               onClick={copyInviteUrl}
-              className="rounded-xl border border-[color:var(--color-surface-border)] px-4 py-2 text-sm font-medium text-[color:var(--color-text)]"
+              className="rounded-[var(--radius-button)] border border-[color:var(--color-border)] px-4 py-2 text-sm font-medium text-[color:var(--color-text-primary)]"
             >
               {copied ? t("household.qr.copied") : t("household.qr.copy")}
             </button>

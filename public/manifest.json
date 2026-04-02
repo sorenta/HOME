@@ -1,13 +1,13 @@
 {
-  "name": "Mājas · HomeOS",
-  "short_name": "Mājas",
+  "name": "H:0 · Mājas",
+  "short_name": "H:0",
   "description": "Mājsaimniecības lietotne: virtuve, finanses, RESET, aptieciņa un notikumi.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#2b3101",
-  "theme_color": "#2b3101",
+  "background_color": "#fbfaf9",
+  "theme_color": "#f4f4f5",
   "orientation": "portrait",
   "lang": "lv",
   "icons": [

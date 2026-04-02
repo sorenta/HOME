@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
+import { AppMark } from "@/components/branding/app-mark";
 import { useI18n } from "@/lib/i18n/i18n-context";
 
 type Props = {
@@ -25,8 +26,9 @@ export function RequireAuth({ children, compact = true }: Props) {
 
   if (!ready) {
     return (
-      <div className="rounded-3xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-5 text-sm text-[color:var(--color-secondary)]">
-        {t("auth.session.loading")}
+      <div className="flex flex-col items-center gap-3 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6 text-center text-sm text-[color:var(--color-text-secondary)]">
+        <AppMark size="sm" />
+        <p>{t("auth.session.loading")}</p>
       </div>
     );
   }

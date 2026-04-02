@@ -29,15 +29,12 @@ import {
   type ModuleId,
 } from "@/lib/bento-usage";
 import { hapticTap } from "@/lib/haptic";
-import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
-import { SeasonalRewardModal } from "@/components/seasonal/seasonal-reward-modal";
-import { HomeRollingEgg } from "@/components/spring/home-rolling-egg";
-import { PussyWillowFrame } from "@/components/spring/pussy-willow-frame";
 import { hasResetCheckInToday } from "@/lib/reset-checkin";
 import type { ThemeId } from "@/lib/theme-logic";
 import { getGeminiKeyFromStorage, getOpenAIKeyFromStorage } from "@/lib/ai/keys";
 import { fetchOpenHouseholdTaskCount } from "@/lib/events-sync";
 import { BentoTile } from "./bento-tile";
+import { AppMark } from "@/components/branding/app-mark";
 import { HouseholdWaterWidget } from "./household-water-widget";
 import { TimeOfDayNoticeCard } from "./time-of-day-notice-card";
 
@@ -70,52 +67,46 @@ const MODULE_META: Record<
 
 const THEME_NAV_ICONS: Record<BottomNavId, Record<ThemeId, string>> = {
   home: {
-    "soft-spa": "◠",
-    "forest-sunset": "⌂",
-    "ocean-depth": "◈",
-    "zephyr-soft": "◌",
-    "calla-grace": "✦",
-    "ember-wood": "⬢",
+    forge: "⬛",
+    canopy: "⌂",
+    pulse: "◆",
+    lucent: "◠",
+    hive: "⬡",
   },
   calendar: {
-    "soft-spa": "✽",
-    "forest-sunset": "✶",
-    "ocean-depth": "✺",
-    "zephyr-soft": "✿",
-    "calla-grace": "❋",
-    "ember-wood": "✦",
+    forge: "✦",
+    canopy: "✿",
+    pulse: "✺",
+    lucent: "✽",
+    hive: "✶",
   },
   kitchen: {
-    "soft-spa": "◍",
-    "forest-sunset": "◨",
-    "ocean-depth": "◫",
-    "zephyr-soft": "◡",
-    "calla-grace": "❀",
-    "ember-wood": "▣",
+    forge: "▣",
+    canopy: "❀",
+    pulse: "▤",
+    lucent: "◍",
+    hive: "◈",
   },
   finance: {
-    "soft-spa": "◌",
-    "forest-sunset": "◎",
-    "ocean-depth": "◉",
-    "zephyr-soft": "◍",
-    "calla-grace": "◌",
-    "ember-wood": "◆",
+    forge: "◆",
+    canopy: "◎",
+    pulse: "◫",
+    lucent: "◌",
+    hive: "◇",
   },
   pharmacy: {
-    "soft-spa": "✚",
-    "forest-sunset": "✚",
-    "ocean-depth": "✚",
-    "zephyr-soft": "✚",
-    "calla-grace": "✚",
-    "ember-wood": "✚",
+    forge: "✚",
+    canopy: "✚",
+    pulse: "✚",
+    lucent: "✚",
+    hive: "✚",
   },
   reset: {
-    "soft-spa": "◎",
-    "forest-sunset": "☽",
-    "ocean-depth": "◇",
-    "zephyr-soft": "○",
-    "calla-grace": "✧",
-    "ember-wood": "⬡",
+    forge: "⬡",
+    canopy: "☽",
+    pulse: "◇",
+    lucent: "◎",
+    hive: "✧",
   },
 };
 
@@ -265,65 +256,51 @@ export function BentoDashboard() {
 
   if (!profile?.household_id) {
     return (
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-28 pt-18">
+      <div className="maj-dashboard-root maj-page-shell relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
         <motion.header
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10 mb-6"
+          className="maj-section-gap relative z-10"
         >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-secondary)]">
-                HOME:OS
-              </p>
-              <h1 className="mt-1 font-[family-name:var(--font-theme-display)] text-3xl font-semibold text-[color:var(--color-text)]">
-                {greeting}
-              </h1>
-              <p className="mt-2 max-w-sm text-sm leading-relaxed text-[color:var(--color-secondary)]">
-                {t("household.subtitle")}
-              </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <AppMark size="sm" />
             </div>
-            <HiddenSeasonalCollectible spotId="home" />
+            <h1 className="maj-theme-hero-title mt-1 text-[color:var(--color-text-primary)]">
+              {greeting}
+            </h1>
+            <p className="maj-theme-subtitle mt-2 max-w-sm text-sm">
+              {t("household.subtitle")}
+            </p>
           </div>
         </motion.header>
-        <PussyWillowFrame>
-          <TimeOfDayNoticeCard />
-        </PussyWillowFrame>
+        <TimeOfDayNoticeCard />
         <HouseholdOnboarding />
-        <HomeRollingEgg />
-        <SeasonalRewardModal />
       </div>
     );
   }
 
   return (
-    <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-28 pt-18">
+    <div className="maj-dashboard-root maj-page-shell relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
       <motion.header
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 mb-6"
+        className="maj-section-gap relative z-10"
       >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-secondary)]">
-              HOME:OS
-            </p>
-            <h1 className="mt-1 font-[family-name:var(--font-theme-display)] text-3xl font-semibold text-[color:var(--color-text)]">
-              {greeting}
-            </h1>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-[color:var(--color-secondary)]">
-              {headerSubtitle}
-            </p>
+        <div>
+          <div className="flex items-center gap-2">
+            <AppMark size="sm" />
           </div>
-          <HiddenSeasonalCollectible spotId="home" />
+          <h1 className="maj-theme-hero-title mt-1 text-[color:var(--color-text-primary)]">
+            {greeting}
+          </h1>
+          <p className="maj-theme-subtitle mt-2 max-w-sm text-sm">{headerSubtitle}</p>
         </div>
       </motion.header>
 
-      <PussyWillowFrame>
-        <TimeOfDayNoticeCard />
-      </PussyWillowFrame>
+      <TimeOfDayNoticeCard />
 
-      <div className="relative z-10 mb-4">
+      <div className="maj-section-gap relative z-10">
         <HouseholdSummary householdId={profile.household_id} />
       </div>
 
@@ -337,7 +314,7 @@ export function BentoDashboard() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="relative z-10 mb-4 grid grid-cols-3 gap-3"
+        className="maj-dashboard-metrics maj-section-gap relative z-10"
       >
         <MetricCard
           label={t("dashboard.members")}
@@ -357,17 +334,17 @@ export function BentoDashboard() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="relative z-10 mb-4 rounded-3xl border border-[color:var(--color-surface-border)] bg-[linear-gradient(180deg,var(--color-surface),transparent)] p-4"
+        className="maj-glass-panel maj-section-gap relative z-10 p-[length:var(--maj-space-card-pad)]"
       >
         <SectionHeading
           eyebrow={t("app.household")}
           title={household?.name ?? t("app.household")}
           detail={t("app.realtime")}
         />
-        <p className="mt-3 text-sm leading-relaxed text-[color:var(--color-text)]">
+        <p className="maj-theme-subtitle mt-3 text-sm text-[color:var(--color-text-primary)]">
           {t("dashboard.householdHint")}
         </p>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-[var(--maj-space-stack)]">
           <StatusPill tone={aiReady ? "good" : "neutral"}>
             {t("app.smartAssistant")}
           </StatusPill>
@@ -377,7 +354,7 @@ export function BentoDashboard() {
             <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
           )}
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="maj-bento-grid mt-4 grid sm:grid-cols-2">
           {members.length === 0 ? (
             <p className="text-sm text-[color:var(--color-secondary)] sm:col-span-2">
               {t("household.membersList.empty")}
@@ -388,10 +365,10 @@ export function BentoDashboard() {
               return (
                 <div
                   key={member.id}
-                  className="flex items-start gap-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/55 px-3 py-3"
+                  className="maj-nested-surface flex items-start gap-3 px-3 py-3"
                 >
                   <div
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold tracking-tight text-[color:var(--color-primary)]"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-button)] text-sm font-semibold tracking-tight text-[color:var(--color-primary)]"
                     style={{
                       background:
                         "color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))",
@@ -402,7 +379,9 @@ export function BentoDashboard() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-[color:var(--color-text)]">{label}</p>
+                      <p className="font-[family-name:var(--font-theme-display)] font-semibold text-[color:var(--color-text-primary)]">
+                        {label}
+                      </p>
                       {member.is_me ? (
                         <StatusPill tone="neutral">{t("household.membersList.you")}</StatusPill>
                       ) : null}
@@ -418,7 +397,7 @@ export function BentoDashboard() {
         </div>
       </motion.section>
 
-      <motion.div layout className="relative z-10 grid grid-cols-2 gap-3">
+      <motion.div layout className="maj-dashboard-modules relative z-10">
         {tiles}
       </motion.div>
 
@@ -426,20 +405,20 @@ export function BentoDashboard() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.14 }}
-        className="relative z-10 mt-4 rounded-3xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4"
+        className="maj-dashboard-feed maj-surface-panel maj-section-gap relative z-10 mt-[length:var(--maj-space-section-y)]"
       >
         <SectionHeading
           title={t("dashboard.feed")}
           detail={t("dashboard.feedLive")}
         />
-        <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
+        <p className="maj-theme-subtitle mt-1 text-xs text-[color:var(--color-text-secondary)]">
           {t("dashboard.feedHint")}
         </p>
-        <div className="mt-3 space-y-3">
+        <div className="mt-3 space-y-[var(--maj-space-stack)]">
           {homeFeed.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/35 px-3 py-3"
+              className="maj-nested-surface px-3 py-3"
             >
               <p className="text-sm leading-snug text-[color:var(--color-text)]">{item.line}</p>
               <div className="mt-2 flex items-center gap-2">
@@ -452,8 +431,6 @@ export function BentoDashboard() {
           ))}
         </div>
       </motion.section>
-      <HomeRollingEgg />
-      <SeasonalRewardModal />
     </div>
   );
 }
@@ -487,7 +464,7 @@ export function AppBottomNav() {
   const linkClass = (href: string) => {
     const active = isActive(href);
     return [
-      "relative flex min-w-[4.75rem] shrink-0 flex-col items-center gap-1 px-2 py-2 text-[0.68rem] font-medium transition-colors",
+      "relative flex min-w-[4.75rem] shrink-0 flex-col items-center gap-1 px-2 py-2 font-[family-name:var(--font-theme-sans)] text-[0.68rem] font-medium transition-colors",
       active
         ? "text-[color:var(--color-primary)]"
         : "text-[color:var(--color-secondary)]",
@@ -496,7 +473,7 @@ export function AppBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 border-t border-[color:var(--color-surface-border)] bg-[color:var(--color-background)]/95 backdrop-blur-md"
+      className="maj-bottom-nav fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2"
       aria-label="Primary"
     >
       <div className="px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">

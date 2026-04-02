@@ -4,6 +4,11 @@
   color-scheme: light dark;
 }
 
+html[data-theme="forge"],
+html[data-theme="canopy"] {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   min-height: 100%;
@@ -11,10 +16,11 @@ body {
   background-image: var(--theme-background-image, none);
   background-attachment: fixed;
   background-repeat: no-repeat;
-  color: var(--color-text, #110b0e);
+  color: var(--color-text-primary, var(--color-text, #110b0e));
   font-family: var(--font-theme-sans, system-ui, sans-serif);
 }
 
+/* Tokenized vignette; strength from --body-overlay-* (set in theme-provider) */
 body::before {
   content: "";
   position: fixed;
@@ -22,9 +28,23 @@ body::before {
   pointer-events: none;
   background:
     radial-gradient(circle at top, var(--theme-header-glow, transparent), transparent 38%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 22%);
-  opacity: 0.9;
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-background) 40%, white 60%) 0%,
+      transparent 22%
+    );
+  opacity: var(--body-overlay-before-opacity, 0.45);
   z-index: -1;
+}
+
+html[data-theme="forge"] body::before,
+html[data-theme="canopy"] body::before {
+  background: radial-gradient(
+    circle at 50% -10%,
+    var(--theme-header-glow, transparent),
+    transparent 42%
+  );
+  opacity: calc(var(--body-overlay-before-opacity, 0.35) * 0.85);
 }
 
 body::after {
@@ -33,11 +53,31 @@ body::after {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 32%),
-    linear-gradient(125deg, transparent 30%, rgba(255, 255, 255, 0.03) 48%, transparent 66%);
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--color-background) 50%, white 50%) 0%,
+      transparent 32%
+    ),
+    linear-gradient(
+      125deg,
+      transparent 30%,
+      color-mix(in srgb, var(--color-background) 88%, white 12%) 48%,
+      transparent 66%
+    );
   mix-blend-mode: screen;
-  opacity: 0.65;
+  opacity: var(--body-overlay-after-opacity, 0.35);
   z-index: -1;
+}
+
+html[data-theme="forge"] body::after,
+html[data-theme="canopy"] body::after {
+  mix-blend-mode: normal;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% 0%,
+    color-mix(in srgb, var(--color-accent) 12%, transparent),
+    transparent 50%
+  );
+  opacity: calc(var(--body-overlay-after-opacity, 0.25) * 0.7);
 }
 
 @keyframes maj-pulse-attention {
@@ -54,6 +94,43 @@ body::after {
   animation: maj-pulse-attention 2.2s ease-in-out infinite;
 }
 
+@keyframes maj-reset-aura-shine {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: translate3d(-14%, 0, 0) scale(1.02);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate3d(14%, 0, 0) scale(1.06);
+  }
+}
+
+.maj-reset-aura-shine {
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      color-mix(in srgb, var(--color-primary) 42%, transparent) 42%,
+      color-mix(in srgb, var(--color-primary) 18%, white) 52%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 90% 85% at 50% -25%,
+      color-mix(in srgb, var(--color-primary) 28%, transparent),
+      transparent 58%
+    );
+  animation: maj-reset-aura-shine 3.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maj-reset-aura-shine {
+    animation: none;
+    opacity: 0.52;
+  }
+}
+
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -65,8 +142,8 @@ body::after {
 
 .maj-glass-panel {
   position: relative;
-  border: var(--theme-panel-border, 1px solid var(--color-surface-border, transparent));
-  border-radius: var(--theme-panel-radius, 24px);
+  border: var(--theme-panel-border, 1px solid var(--color-border, var(--color-surface-border, transparent)));
+  border-radius: var(--theme-panel-radius, var(--radius-card, 24px));
   background-color: color-mix(in srgb, var(--color-surface, transparent) 88%, var(--color-background, transparent));
   background-image: linear-gradient(
     180deg,
@@ -85,15 +162,29 @@ body::after {
   border-radius: inherit;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 30%),
-    linear-gradient(125deg, transparent 38%, rgba(255, 255, 255, 0.04) 52%, transparent 68%);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-card-elevated, var(--color-background)) 35%, transparent),
+      transparent 30%
+    ),
+    linear-gradient(
+      125deg,
+      transparent 38%,
+      color-mix(in srgb, var(--color-background) 92%, white 8%) 52%,
+      transparent 68%
+    );
   opacity: 0.7;
+}
+
+html[data-theme="forge"] .maj-glass-panel::before,
+html[data-theme="canopy"] .maj-glass-panel::before {
+  opacity: 0.35;
 }
 
 .maj-bento-tile {
   position: relative;
-  border: var(--theme-tile-border, 1px solid var(--color-surface-border, transparent));
-  border-radius: var(--theme-tile-radius, 20px);
+  border: var(--theme-tile-border, 1px solid var(--color-border, var(--color-surface-border, transparent)));
+  border-radius: var(--theme-tile-radius, var(--radius-card, 20px));
   background-color: color-mix(in srgb, var(--color-surface, transparent) 90%, var(--color-background, transparent));
   background-image: linear-gradient(
     180deg,
@@ -111,8 +202,21 @@ body::after {
   border-radius: inherit;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 38%),
-    linear-gradient(135deg, transparent 42%, rgba(255, 255, 255, 0.04) 55%, transparent 70%);
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-card, var(--color-background)) 25%, transparent),
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 42%,
+      color-mix(in srgb, var(--color-background) 94%, white 6%) 55%,
+      transparent 70%
+    );
+}
+
+html[data-theme="pulse"] .maj-bento-tile::before {
+  opacity: 0.35;
 }
 
 .maj-header-chip {
@@ -124,646 +228,405 @@ body::after {
     0 10px 24px var(--theme-header-glow, transparent);
 }
 
-.maj-seasonal-banner {
-  background:
-    radial-gradient(circle at 12% 18%, rgba(255, 227, 148, 0.14), transparent 20%),
-    radial-gradient(circle at 88% 16%, rgba(255, 185, 122, 0.14), transparent 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 60%),
-    var(--color-surface);
+/* ── Theme personality: typography + density-driven shell (vars from theme-provider) ── */
+html {
+  --maj-hero-tracking: -0.02em;
+  --maj-section-title-size: 1.125rem;
+  --maj-eyebrow-tracking: 0.2em;
+}
+
+html[data-theme="forge"] {
+  --maj-hero-tracking: 0.055em;
+  --maj-section-title-size: 1.0625rem;
+  --maj-eyebrow-tracking: 0.26em;
+}
+
+html[data-theme="pulse"] {
+  --maj-hero-tracking: -0.045em;
+  --maj-section-title-size: 1rem;
+  --maj-eyebrow-tracking: 0.14em;
+}
+
+html[data-theme="lucent"] {
+  --maj-hero-tracking: -0.018em;
+  --maj-section-title-size: 1.2rem;
+  --maj-eyebrow-tracking: 0.28em;
+}
+
+html[data-theme="hive"] {
+  --maj-hero-tracking: 0.012em;
+  --maj-section-title-size: 1.125rem;
+  --maj-eyebrow-tracking: 0.17em;
+}
+
+html[data-theme="canopy"] {
+  --maj-hero-tracking: -0.022em;
+  --maj-section-title-size: 1.125rem;
+  --maj-eyebrow-tracking: 0.22em;
+}
+
+html[data-layout-density="compact"] .maj-theme-hero-title {
+  letter-spacing: calc(var(--maj-hero-tracking) + 0.01em);
+}
+
+html[data-layout-density="airy"] .maj-page-shell {
+  padding-left: calc(var(--maj-space-page-x, 1rem) + 2px);
+  padding-right: calc(var(--maj-space-page-x, 1rem) + 2px);
+}
+
+.maj-page-shell {
+  padding-left: var(--maj-space-page-x, 1rem);
+  padding-right: var(--maj-space-page-x, 1rem);
+  padding-top: var(--maj-page-padding-top, 4.5rem);
+  padding-bottom: var(--maj-page-padding-bottom, 7rem);
+}
+
+.maj-stack-gap {
+  gap: var(--maj-space-stack, 0.75rem);
+}
+
+.maj-bento-grid {
+  gap: var(--maj-space-bento-gap, 0.75rem);
+}
+
+.maj-section-gap {
+  margin-bottom: var(--maj-space-section-y, 1rem);
+}
+
+.maj-theme-hero-title {
+  font-family: var(--font-theme-display), var(--font-inter), system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: var(--maj-hero-tracking);
+  font-size: clamp(1.62rem, 5.2vw, 2.08rem);
+}
+
+/* Inner pages: still display-led, slightly smaller than home hero */
+.maj-theme-module-title {
+  font-family: var(--font-theme-display), var(--font-inter), system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: var(--maj-hero-tracking);
+  font-size: clamp(1.4rem, 4.4vw, 1.92rem);
+}
+
+.maj-theme-section-title {
+  font-family: var(--font-theme-display), var(--font-inter), serif;
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: var(--maj-hero-tracking);
+  font-size: var(--maj-section-title-size);
+  color: var(--color-text-primary);
+}
+
+.maj-theme-eyebrow {
+  font-family: var(--font-theme-sans), system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--maj-eyebrow-tracking);
+  color: var(--color-text-secondary);
+}
+
+.maj-theme-subtitle {
+  font-family: var(--font-theme-sans), system-ui, sans-serif;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+.maj-tile-title {
+  font-family: var(--font-theme-display), var(--font-inter), sans-serif;
+  font-weight: 600;
+  letter-spacing: var(--maj-hero-tracking);
+}
+
+.maj-surface-panel {
+  border-radius: var(--radius-card);
+  border: var(--theme-panel-border, 1px solid var(--color-border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface) 94%, var(--color-background)),
+    color-mix(in srgb, var(--color-surface) 72%, transparent)
+  );
   box-shadow: var(--theme-panel-shadow, none);
+  padding: var(--maj-space-card-pad, 1rem);
 }
 
-.maj-seasonal-banner-top,
-.maj-seasonal-banner-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 42%;
-  pointer-events: none;
-  opacity: 0.55;
+.maj-nested-surface {
+  border-radius: var(--radius-button);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 55%, transparent);
 }
 
-.maj-seasonal-banner-top {
-  top: 0;
-  border-radius: 1.5rem 1.5rem 0 0;
+.maj-metric-card {
+  border-radius: var(--radius-card);
+  border: var(--theme-tile-border, 1px solid var(--color-border));
+  padding: var(--maj-space-card-pad, 1rem);
+  background: color-mix(in srgb, var(--color-surface) 90%, var(--color-background));
+  box-shadow: var(--theme-tile-shadow, none);
 }
 
-.maj-seasonal-banner-bottom {
-  bottom: 0;
-  border-radius: 0 0 1.5rem 1.5rem;
+.maj-metric-label {
+  font-family: var(--font-theme-sans), system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: calc(var(--maj-eyebrow-tracking) * 0.92);
+  color: var(--color-text-secondary);
 }
 
-.maj-seasonal-banner--easter .maj-seasonal-banner-top {
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 14px,
-      rgba(180, 160, 90, 0.22) 14px,
-      rgba(180, 160, 90, 0.22) 15px,
-      transparent 15px,
-      transparent 36px
-    ),
-    radial-gradient(ellipse 140% 90% at 20% 110%, rgba(255, 252, 235, 0.55), transparent 52%),
-    radial-gradient(ellipse 120% 80% at 72% 100%, rgba(255, 245, 210, 0.45), transparent 48%),
-    radial-gradient(circle at 48% 88%, rgba(255, 255, 255, 0.35) 0, transparent 38%);
+.maj-bottom-nav {
+  border-top: var(--theme-tile-border, 1px solid var(--color-border));
+  border-radius: var(--radius-nav) var(--radius-nav) 0 0;
+  background: color-mix(in srgb, var(--color-nav-background) 93%, transparent);
+  backdrop-filter: blur(16px) saturate(132%);
+  -webkit-backdrop-filter: blur(16px) saturate(132%);
+  box-shadow: 0 -10px 36px color-mix(in srgb, var(--color-background) 55%, transparent);
 }
 
-.maj-seasonal-banner--easter .maj-seasonal-banner-bottom {
-  background: linear-gradient(0deg, rgba(120, 140, 80, 0.12), transparent 70%);
+html[data-theme="forge"] .maj-glass-panel {
+  backdrop-filter: blur(12px) saturate(124%);
 }
 
-.maj-seasonal-banner--christmas .maj-seasonal-banner-top {
-  background:
-    repeating-linear-gradient(
-      105deg,
-      rgba(30, 90, 45, 0.35) 0 3px,
-      transparent 3px 14px,
-      rgba(196, 40, 55, 0.4) 14px 17px,
-      transparent 17px 28px
-    ),
-    linear-gradient(180deg, rgba(30, 70, 40, 0.25), transparent);
+html[data-theme="lucent"] .maj-glass-panel {
+  backdrop-filter: blur(28px) saturate(158%);
 }
 
-.maj-seasonal-banner--christmas .maj-seasonal-banner-bottom {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(255, 230, 180, 0.35) 0, transparent 45%),
-    radial-gradient(circle at 50% 0%, rgba(255, 220, 160, 0.3) 0, transparent 40%),
-    radial-gradient(circle at 85% 0%, rgba(255, 235, 190, 0.35) 0, transparent 45%);
+html[data-theme="pulse"] .maj-glass-panel {
+  backdrop-filter: blur(6px) saturate(105%);
 }
 
-.maj-seasonal-banner--midsummer .maj-seasonal-banner-top {
-  background:
-    conic-gradient(
-      from 200deg at 50% 120%,
-      rgba(220, 180, 60, 0.2),
-      rgba(90, 130, 60, 0.18),
-      rgba(220, 180, 60, 0.2)
-    ),
-    radial-gradient(circle at 30% 100%, rgba(255, 220, 120, 0.25), transparent 50%),
-    radial-gradient(circle at 70% 100%, rgba(200, 230, 140, 0.2), transparent 48%);
+html[data-theme="hive"] .maj-glass-panel {
+  backdrop-filter: blur(14px) saturate(138%);
 }
 
-.maj-seasonal-banner--midsummer .maj-seasonal-banner-bottom {
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(90, 120, 50, 0.2), transparent 62%),
-    linear-gradient(0deg, rgba(160, 120, 40, 0.12), transparent 75%);
+html[data-theme="canopy"] .maj-glass-panel {
+  backdrop-filter: blur(18px) saturate(132%);
 }
 
-.maj-seasonal-banner--valentine .maj-seasonal-banner-top {
-  background: radial-gradient(ellipse 100% 80% at 50% 100%, rgba(255, 180, 190, 0.28), transparent 55%);
+html[data-theme="forge"] .maj-bento-tile {
+  backdrop-filter: blur(8px) saturate(118%);
 }
 
-.maj-seasonal-banner--valentine .maj-seasonal-banner-bottom {
-  background: radial-gradient(ellipse 90% 50% at 80% 0%, rgba(255, 150, 170, 0.15), transparent 50%);
+html[data-theme="lucent"] .maj-bento-tile {
+  backdrop-filter: blur(20px) saturate(150%);
 }
 
-.maj-seasonal-banner--newyear .maj-seasonal-banner-top {
-  background:
-    radial-gradient(circle at 20% 100%, rgba(255, 250, 200, 0.35) 0, transparent 35%),
-    radial-gradient(circle at 80% 100%, rgba(200, 220, 255, 0.25) 0, transparent 32%);
+html[data-theme="pulse"] .maj-bento-tile {
+  backdrop-filter: blur(4px) saturate(100%);
 }
 
-.maj-seasonal-banner--newyear .maj-seasonal-banner-bottom {
-  background: linear-gradient(0deg, rgba(100, 140, 200, 0.1), transparent 65%);
+html[data-theme="hive"] .maj-bento-tile {
+  backdrop-filter: blur(10px) saturate(132%);
 }
 
-/* App-wide seasonal viewport overlay (Easter catkins / Midsummer oak & wreath / Christmas garland & lights) */
-.maj-seasonal-shell-root {
-  position: fixed;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.maj-seasonal-shell {
-  position: absolute;
-  inset: 0;
-  opacity: 0.42;
-  transition: opacity 0.5s ease;
-}
-
-.maj-seasonal-shell-unlocked {
-  opacity: 0.52;
-  animation: maj-seasonal-unlock-pulse 4s ease-in-out infinite;
-}
-
-@keyframes maj-seasonal-unlock-pulse {
-  0%,
-  100% {
-    filter: saturate(1);
-  }
-  50% {
-    filter: saturate(1.15) brightness(1.03);
-  }
-}
-
-.maj-seasonal-top,
-.maj-seasonal-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2.75rem;
-}
-
-.maj-seasonal-top {
-  top: 0;
-}
-
-.maj-seasonal-bottom {
-  bottom: 0;
-  height: 3.25rem;
-}
-
-.maj-seasonal-side {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1.1rem;
-}
-
-.maj-seasonal-shell-easter {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 248, 220, 0.18), transparent 55%),
-    radial-gradient(circle at 50% 8%, rgba(246, 223, 163, 0.1), transparent 28%);
-}
-
-.maj-seasonal-shell-easter .maj-seasonal-pupoli {
-  background:
-    radial-gradient(circle at 8% 56%, rgba(245, 239, 226, 0.6) 0 6px, transparent 7px),
-    radial-gradient(circle at 22% 38%, rgba(245, 239, 226, 0.56) 0 5px, transparent 6px),
-    radial-gradient(circle at 34% 64%, rgba(245, 239, 226, 0.58) 0 6px, transparent 7px),
-    radial-gradient(circle at 48% 34%, rgba(245, 239, 226, 0.54) 0 5px, transparent 6px),
-    radial-gradient(circle at 61% 60%, rgba(245, 239, 226, 0.58) 0 6px, transparent 7px),
-    radial-gradient(circle at 74% 42%, rgba(245, 239, 226, 0.58) 0 5px, transparent 6px),
-    radial-gradient(circle at 88% 58%, rgba(245, 239, 226, 0.6) 0 6px, transparent 7px),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 20px,
-      rgba(200, 185, 120, 0.28) 20px,
-      rgba(200, 185, 120, 0.28) 21px,
-      transparent 21px,
-      transparent 48px
-    ),
-    radial-gradient(ellipse 100% 120% at 50% 100%, rgba(255, 255, 245, 0.42), transparent 58%);
-}
-
-.maj-seasonal-shell-easter .maj-seasonal-branch-side {
-  background:
-    repeating-linear-gradient(
-      180deg,
-      rgba(118, 136, 72, 0.22) 0 3px,
-      transparent 3px 18px,
-      rgba(205, 194, 159, 0.22) 18px 21px,
-      transparent 21px 36px
-    ),
-    linear-gradient(
-      180deg,
-      rgba(130, 150, 90, 0.18),
-      transparent 35%,
-      transparent 65%,
-      rgba(130, 150, 90, 0.15) 100%
-    );
-}
-
-.maj-seasonal-shell-easter .maj-seasonal-egg-border {
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 22px,
-      rgba(255, 255, 255, 0.12) 22px,
-      rgba(255, 255, 255, 0.12) 26px,
-      transparent 26px,
-      transparent 48px
-    ),
-    linear-gradient(0deg, rgba(160, 175, 110, 0.14), transparent 80%);
-}
-
-.maj-seasonal-shell-easter .maj-seasonal-floaters {
-  opacity: 1;
-}
-
-.maj-seasonal-shell-easter .maj-seasonal-sprite--bunny,
-.maj-seasonal-shell-easter .maj-seasonal-sprite--chick,
-.maj-seasonal-shell-easter .maj-seasonal-sprite--egg,
-.maj-seasonal-shell-easter .maj-seasonal-sprite--catkin {
-  opacity: 0.94;
-  filter: drop-shadow(0 14px 20px rgba(90, 64, 30, 0.16));
-}
-
-.maj-seasonal-shell-christmas {
-  background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(196, 40, 55, 0.08), transparent 60%);
-}
-
-.maj-seasonal-shell-christmas .maj-seasonal-garland {
-  background:
-    repeating-linear-gradient(
-      100deg,
-      rgba(28, 85, 48, 0.4) 0 4px,
-      transparent 4px 18px,
-      rgba(196, 45, 58, 0.45) 18px 21px,
-      transparent 21px 34px
-    ),
-    linear-gradient(180deg, rgba(20, 60, 35, 0.35), transparent);
-}
-
-.maj-seasonal-shell-christmas .maj-seasonal-fir {
-  background: linear-gradient(
-    90deg,
-    rgba(25, 70, 42, 0.22),
-    transparent,
-    rgba(25, 70, 42, 0.22)
-  );
-}
-
-.maj-seasonal-shell-christmas .maj-seasonal-lights {
-  background:
-    radial-gradient(circle at 12% 0%, rgba(255, 240, 200, 0.5) 0, transparent 28%),
-    radial-gradient(circle at 32% 10%, rgba(255, 220, 160, 0.45) 0, transparent 22%),
-    radial-gradient(circle at 55% 0%, rgba(255, 250, 210, 0.5) 0, transparent 26%),
-    radial-gradient(circle at 78% 8%, rgba(255, 230, 170, 0.45) 0, transparent 24%),
-    radial-gradient(circle at 92% 0%, rgba(255, 245, 200, 0.48) 0, transparent 28%),
-    linear-gradient(0deg, rgba(40, 30, 20, 0.15), transparent 70%);
-}
-
-.maj-seasonal-shell-midsummer {
-  background: radial-gradient(ellipse 90% 45% at 50% 0%, rgba(255, 210, 90, 0.1), transparent 58%);
-}
-
-.maj-seasonal-shell-midsummer .maj-seasonal-meijas {
-  background:
-    repeating-conic-gradient(
-      from 0deg at 50% 120%,
-      rgba(220, 185, 70, 0.15) 0deg 8deg,
-      transparent 8deg 18deg,
-      rgba(100, 140, 60, 0.12) 18deg 24deg,
-      transparent 24deg 36deg
-    ),
-    radial-gradient(ellipse 120% 100% at 50% 100%, rgba(255, 235, 150, 0.25), transparent 55%);
-}
-
-.maj-seasonal-shell-midsummer .maj-seasonal-oak-leaves {
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(85, 120, 55, 0.16) 0 2px,
-    transparent 2px 14px,
-    rgba(70, 100, 45, 0.12) 14px 16px,
-    transparent 16px 28px
-  );
-}
-
-.maj-seasonal-shell-midsummer .maj-seasonal-wreath {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(90, 125, 55, 0.22), transparent 62%),
-    radial-gradient(ellipse 55% 40% at 50% 15%, rgba(210, 170, 60, 0.15), transparent 58%),
-    linear-gradient(0deg, rgba(140, 110, 40, 0.1), transparent 75%);
-}
-
-.maj-seasonal-shell-state .maj-seasonal-flags {
-  background: linear-gradient(
-    180deg,
-    rgba(200, 40, 50, 0.2),
-    rgba(255, 255, 255, 0.12),
-    rgba(200, 40, 50, 0.18)
-  );
-}
-
-.maj-seasonal-shell-state .maj-seasonal-ribbon,
-.maj-seasonal-shell-state .maj-seasonal-ribbon-side {
-  background: linear-gradient(
-    180deg,
-    rgba(200, 45, 55, 0.14),
-    transparent,
-    rgba(200, 45, 55, 0.1)
-  );
-}
-
-.maj-seasonal-shell-womensday .maj-seasonal-flowers {
-  background: radial-gradient(ellipse 100% 90% at 50% 100%, rgba(255, 180, 200, 0.22), transparent 55%);
-}
-
-.maj-seasonal-shell-womensday .maj-seasonal-blossom-side {
-  background: linear-gradient(180deg, rgba(255, 170, 190, 0.14), transparent 50%, rgba(255, 190, 210, 0.1) 100%);
-}
-
-.maj-seasonal-shell-mensday .maj-seasonal-ember-line {
-  background: linear-gradient(0deg, rgba(180, 90, 40, 0.14), transparent 85%);
-}
-
-.maj-seasonal-shell-mensday .maj-seasonal-crest-side {
-  background: linear-gradient(180deg, rgba(100, 120, 160, 0.12), transparent 45%, rgba(80, 100, 140, 0.1) 100%);
-}
-
-.maj-seasonal-shell-soft .maj-seasonal-soft-line {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
-}
-
-.maj-seasonal-shell-soft .maj-seasonal-soft-side {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent);
-}
-
-.maj-seasonal-floaters {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.maj-seasonal-sprite {
-  position: absolute;
-  display: block;
-  pointer-events: none;
-  opacity: 0.72;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.14));
-}
-
-.maj-seasonal-sprite::before,
-.maj-seasonal-sprite::after {
-  content: "";
-  position: absolute;
-}
-
-.maj-seasonal-sprite--unlocked {
-  filter: drop-shadow(0 12px 22px rgba(255, 215, 130, 0.24));
-}
-
-.maj-seasonal-sprite--egg {
-  border-radius: 48% 48% 42% 42% / 58% 58% 40% 40%;
-  background:
-    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.78), transparent 24%),
-    linear-gradient(180deg, #fff2c8 0%, #f6c87a 44%, #d38a67 100%);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-}
-
-.maj-seasonal-sprite--egg::before {
-  inset: 18% 22% 36%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(214, 140, 84, 0.16), rgba(255, 255, 255, 0.28), rgba(214, 140, 84, 0.16));
-}
-
-.maj-seasonal-sprite--bunny {
-  width: 100%;
-  height: 74%;
-  top: 24%;
-  border-radius: 48% 48% 44% 44%;
-  background:
-    radial-gradient(circle at 34% 34%, rgba(255, 255, 255, 0.95), transparent 22%),
-    linear-gradient(180deg, #fffdf9 0%, #f3e8dc 100%);
-  border: 1px solid rgba(255, 255, 255, 0.64);
-}
-
-.maj-seasonal-sprite--bunny::before,
-.maj-seasonal-sprite--bunny::after {
-  width: 28%;
-  height: 52%;
-  top: -36%;
-  border-radius: 999px 999px 42% 42%;
-  background:
-    linear-gradient(180deg, #fffdf9 0%, #f4e3db 100%);
-  border: 1px solid rgba(255, 255, 255, 0.62);
-}
-
-.maj-seasonal-sprite--bunny::before {
-  left: 18%;
-  transform: rotate(-8deg);
-}
-
-.maj-seasonal-sprite--bunny::after {
-  right: 18%;
-  transform: rotate(8deg);
-}
-
-.maj-seasonal-sprite--chick {
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.68), transparent 22%),
-    linear-gradient(180deg, #ffe983 0%, #ffc94d 100%);
-  border: 1px solid rgba(255, 223, 116, 0.8);
-}
-
-.maj-seasonal-sprite--chick::after {
-  width: 28%;
-  height: 22%;
-  left: 36%;
-  bottom: 16%;
-  clip-path: polygon(0 50%, 100% 0, 100% 100%);
-  background: linear-gradient(180deg, #f79a31 0%, #da7120 100%);
-}
-
-.maj-seasonal-sprite--catkin::before {
-  width: 6%;
-  height: 100%;
-  left: 44%;
-  top: 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(110, 92, 54, 0.86), rgba(141, 123, 76, 0.28));
-}
-
-.maj-seasonal-sprite--catkin::after {
-  width: 54%;
-  height: 28%;
-  left: 22%;
-  top: 18%;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 36% 36%, rgba(255, 255, 255, 0.8), transparent 22%),
-    linear-gradient(180deg, #f2efe8 0%, #d9ccb5 100%);
+html[data-theme="canopy"] .maj-bento-tile {
+  backdrop-filter: blur(14px) saturate(128%);
   box-shadow:
-    -12px 16px 0 -2px rgba(228, 216, 192, 0.94),
-    10px 24px 0 -4px rgba(222, 210, 187, 0.9);
+    var(--theme-tile-shadow),
+    inset 0 1px 0 color-mix(in srgb, var(--color-accent) 14%, transparent);
 }
 
-.maj-seasonal-sprite--heart {
-  background: linear-gradient(180deg, #ff92ae 0%, #e15278 100%);
-  clip-path: polygon(50% 100%, 0 42%, 18% 14%, 50% 12%, 82% 14%, 100% 42%);
+html[data-theme="forge"] .maj-bottom-nav {
+  box-shadow: 0 -14px 48px rgba(0, 0, 0, 0.5);
 }
 
-.maj-seasonal-sprite--letter {
-  border-radius: 20%;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0 50%, transparent 50%),
-    linear-gradient(225deg, rgba(255, 255, 255, 0.88) 0 50%, transparent 50%),
-    linear-gradient(180deg, #f8e6dd 0%, #ebcad4 100%);
-  border: 1px solid rgba(255, 255, 255, 0.58);
+html[data-theme="pulse"] .maj-bottom-nav {
+  border-top-width: 2px;
+  border-top-style: solid;
+  border-color: var(--color-border);
+  box-shadow: 4px -4px 0 rgba(43, 45, 66, 0.07);
 }
 
-.maj-seasonal-sprite--letter::after {
-  width: 26%;
-  height: 26%;
-  right: 14%;
-  top: 14%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ff8da6 0%, #d94c71 100%);
+html[data-theme="lucent"] .maj-bottom-nav {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+  box-shadow: 0 -6px 42px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
-.maj-seasonal-sprite--flower {
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at center, #ffd57d 0 18%, transparent 19%),
-    radial-gradient(circle at 50% 16%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
-    radial-gradient(circle at 82% 36%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
-    radial-gradient(circle at 76% 74%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
-    radial-gradient(circle at 24% 74%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%),
-    radial-gradient(circle at 18% 36%, rgba(255, 190, 214, 0.95) 0 22%, transparent 23%);
+html[data-theme="hive"] .maj-bottom-nav {
+  box-shadow: 0 -8px 28px rgba(120, 90, 40, 0.14);
 }
 
-.maj-seasonal-sprite--star,
-.maj-seasonal-sprite--spark {
-  background: linear-gradient(180deg, #fff8cf 0%, #f2c752 100%);
-  clip-path: polygon(50% 0%, 61% 34%, 98% 36%, 68% 57%, 79% 95%, 50% 72%, 21% 95%, 32% 57%, 2% 36%, 39% 34%);
+html[data-theme="canopy"] .maj-bottom-nav {
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.38);
 }
 
-.maj-seasonal-sprite--ornament {
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.72), transparent 20%),
-    linear-gradient(180deg, #d74f5d 0%, #8d2138 100%);
-  border: 1px solid rgba(255, 214, 214, 0.42);
-}
-
-.maj-seasonal-sprite--ornament::before {
-  width: 28%;
-  height: 14%;
-  left: 36%;
-  top: -10%;
-  border-radius: 999px 999px 0 0;
-  border: 2px solid rgba(255, 221, 180, 0.72);
-  border-bottom: none;
-}
-
-.maj-seasonal-sprite--leaf {
-  border-radius: 70% 20% 70% 20%;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 38%),
-    linear-gradient(180deg, #7caf54 0%, #335e28 100%);
-}
-
-.maj-seasonal-sprite--leaf::before {
-  width: 10%;
-  height: 84%;
-  left: 45%;
-  top: 8%;
-  border-radius: 999px;
-  background: rgba(230, 255, 205, 0.36);
-}
-
-.maj-seasonal-sprite--wreath {
-  border-radius: 999px;
-  border: 6px solid rgba(100, 138, 62, 0.8);
-  box-shadow:
-    inset 0 0 0 2px rgba(233, 196, 87, 0.42),
-    0 0 0 1px rgba(255, 255, 255, 0.24);
-}
-
-.maj-seasonal-sprite--wreath::after {
-  width: 26%;
-  height: 26%;
-  right: 8%;
-  top: 10%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #f7d777 0%, #dbac38 100%);
-}
-
-.maj-seasonal-sprite--flag {
-  background:
-    linear-gradient(180deg, #8e1f2f 0 34%, #fff7ef 34% 66%, #8e1f2f 66% 100%);
-  clip-path: polygon(0 0, 100% 8%, 92% 50%, 100% 92%, 0 100%, 8% 52%);
-  border-radius: 0.4rem;
-}
-
-.maj-seasonal-sprite--flag::before {
-  width: 8%;
-  height: 112%;
-  left: -10%;
-  top: -6%;
-  border-radius: 999px;
-  background: rgba(255, 248, 233, 0.64);
-}
-
-.maj-seasonal-sprite--ribbon {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 38%),
-    linear-gradient(180deg, #c94353 0%, #8d1f34 100%);
-  border-radius: 36% 18% 36% 18%;
-  clip-path: polygon(12% 0, 100% 0, 84% 48%, 100% 100%, 0 100%, 16% 52%);
-}
-
-.maj-seasonal-sprite--crest {
-  background:
-    linear-gradient(180deg, #5b7392 0%, #32475e 100%);
-  clip-path: polygon(50% 0, 88% 16%, 88% 58%, 50% 100%, 12% 58%, 12% 16%);
-}
-
-.maj-seasonal-sprite--crest::after {
-  inset: 22%;
-  clip-path: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 70%);
-}
-
-.maj-seasonal-sprite--ember {
-  border-radius: 58% 58% 54% 54% / 74% 74% 34% 34%;
-  background:
-    radial-gradient(circle at 50% 28%, rgba(255, 236, 164, 0.82), transparent 20%),
-    linear-gradient(180deg, #ffbf61 0%, #e46127 58%, #762217 100%);
-}
-
-.maj-seasonal-sprite--balloon {
-  border-radius: 50% 50% 46% 46% / 56% 56% 44% 44%;
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.66), transparent 20%),
-    linear-gradient(180deg, #ff9bb3 0%, #d95d82 100%);
-}
-
-.maj-seasonal-sprite--balloon::after {
-  width: 10%;
-  height: 48%;
-  left: 45%;
-  top: 92%;
-  border-radius: 999px;
-  background: rgba(255, 232, 223, 0.54);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .maj-seasonal-shell-unlocked {
-    animation: none;
-  }
-
-  .maj-auth-ambient {
-    animation: none;
-  }
-}
-
-.maj-hidden-collectible {
+/* ── App mark (H:0) ── */
+.maj-app-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 999px;
-  border: 1px dashed var(--color-surface-border, transparent);
-  background: color-mix(in srgb, var(--color-surface, transparent) 92%, var(--color-background, transparent));
-  color: var(--color-primary, currentColor);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--theme-header-glow, transparent) 60%, transparent);
-  backdrop-filter: blur(12px) saturate(135%);
+  font-family: var(--font-theme-sans, system-ui, sans-serif);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #0a0a0a;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-.maj-hidden-collectible-core {
-  position: relative;
-  width: 1.2rem;
-  height: 1.2rem;
-  opacity: 0.96;
+html[data-theme="forge"] .maj-app-mark,
+html[data-theme="canopy"] .maj-app-mark {
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.maj-app-mark--splash {
+  color: #0a0a0a !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow:
+    0 2px 14px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ── Home dashboard: theme-specific structure (`data-home-layout` on html) ── */
+.maj-dashboard-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.maj-module-shell {
+  width: 100%;
+}
+
+.maj-dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--maj-space-bento-gap);
+  width: 100%;
+  min-width: 0;
+}
+
+.maj-dashboard-modules {
+  display: grid;
+  gap: var(--maj-space-bento-gap);
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
+}
+
+/* Forge: dense rail + sharp two-column modules */
+html[data-home-layout="forge-rail"] .maj-dashboard-root {
+  border-left: 2px solid color-mix(in srgb, var(--color-accent) 42%, transparent);
+  padding-left: 0.4rem;
+  margin-left: -0.1rem;
+}
+
+html[data-home-layout="forge-rail"] .maj-dashboard-modules {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html[data-home-layout="forge-rail"] .maj-module-shell {
+  border-left: 2px solid color-mix(in srgb, var(--color-accent) 42%, transparent);
+  padding-left: 0.4rem;
+  margin-left: -0.1rem;
+}
+
+/* Canopy: vertical shelf stack — modules read as rows on greenhouse ledges */
+html[data-home-layout="canopy-shelf"] .maj-dashboard-modules {
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+  padding: 0.65rem 0.5rem;
+  border-radius: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 42%),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 5.75rem,
+      color-mix(in srgb, var(--color-accent) 9%, transparent) 5.75rem,
+      color-mix(in srgb, var(--color-accent) 9%, transparent) 5.82rem
+    );
+}
+
+/* Pulse: poster grid — graphic, outlined, offset shadow */
+html[data-home-layout="pulse-poster"] .maj-dashboard-modules {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+html[data-home-layout="pulse-poster"] .maj-dashboard-tile {
+  border-radius: var(--theme-tile-radius, var(--radius-card));
+  box-shadow:
+    var(--theme-tile-shadow),
+    0 0 0 2px color-mix(in srgb, var(--color-accent) 38%, var(--color-border));
+}
+
+/* Lucent: floating layered modules */
+html[data-home-layout="lucent-float"] .maj-dashboard-modules {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--maj-space-bento-gap) + 4px);
+  padding: 0.2rem 0.05rem 0.45rem;
+}
+
+html[data-home-layout="lucent-float"] .maj-dashboard-modules > * {
+  filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--color-primary) 14%, transparent));
+}
+
+html[data-home-layout="lucent-float"] .maj-dashboard-metrics {
+  filter: drop-shadow(0 10px 22px color-mix(in srgb, var(--color-primary) 10%, transparent));
+}
+
+html[data-home-layout="lucent-float"] .maj-dashboard-feed {
+  border-style: solid;
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--color-border) 80%, transparent);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-card-elevated) 55%, transparent),
+    color-mix(in srgb, var(--color-surface) 40%, transparent)
+  );
+  box-shadow: 0 24px 48px color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+/* Hive: warm modular cluster — honeycomb-lite rhythm */
+html[data-home-layout="hive-cluster"] .maj-dashboard-modules {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+html[data-home-layout="hive-cluster"] .maj-dashboard-tile {
+  box-shadow:
+    var(--theme-tile-shadow),
+    0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+html[data-home-layout="hive-cluster"] .maj-dashboard-modules > *:nth-child(odd) {
+  transform: translateY(2px);
+}
+
+html[data-home-layout="hive-cluster"] .maj-dashboard-modules > *:nth-child(even) {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maj-auth-ambient,
+  .maj-theme-ambient-glow {
+    animation: none;
+  }
+
+  html[data-home-layout="hive-cluster"] .maj-dashboard-modules > *:nth-child(odd),
+  html[data-home-layout="hive-cluster"] .maj-dashboard-modules > *:nth-child(even) {
+    transform: none;
+  }
 }
 
 .maj-auth-shell {
   isolation: isolate;
   min-height: 100%;
-  background:
-    radial-gradient(circle at 18% 18%, rgba(255, 228, 220, 0.88), transparent 28%),
-    radial-gradient(circle at 82% 16%, rgba(233, 241, 231, 0.8), transparent 26%),
-    radial-gradient(circle at 50% 100%, rgba(255, 247, 241, 0.96), transparent 38%),
-    linear-gradient(180deg, #f9f1ec 0%, #f6ede8 48%, #f3ebe6 100%);
+  background: var(--color-auth-background);
 }
 
 .maj-theme-ambient-shell {
@@ -774,87 +637,51 @@ body::after {
   overflow: hidden;
 }
 
-.maj-theme-orb {
+/* Theme-aware ambient: single soft hero glow (replaces six orbs) */
+.maj-theme-ambient-glow {
   position: absolute;
-  border-radius: 999px;
+  left: -20%;
+  right: -20%;
+  top: -25%;
+  height: 70%;
+  background: var(--effect-hero-glow);
+  opacity: 0.72;
+  filter: blur(64px);
+  transform: translateZ(0);
   pointer-events: none;
-  opacity: 0.68;
-  filter: blur(4px);
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.7), transparent 18%),
-    radial-gradient(
-      circle at 62% 66%,
-      color-mix(in srgb, var(--color-background) 32%, white) 0%,
-      transparent 24%
-    ),
-    radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-primary) 36%, white) 0%,
-      color-mix(in srgb, var(--color-accent) 24%, transparent) 76%
-    );
-  box-shadow:
-    inset 0 8px 14px rgba(255, 255, 255, 0.4),
-    inset 0 -10px 18px rgba(255, 255, 255, 0.12),
-    0 30px 60px color-mix(in srgb, var(--color-primary) 12%, transparent);
-  animation: maj-auth-float 12s ease-in-out infinite;
+  animation: maj-auth-float 22s ease-in-out infinite;
 }
 
-.maj-theme-orb--one {
-  left: -14%;
-  top: 5%;
-  width: 15rem;
-  height: 15rem;
-}
-
-.maj-theme-orb--two {
-  right: -12%;
-  top: 10%;
-  width: 13rem;
-  height: 13rem;
-  animation-delay: 1.4s;
-}
-
-.maj-theme-orb--three {
-  bottom: 8%;
-  left: 6%;
-  width: 14rem;
-  height: 14rem;
-  animation-delay: 2.6s;
-}
-
-.maj-theme-orb--four {
-  right: 4%;
-  bottom: 14%;
-  width: 10rem;
-  height: 10rem;
-  animation-delay: 3.1s;
-}
-
-.maj-theme-orb--five {
-  top: 42%;
-  left: -8%;
-  width: 11rem;
-  height: 11rem;
-  animation-delay: 0.9s;
-}
-
-.maj-theme-orb--six {
-  right: 16%;
-  top: 48%;
-  width: 9rem;
-  height: 9rem;
-  animation-delay: 1.8s;
+.maj-theme-ambient-glow--secondary {
+  top: auto;
+  bottom: -30%;
+  height: 55%;
+  opacity: 0.45;
+  animation-delay: -8s;
+  animation-duration: 26s;
 }
 
 .maj-theme-ambient-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.08;
+  opacity: calc(0.06 + var(--theme-body-overlay-strength, 0.5) * 0.06);
   pointer-events: none;
   background-image:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.16), transparent 38%),
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px),
-    radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px);
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--color-background) 70%, white 30%) 0%,
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 30% 20%,
+      color-mix(in srgb, var(--color-background) 85%, white 15%) 0 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 70% 50%,
+      color-mix(in srgb, var(--color-background) 90%, white 10%) 0 1px,
+      transparent 1px
+    );
   background-size: auto, 24px 24px, 30px 30px;
 }
 
@@ -863,95 +690,49 @@ body::after {
   border-radius: 999px;
   z-index: 0;
   pointer-events: none;
-  filter: blur(2px);
-  opacity: 1;
-  box-shadow:
-    inset 0 8px 14px rgba(255, 255, 255, 0.55),
-    inset 0 -10px 18px rgba(255, 255, 255, 0.18),
-    0 30px 60px rgba(116, 85, 94, 0.14);
-  animation: maj-auth-float 10s ease-in-out infinite;
+  filter: blur(40px);
+  opacity: 0.55;
+  background: var(--effect-hero-glow);
+  animation: maj-auth-float 16s ease-in-out infinite;
 }
 
-.maj-auth-ambient--rose {
-  top: 7%;
-  left: -11%;
-  width: 15rem;
-  height: 15rem;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.85), transparent 18%),
-    radial-gradient(circle at 58% 62%, rgba(255, 255, 255, 0.2), transparent 24%),
-    radial-gradient(circle, rgba(234, 185, 198, 0.94), rgba(234, 185, 198, 0.24) 76%);
+.maj-auth-ambient--a {
+  top: -8%;
+  left: -12%;
+  width: 16rem;
+  height: 16rem;
 }
 
-.maj-auth-ambient--sage {
-  right: -9%;
-  top: 13%;
-  width: 13rem;
-  height: 13rem;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.82), transparent 18%),
-    radial-gradient(circle at 62% 66%, rgba(255, 255, 255, 0.18), transparent 24%),
-    radial-gradient(circle, rgba(193, 214, 187, 0.94), rgba(193, 214, 187, 0.24) 76%);
-  animation-delay: 1.4s;
-}
-
-.maj-auth-ambient--pearl {
-  bottom: 10%;
-  left: 10%;
+.maj-auth-ambient--b {
+  right: -10%;
+  bottom: 5%;
   width: 14rem;
   height: 14rem;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.88), transparent 18%),
-    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.18), transparent 24%),
-    radial-gradient(circle, rgba(255, 247, 240, 0.96), rgba(255, 247, 240, 0.3) 78%);
-  animation-delay: 2.6s;
-}
-
-.maj-auth-ambient--blush {
-  right: 6%;
-  bottom: 16%;
-  width: 10rem;
-  height: 10rem;
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.86), transparent 18%),
-    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.16), transparent 24%),
-    radial-gradient(circle, rgba(227, 201, 209, 0.94), rgba(227, 201, 209, 0.26) 76%);
-  animation-delay: 3.1s;
-}
-
-.maj-auth-ambient--cream {
-  top: 38%;
-  left: -6%;
-  width: 11rem;
-  height: 11rem;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.88), transparent 18%),
-    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.16), transparent 24%),
-    radial-gradient(circle, rgba(246, 233, 214, 0.96), rgba(246, 233, 214, 0.28) 76%);
-  animation-delay: 0.9s;
-}
-
-.maj-auth-ambient--mist {
-  right: 18%;
-  top: 45%;
-  width: 9rem;
-  height: 9rem;
-  background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.86), transparent 18%),
-    radial-gradient(circle at 60% 64%, rgba(255, 255, 255, 0.14), transparent 24%),
-    radial-gradient(circle, rgba(220, 230, 228, 0.94), rgba(220, 230, 228, 0.24) 76%);
-  animation-delay: 1.8s;
+  animation-delay: -5s;
+  opacity: 0.42;
 }
 
 .maj-auth-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.14;
+  opacity: calc(0.08 + var(--theme-body-overlay-strength, 0.5) * 0.08);
   pointer-events: none;
   background-image:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.18), transparent 38%),
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px),
-    radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px);
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--color-background) 75%, white 25%) 0%,
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 30% 20%,
+      color-mix(in srgb, var(--color-background) 88%, white 12%) 0 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 70% 50%,
+      color-mix(in srgb, var(--color-background) 92%, white 8%) 0 1px,
+      transparent 1px
+    );
   background-size: auto, 22px 22px, 28px 28px;
 }
 
@@ -959,13 +740,11 @@ body::after {
   margin: 2.8rem auto 0;
   max-width: 28rem;
   text-align: center;
-  font-family: var(--font-lora, serif);
+  font-family: var(--font-theme-sans, system-ui, sans-serif);
   font-size: 1.14rem;
   line-height: 1.75;
-  color: #694f58;
-  text-shadow:
-    0 0 22px rgba(255, 248, 243, 0.98),
-    0 2px 10px rgba(255, 255, 255, 0.42);
+  color: var(--color-text-secondary);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-background) 40%, transparent);
 }
 
 .maj-auth-card-wrap {
@@ -974,15 +753,10 @@ body::after {
 }
 
 .maj-auth-intro {
-  border: 1px solid rgba(155, 123, 135, 0.16);
-  border-radius: 2rem;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.46), transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 245, 240, 0.44));
-  box-shadow:
-    0 18px 38px rgba(95, 64, 74, 0.1),
-    0 0 34px rgba(255, 245, 234, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+  border: 1px solid var(--color-auth-border);
+  border-radius: var(--radius-card, 1.5rem);
+  background: color-mix(in srgb, var(--color-auth-card) 88%, transparent);
+  box-shadow: var(--shadow-panel, 0 18px 38px rgba(0, 0, 0, 0.08));
   backdrop-filter: blur(20px) saturate(150%);
   padding: 1.15rem 1.1rem 1.15rem;
   text-align: center;
@@ -994,8 +768,7 @@ body::after {
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #876772;
-  text-shadow: 0 0 12px rgba(255, 247, 241, 0.8);
+  color: var(--color-text-muted);
 }
 
 .maj-auth-title {
@@ -1004,32 +777,23 @@ body::after {
   font-size: 1.72rem;
   font-weight: 600;
   line-height: 1.1;
-  color: #452e36;
-  text-shadow:
-    0 0 18px rgba(255, 247, 241, 0.95),
-    0 2px 8px rgba(255, 255, 255, 0.48);
+  color: var(--color-text-primary);
 }
 
 .maj-auth-copy {
   margin: 0.6rem 0 0;
   font-size: 0.92rem;
   line-height: 1.6;
-  color: #6f5961;
-  text-shadow: 0 0 14px rgba(255, 250, 246, 0.88);
+  color: var(--color-text-secondary);
 }
 
 .maj-auth-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.44);
-  border-radius: 2rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 244, 238, 0.14)),
-    rgba(255, 248, 244, 0.14);
-  box-shadow:
-    0 26px 60px rgba(88, 59, 68, 0.12),
-    0 0 44px rgba(255, 245, 238, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--color-auth-border);
+  border-radius: var(--radius-card, 1.5rem);
+  background: color-mix(in srgb, var(--color-auth-card) 92%, transparent);
+  box-shadow: var(--shadow-panel, 0 18px 48px rgba(0, 0, 0, 0.12));
   backdrop-filter: blur(34px) saturate(172%);
 }
 
@@ -1039,9 +803,11 @@ body::after {
   inset: 0;
   pointer-events: none;
   border-radius: inherit;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 34%),
-    linear-gradient(135deg, transparent 42%, rgba(255, 255, 255, 0.16) 52%, transparent 68%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-card-elevated) 40%, transparent),
+    transparent 34%
+  );
 }
 
 .maj-auth-card::after {
@@ -1049,68 +815,59 @@ body::after {
   position: absolute;
   inset: 1px;
   pointer-events: none;
-  border-radius: calc(2rem - 1px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--color-auth-border) 80%, transparent);
 }
 
 .maj-auth-brand {
-  color: #8d6e79;
-  text-shadow: 0 0 16px rgba(255, 246, 241, 0.96);
+  color: var(--color-text-secondary);
 }
 
 .maj-auth-heading {
-  font-family: var(--font-lora, serif);
+  font-family: var(--font-theme-display, serif);
   font-weight: 500;
-  color: #442d35;
-  text-shadow:
-    0 0 20px rgba(255, 247, 242, 0.95),
-    0 2px 10px rgba(255, 255, 255, 0.46);
+  color: var(--color-text-primary);
 }
 
 .maj-auth-subheading {
-  color: #6d5961;
+  color: var(--color-text-secondary);
 }
 
 .maj-auth-segmented {
-  border: 1px solid rgba(154, 124, 134, 0.16);
-  background: rgba(255, 249, 246, 0.72);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-background));
 }
 
 .maj-auth-segmented-active {
-  background: linear-gradient(180deg, #b88495 0%, #9e6d80 100%);
-  color: #fff8f4;
-  box-shadow:
-    0 10px 24px rgba(169, 116, 136, 0.22),
-    0 0 18px rgba(255, 244, 236, 0.42);
+  background: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+  box-shadow: var(--shadow-panel, 0 8px 22px rgba(0, 0, 0, 0.12));
 }
 
 .maj-auth-segmented-idle {
-  color: #846d75;
+  color: var(--color-text-secondary);
 }
 
 .maj-auth-input {
-  border: 1px solid rgba(154, 124, 134, 0.18);
-  background: rgba(255, 251, 248, 0.88);
-  color: #3f2b33;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 8px 20px rgba(97, 69, 77, 0.05);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-input, 0.75rem);
+  background: var(--color-input-background);
+  color: var(--color-text-primary);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-background) 65%, white);
 }
 
 .maj-auth-input:focus {
   outline: none;
-  border-color: rgba(184, 126, 148, 0.5);
+  border-color: var(--color-accent);
   box-shadow:
-    0 0 0 4px rgba(233, 206, 214, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    0 0 0 3px var(--color-focus-ring),
+    inset 0 1px 0 color-mix(in srgb, var(--color-background) 65%, white);
 }
 
 .maj-auth-primary-button {
-  background: linear-gradient(180deg, #b98596 0%, #996a7d 100%);
-  color: #fff8f3;
-  box-shadow:
-    0 16px 28px rgba(168, 116, 136, 0.24),
-    0 0 20px rgba(255, 243, 236, 0.42);
+  background: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+  box-shadow: var(--shadow-panel, 0 12px 28px rgba(0, 0, 0, 0.15));
 }
 
 .maj-ho-mark {
@@ -1168,10 +925,8 @@ body::after {
   overflow: hidden;
   padding: 1.5rem;
   background:
-    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.92), transparent 22%),
-    radial-gradient(circle at 82% 15%, rgba(235, 239, 246, 0.86), transparent 22%),
-    radial-gradient(circle at 50% 100%, rgba(231, 234, 240, 0.5), transparent 34%),
-    linear-gradient(180deg, #f8f8fa 0%, #f1f2f5 52%, #eceef2 100%);
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.95), transparent 42%),
+    linear-gradient(180deg, #fbfaf9 0%, #f3f4f6 100%);
 }
 
 .maj-splash-shell::before {
@@ -1179,26 +934,25 @@ body::after {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(125deg, transparent 28%, rgba(255, 255, 255, 0.42) 48%, transparent 68%),
-    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.46), transparent 28%);
-  opacity: 0.95;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% 0%,
+    rgba(255, 255, 255, 0.9),
+    transparent 55%
+  );
+  opacity: 0.7;
 }
 
 .maj-splash-card {
   position: relative;
   z-index: 1;
   width: min(100%, 24rem);
-  border-radius: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(239, 241, 245, 0.68)),
-    rgba(240, 242, 246, 0.74);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.72);
   box-shadow:
-    0 26px 70px rgba(124, 129, 143, 0.16),
-    0 0 40px rgba(255, 255, 255, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(26px) saturate(155%);
+    0 20px 50px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(18px) saturate(135%);
   padding: 2rem 1.5rem 1.5rem;
   text-align: center;
 }
@@ -1207,35 +961,35 @@ body::after {
   content: "";
   position: absolute;
   inset: 1px;
-  border-radius: calc(2rem - 1px);
-  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: calc(1.5rem - 1px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
   pointer-events: none;
 }
 
 .maj-splash-kicker {
   margin: 1rem 0 0;
   font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #7f8595;
+  color: rgba(0, 0, 0, 0.45);
 }
 
 .maj-splash-title {
   margin: 0.7rem 0 0;
-  font-family: var(--font-theme-display, serif);
-  font-size: 1.22rem;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.125rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #3f434f;
+  letter-spacing: -0.02em;
+  color: #111111;
 }
 
 .maj-splash-copy {
   margin: 0.5rem auto 0;
   max-width: 18rem;
-  font-size: 0.94rem;
+  font-size: 0.9rem;
   line-height: 1.6;
-  color: #6e7483;
+  color: rgba(0, 0, 0, 0.52);
 }
 
 .maj-splash-loader {
@@ -1245,13 +999,11 @@ body::after {
 }
 
 .maj-splash-loader span {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.45rem;
+  height: 0.45rem;
   border-radius: 999px;
-  background: linear-gradient(180deg, #b9bfca 0%, #8c92a1 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 8px 18px rgba(134, 140, 154, 0.24);
+  background: #111111;
+  opacity: 0.22;
   animation: maj-splash-pulse 1.5s ease-in-out infinite;
 }
 
@@ -1284,10 +1036,7 @@ body::after {
   justify-content: center;
   overflow: hidden;
   padding: 1.25rem;
-  background:
-    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.7), transparent 24%),
-    radial-gradient(circle at 82% 16%, rgba(235, 239, 246, 0.54), transparent 22%),
-    rgba(240, 242, 246, 0.72);
+  background: color-mix(in srgb, var(--color-background) 78%, transparent);
   backdrop-filter: blur(18px);
 }
 
@@ -1295,15 +1044,10 @@ body::after {
   position: relative;
   z-index: 2;
   width: min(100%, 27rem);
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  border-radius: 2rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(239, 241, 245, 0.72)),
-    rgba(240, 242, 246, 0.74);
-  box-shadow:
-    0 26px 64px rgba(124, 129, 143, 0.16),
-    0 0 48px rgba(255, 255, 255, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--color-auth-border);
+  border-radius: var(--radius-card, 1.5rem);
+  background: color-mix(in srgb, var(--color-auth-card) 94%, transparent);
+  box-shadow: var(--shadow-panel, 0 26px 64px rgba(0, 0, 0, 0.12));
   backdrop-filter: blur(28px) saturate(155%);
   padding: 1.65rem 1.3rem 1.3rem;
   text-align: center;
@@ -1314,8 +1058,8 @@ body::after {
   position: absolute;
   inset: 1px;
   pointer-events: none;
-  border-radius: calc(2rem - 1px);
-  border: 1px solid rgba(255, 255, 255, 0.46);
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--color-auth-border) 70%, transparent);
 }
 
 .maj-auth-welcome-title {
@@ -1324,10 +1068,7 @@ body::after {
   font-size: 1.68rem;
   font-weight: 600;
   line-height: 1.12;
-  color: #3f434f;
-  text-shadow:
-    0 0 20px rgba(255, 255, 255, 0.95),
-    0 2px 10px rgba(255, 255, 255, 0.52);
+  color: var(--color-text-primary);
 }
 
 .maj-auth-welcome-copy {
@@ -1335,18 +1076,16 @@ body::after {
   max-width: 21rem;
   font-size: 0.97rem;
   line-height: 1.7;
-  color: #6e7483;
+  color: var(--color-text-secondary);
 }
 
 .maj-auth-welcome-orb {
   position: absolute;
   border-radius: 999px;
-  filter: blur(10px);
-  opacity: 0.96;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    0 20px 45px rgba(116, 85, 94, 0.1);
-  animation: maj-auth-float 15s ease-in-out infinite;
+  filter: blur(48px);
+  opacity: 0.55;
+  background: var(--effect-hero-glow);
+  animation: maj-auth-float 18s ease-in-out infinite;
 }
 
 .maj-auth-welcome-orb--rose {
@@ -1354,9 +1093,6 @@ body::after {
   left: -6%;
   width: 15rem;
   height: 15rem;
-  background:
-    radial-gradient(circle at 35% 32%, rgba(255, 255, 255, 0.6), transparent 22%),
-    radial-gradient(circle, rgba(227, 229, 238, 0.74), rgba(227, 229, 238, 0.08) 72%);
 }
 
 .maj-auth-welcome-orb--sage {
@@ -1364,10 +1100,8 @@ body::after {
   top: 16%;
   width: 13rem;
   height: 13rem;
-  background:
-    radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.56), transparent 20%),
-    radial-gradient(circle, rgba(216, 223, 233, 0.72), rgba(216, 223, 233, 0.08) 72%);
   animation-delay: 2.2s;
+  opacity: 0.42;
 }
 
 .maj-auth-welcome-orb--pearl {
@@ -1375,10 +1109,8 @@ body::after {
   left: 24%;
   width: 16rem;
   height: 10rem;
-  background:
-    radial-gradient(circle at 34% 32%, rgba(255, 255, 255, 0.62), transparent 22%),
-    radial-gradient(circle, rgba(248, 249, 252, 0.86), rgba(248, 249, 252, 0.1) 74%);
   animation-delay: 3.4s;
+  opacity: 0.38;
 }
 
 @keyframes maj-auth-float {

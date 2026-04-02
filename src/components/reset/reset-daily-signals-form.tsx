@@ -228,6 +228,9 @@ export function ResetDailySignalsForm({ userId, onSaved }: Props) {
               }
               placeholder={t("reset.signals.notesPlaceholder")}
             />
+            <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
+              {t("reset.signals.notesCryptoHint")}
+            </p>
           </label>
 
           <button

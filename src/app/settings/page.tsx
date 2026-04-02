@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { HouseholdOnboarding } from "@/components/household/household-onboarding";
 import { HouseholdSummary } from "@/components/household/household-summary";
@@ -23,6 +24,8 @@ import {
   validateProviderKey,
 } from "@/lib/ai/keys";
 import { createClient, getBrowserClient } from "@/lib/supabase/client";
+import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
+import { clearStoredConsent } from "@/lib/legal/consent-storage";
 
 const SETTINGS_KEY = "majapps-local-settings";
 
@@ -36,6 +39,7 @@ type NotificationPreferencesRow = {
   finance_enabled: boolean;
   pharmacy_enabled: boolean;
   reset_empathy_enabled: boolean;
+  reset_empathy_recipient_ids?: string[] | null;
 };
 
 type AiPreferenceRow = {
@@ -93,7 +97,23 @@ export default function SettingsPage() {
     pushPharmacy: true,
     showResetAura: true,
   });
+  const [empathyRecipientIds, setEmpathyRecipientIds] = useState<string[]>([]);
+  const [members, setMembers] = useState<HouseholdMember[]>([]);
+  const settingsRef = useRef(settings);
+  const empathyRef = useRef(empathyRecipientIds);
   const supabaseReady = createClient() !== null;
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
+  useEffect(() => {
+    empathyRef.current = empathyRecipientIds;
+  }, [empathyRecipientIds]);
+
+  useEffect(() => {
+    void fetchMyHouseholdMembers().then(setMembers);
+  }, [profile?.household_id]);
 
   useEffect(() => {
     let alive = true;
@@ -129,7 +149,9 @@ export default function SettingsPage() {
       const [{ data: notificationData }, { data: aiPreferenceRows }] = await Promise.all([
         supabase
           .from("notification_preferences")
-          .select("finance_enabled, pharmacy_enabled, reset_empathy_enabled")
+          .select(
+            "finance_enabled, pharmacy_enabled, reset_empathy_enabled, reset_empathy_recipient_ids",
+          )
           .eq("user_id", user.id)
           .maybeSingle(),
         supabase
@@ -147,6 +169,8 @@ export default function SettingsPage() {
           pushPharmacy: row.pharmacy_enabled,
           showResetAura: row.reset_empathy_enabled,
         });
+        const ids = row.reset_empathy_recipient_ids;
+        setEmpathyRecipientIds(Array.isArray(ids) ? ids : []);
       }
 
       if (aiPreferenceRows?.length) {
@@ -191,12 +215,43 @@ export default function SettingsPage() {
       finance_enabled: next.pushFinance,
       pharmacy_enabled: next.pushPharmacy,
       reset_empathy_enabled: next.showResetAura,
+      reset_empathy_recipient_ids: empathyRef.current,
       updated_at: new Date().toISOString(),
     });
 
     if (error) {
       console.error("Failed to save notification preferences", error);
     }
+  }
+
+  async function persistEmpathyRecipients(ids: string[]) {
+    if (!user) return;
+    const supabase = getBrowserClient();
+    if (!supabase) return;
+    const s = settingsRef.current;
+    const { error } = await supabase.from("notification_preferences").upsert({
+      user_id: user.id,
+      finance_enabled: s.pushFinance,
+      pharmacy_enabled: s.pushPharmacy,
+      reset_empathy_enabled: s.showResetAura,
+      reset_empathy_recipient_ids: ids,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.error("Failed to save empathy recipients", error);
+    }
+  }
+
+  function toggleEmpathyRecipient(memberId: string) {
+    hapticTap();
+    setEmpathyRecipientIds((prev) => {
+      const next = prev.includes(memberId)
+        ? prev.filter((x) => x !== memberId)
+        : [...prev, memberId];
+      empathyRef.current = next;
+      void persistEmpathyRecipients(next);
+      return next;
+    });
   }
 
   function setProviderValue(provider: AiProvider, value: string) {
@@ -556,6 +611,34 @@ export default function SettingsPage() {
             {settings.showResetAura ? t("settings.state.allowed") : t("settings.state.hidden")}
           </StatusPill>
         </button>
+        {members.length > 0 ? (
+          <div className="space-y-2 rounded-2xl border border-[color:var(--color-surface-border)] px-3 py-3">
+            <p className="text-sm font-medium text-[color:var(--color-text)]">
+              {t("settings.empathy.recipients")}
+            </p>
+            <p className="text-xs text-[color:var(--color-secondary)]">{t("settings.empathy.hint")}</p>
+            <ul className="flex flex-col gap-2 pt-1">
+              {members.map((m) => {
+                const on = empathyRecipientIds.includes(m.id);
+                return (
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => toggleEmpathyRecipient(m.id)}
+                      className="flex w-full items-center justify-between rounded-xl border border-[color:var(--color-surface-border)] px-3 py-2 text-left text-sm"
+                    >
+                      <span>
+                        {m.display_name ?? m.id.slice(0, 8)}
+                        {m.is_me ? ` (${t("household.membersList.you")})` : ""}
+                      </span>
+                      <StatusPill tone={on ? "good" : "neutral"}>{on ? "ON" : "OFF"}</StatusPill>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
       </GlassPanel>
 
       <GlassPanel className="space-y-3">
@@ -583,6 +666,39 @@ export default function SettingsPage() {
         {user?.email ? (
           <p className="text-xs text-[color:var(--color-secondary)]">{user.email}</p>
         ) : null}
+      </GlassPanel>
+
+      <GlassPanel className="space-y-3">
+        <SectionHeading title={t("settings.gdpr.title")} />
+        <p className="text-sm leading-relaxed text-[color:var(--color-text)]">{t("settings.gdpr.body")}</p>
+        {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL ? (
+          <a
+            href={`mailto:${process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}`}
+            className="block text-sm font-medium text-[color:var(--color-primary)] underline"
+          >
+            {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}
+          </a>
+        ) : (
+          <p className="text-xs text-[color:var(--color-secondary)]">{t("legal.privacy.contactMissing")}</p>
+        )}
+        <Link
+          href="/legal/privacy"
+          className="inline-flex rounded-xl border border-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-primary)]"
+          onClick={() => hapticTap()}
+        >
+          {t("settings.gdpr.openPrivacy")}
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            hapticTap();
+            clearStoredConsent();
+            window.location.reload();
+          }}
+          className="w-full rounded-xl border border-[color:var(--color-surface-border)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text)]"
+        >
+          {t("settings.gdpr.resetConsent")}
+        </button>
       </GlassPanel>
 
       <GlassPanel className="space-y-3">

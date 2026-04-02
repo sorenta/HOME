@@ -49,32 +49,28 @@ export function TimeOfDayNoticeCard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.03 }}
-      className="relative z-10 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] px-4 py-3"
+      className="maj-glass-panel maj-section-gap relative z-10 px-[length:var(--maj-space-card-pad)] py-3"
       aria-label={t("dashboard.timeNotice.aria")}
     >
-      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-[color:var(--color-secondary)]">
-        {t("dashboard.timeNotice.eyebrow")}
-      </p>
-      <h2 className="mt-1 font-[family-name:var(--font-theme-display)] text-lg font-semibold text-[color:var(--color-text)]">
+      <p className="maj-theme-eyebrow">{t("dashboard.timeNotice.eyebrow")}</p>
+      <h2 className="maj-theme-section-title mt-1">
         {resolveCopy(`dashboard.timeNotice.${slice}.title`)}
       </h2>
-      <p className="mt-2 text-sm leading-relaxed text-[color:var(--color-text)]">
+      <p className="maj-theme-subtitle mt-2 text-sm text-[color:var(--color-text-primary)]">
         {resolveCopy(`dashboard.timeNotice.${slice}.body`)}
       </p>
-      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[color:var(--color-surface-border)] pt-3">
-        <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--color-secondary)]">
-          {t("tile.reset")}
-        </p>
+      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[color:var(--color-border)] pt-3">
+        <p className="maj-metric-label">{t("tile.reset")}</p>
         <Link
           href="/reset"
           onClick={() => hapticTap()}
-          className="rounded-full border border-[color:var(--color-surface-border)] px-3 py-1.5 text-xs font-semibold text-[color:var(--color-text)]"
+          className="rounded-[var(--radius-button)] border border-[color:var(--color-border)] px-3 py-1.5 font-[family-name:var(--font-theme-sans)] text-xs font-semibold text-[color:var(--color-text-primary)]"
         >
           {sleep ? t("module.reset.checkin") : t("tile.reset")}
         </Link>
       </div>
       {sleep ? (
-        <p className="mt-3 text-sm leading-relaxed text-[color:var(--color-secondary)]">
+        <p className="maj-theme-subtitle mt-3 text-sm">
           {t("dashboard.timeNotice.sleepHint")}
         </p>
       ) : null}

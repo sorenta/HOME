@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useTheme } from "@/components/providers/theme-provider";
-import { isThemeId } from "@/lib/theme-logic";
+import { migrateLegacyThemeId } from "@/lib/theme-logic";
 
 export function ThemeProfileSync() {
   const { profile } = useAuth();
@@ -11,12 +11,17 @@ export function ThemeProfileSync() {
 
   useEffect(() => {
     const nextThemeId = profile?.theme_id;
-    if (!nextThemeId || !isThemeId(nextThemeId) || nextThemeId === themeId) {
+    if (!nextThemeId) {
+      return;
+    }
+
+    const resolved = migrateLegacyThemeId(nextThemeId);
+    if (resolved === themeId) {
       return;
     }
 
     const frame = window.requestAnimationFrame(() => {
-      setThemeId(nextThemeId);
+      setThemeId(resolved);
     });
 
     return () => window.cancelAnimationFrame(frame);

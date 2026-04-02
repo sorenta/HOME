@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { AppMark } from "@/components/branding/app-mark";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { hapticTap } from "@/lib/haptic";
 import { recordModuleVisit, type ModuleId } from "@/lib/bento-usage";
-import { SeasonalRewardModal } from "@/components/seasonal/seasonal-reward-modal";
-import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 
 type Props = {
   title: string;
@@ -24,18 +22,16 @@ export function ModuleShell({
   children,
   requireAuth = true,
 }: Props) {
-  const pathname = usePathname();
-
   useEffect(() => {
     if (moduleId) recordModuleVisit(moduleId);
   }, [moduleId]);
 
   return (
-    <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-28 pt-18">
+    <div className="maj-module-shell maj-page-shell relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
       <motion.header
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 mb-6 flex items-center gap-3"
+        className="maj-section-gap relative z-10 flex items-center gap-[var(--maj-space-stack)]"
       >
         <Link
           href="/"
@@ -46,28 +42,22 @@ export function ModuleShell({
           ←
         </Link>
         <div>
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-[color:var(--color-secondary)]">
-            HOME:OS
-          </p>
-          <h1 className="font-[family-name:var(--font-theme-display)] text-2xl font-semibold text-[color:var(--color-text)]">
+          <div className="flex items-center gap-2">
+            <AppMark size="sm" />
+          </div>
+          <h1 className="maj-theme-module-title mt-0.5 text-[color:var(--color-text-primary)]">
             {title}
           </h1>
-        </div>
-        <div className="ml-auto">
-          <HiddenSeasonalCollectible
-            spotId={pathname === "/" ? "home" : pathname.replace("/", "")}
-          />
         </div>
       </motion.header>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.05 }}
-        className="relative z-10 flex min-h-0 flex-1 flex-col gap-4"
+        className="maj-stack-gap relative z-10 flex min-h-0 flex-1 flex-col"
       >
         {requireAuth ? <RequireAuth>{children}</RequireAuth> : children}
       </motion.div>
-      <SeasonalRewardModal />
     </div>
   );
 }

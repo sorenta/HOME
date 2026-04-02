@@ -122,7 +122,7 @@ export function HouseholdWaterWidget({ scopeId, members, currentUserId }: Props)
   const goal = water.goalMl;
 
   return (
-    <section className="relative z-10 mb-4 rounded-3xl border border-[color:var(--color-surface-border)] bg-[linear-gradient(180deg,var(--color-surface),transparent)] p-4">
+    <section className="maj-glass-panel maj-section-gap relative z-10 p-[length:var(--maj-space-card-pad)]">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <SectionHeading
           eyebrow={t("water.widget.eyebrow")}
@@ -130,22 +130,19 @@ export function HouseholdWaterWidget({ scopeId, members, currentUserId }: Props)
           detail={t("water.widget.localNote")}
         />
       </div>
-      <p className="mt-2 text-sm text-[color:var(--color-secondary)]">{t("water.widget.hint")}</p>
+      <p className="maj-theme-subtitle mt-2 text-sm">{t("water.widget.hint")}</p>
 
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-4 space-y-[var(--maj-space-stack)]">
         {effectiveMembers.map((m) => {
           const ml = getMlForMember(water, date, m.id);
           const pct = Math.min(100, Math.round((ml / goal) * 100));
           const ach = water.achievements[m.id] ?? { gold: 0, silver: 0, bronze: 0 };
           const isMe = m.is_me || m.id === currentUserId;
           return (
-            <li
-              key={m.id}
-              className="rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)]/40 px-3 py-3"
-            >
+            <li key={m.id} className="maj-nested-surface px-3 py-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-semibold text-[color:var(--color-text)]">
+                  <p className="font-[family-name:var(--font-theme-display)] font-semibold text-[color:var(--color-text-primary)]">
                     {memberLabel(m, t)}
                   </p>
                   <p className="text-xs text-[color:var(--color-secondary)]">
@@ -200,10 +197,8 @@ export function HouseholdWaterWidget({ scopeId, members, currentUserId }: Props)
         })}
       </ul>
 
-      <div className="mt-4 border-t border-[color:var(--color-surface-border)] pt-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[color:var(--color-secondary)]">
-          {t("water.widget.yesterdayTitle")}
-        </p>
+      <div className="mt-4 border-t border-[color:var(--color-border)] pt-4">
+        <p className="maj-metric-label">{t("water.widget.yesterdayTitle")}</p>
         {yesterdayRows.every((r) => r.ml === 0) ? (
           <p className="mt-2 text-sm text-[color:var(--color-secondary)]">
             {t("water.widget.yesterdayEmpty")}

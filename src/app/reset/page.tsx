@@ -1,30 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ModuleShell } from "@/components/layout/module-shell";
-import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { ResetAuraGlow } from "@/components/reset/reset-aura-glow";
 import { ResetDailySignalsForm } from "@/components/reset/reset-daily-signals-form";
 import { ResetBodyTracking } from "@/components/reset/reset-body-tracking";
 import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
 import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
 import { ResetWellnessOnboarding } from "@/components/reset/reset-wellness-onboarding";
+import { ResetHealthSourcesPanel } from "@/components/reset/reset-health-sources-panel";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
-import { hasResetCheckInToday, markResetCheckInDone } from "@/lib/reset-checkin";
 import {
-  bodyGoals,
-  defaultWellnessState,
-  hasTrainingRelevantBodyGoal,
-  loadWellnessState,
-  quitGoals,
-  type ResetWellnessV1,
-  type WellnessGoal,
-} from "@/lib/reset-wellness";
+  appendCheckInLocal,
+  canCheckInToday,
+  getTodayCheckInCount,
+  MAX_RESET_CHECKINS_PER_DAY,
+  setTodayCheckInCountFromServer,
+} from "@/lib/reset-checkin";
 import {
+  fetchTodayCheckInCount,
   scoreToAura,
   submitResetCheckInToSupabase,
 } from "@/lib/reset-checkin-sync";
@@ -40,23 +38,34 @@ import {
 } from "@/lib/reset-wellness-sync";
 import { useAuth } from "@/components/providers/auth-provider";
 import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
+import {
+  bodyGoals,
+  defaultWellnessState,
+  hasTrainingRelevantBodyGoal,
+  loadWellnessState,
+  quitGoals,
+  type ResetWellnessV1,
+  type WellnessGoal,
+} from "@/lib/reset-wellness";
+import { getBrowserClient } from "@/lib/supabase/client";
 
 export default function ResetPage() {
   const { t } = useI18n();
-  const router = useRouter();
   const { user, profile, refreshProfile } = useAuth();
-  const [doneToday, setDoneToday] = useState(true);
+  const [checkInCount, setCheckInCount] = useState(0);
   const [wellness, setWellness] = useState<ResetWellnessV1>(defaultWellnessState);
   const [hydrated, setHydrated] = useState(false);
   const [showGoalEditor, setShowGoalEditor] = useState(false);
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [todaySignals, setTodaySignals] = useState<ResetDailySignalsRow | null>(null);
   const [signalsVersion, setSignalsVersion] = useState(0);
+  const [checkInMessage, setCheckInMessage] = useState<"limit" | null>(null);
+  const [empathyRecipientIds, setEmpathyRecipientIds] = useState<string[] | null>(null);
 
   useEffect(() => {
     let alive = true;
     const frame = requestAnimationFrame(() => {
-      setDoneToday(hasResetCheckInToday());
+      setCheckInCount(getTodayCheckInCount());
       setWellness(loadWellnessState());
       setHydrated(true);
     });
@@ -74,6 +83,15 @@ export default function ResetPage() {
   }, [user?.id]);
 
   useEffect(() => {
+    if (!user?.id) return;
+    const day = localDateIso();
+    void fetchTodayCheckInCount({ userId: user.id, loggedOnLocal: day }).then((n) => {
+      setTodayCheckInCountFromServer(n);
+      setCheckInCount(getTodayCheckInCount());
+    });
+  }, [user?.id]);
+
+  useEffect(() => {
     let alive = true;
     void fetchMyHouseholdMembers().then((next) => {
       if (alive) {
@@ -84,6 +102,34 @@ export default function ResetPage() {
       alive = false;
     };
   }, [profile?.household_id]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setEmpathyRecipientIds(null);
+      return;
+    }
+    const supabase = getBrowserClient();
+    if (!supabase) return;
+    let alive = true;
+    void supabase
+      .from("notification_preferences")
+      .select("reset_empathy_recipient_ids")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!alive) return;
+        if (error || !data) {
+          setEmpathyRecipientIds([]);
+          return;
+        }
+        const raw = (data as { reset_empathy_recipient_ids?: string[] | null })
+          .reset_empathy_recipient_ids;
+        setEmpathyRecipientIds(Array.isArray(raw) ? raw : []);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -134,38 +180,47 @@ export default function ResetPage() {
       .map((b) => b.mode);
     return [...new Set(modes)];
   }, [bodies]);
-  const baseResetScore = useMemo(() => {
+
+  const baseWellnessScore = useMemo(() => {
     let score = wellness.onboardingDone ? 20 : 0;
     score += quits.length * 15;
     score += bodies.length * 15;
     score += Math.min(20, wellness.measurements.length * 4);
     score += Math.min(20, wellness.weighIns.length * 5);
-    if (doneToday) score += 15;
     return score;
   }, [
     bodies.length,
-    doneToday,
     quits.length,
     wellness.measurements.length,
     wellness.onboardingDone,
     wellness.weighIns.length,
   ]);
 
+  const checkInBonus = Math.min(15, checkInCount * 5);
+
   const resetScoreValue = useMemo(
     () =>
-      Math.min(100, Math.max(0, baseResetScore + signalsScoreDelta(todaySignals))),
-    [baseResetScore, todaySignals],
+      Math.min(
+        100,
+        Math.max(0, baseWellnessScore + checkInBonus + signalsScoreDelta(todaySignals)),
+      ),
+    [baseWellnessScore, checkInBonus, todaySignals],
   );
-  const partnerAura = useMemo(() => {
+
+  const partnerGlow = useMemo(() => {
     if (resetScoreValue >= 75) return t("reset.aura.high");
     if (resetScoreValue >= 40) return t("reset.aura.steady");
     return t("reset.aura.low");
   }, [resetScoreValue, t]);
 
-  const scoreAfterCheckIn = useMemo(
-    () => Math.min(100, resetScoreValue + (doneToday ? 0 : 15)),
-    [doneToday, resetScoreValue],
-  );
+  const scoreAfterCheckIn = useMemo(() => {
+    const d = signalsScoreDelta(todaySignals);
+    if (!canCheckInToday()) {
+      return Math.min(100, baseWellnessScore + checkInBonus + d);
+    }
+    const nextBonus = Math.min(15, (checkInCount + 1) * 5);
+    return Math.min(100, baseWellnessScore + nextBonus + d);
+  }, [baseWellnessScore, checkInCount, todaySignals]);
 
   const liveMetrics = useMemo(
     () => [
@@ -196,24 +251,52 @@ export default function ResetPage() {
   );
 
   async function onCheckIn() {
-    if (doneToday) return;
+    if (!canCheckInToday()) return;
     hapticTap();
-    markResetCheckInDone();
-    setDoneToday(true);
+    setCheckInMessage(null);
     const aura = scoreToAura(scoreAfterCheckIn);
     if (user?.id) {
-      const ok = await submitResetCheckInToSupabase({
+      const res = await submitResetCheckInToSupabase({
         userId: user.id,
         householdId: profile?.household_id ?? null,
         score: scoreAfterCheckIn,
         aura,
+        loggedOnLocal: localDateIso(),
       });
-      if (ok) {
-        await refreshProfile();
+      if (!res.ok) {
+        if (res.code === "LIMIT") {
+          setCheckInMessage("limit");
+        }
+        return;
       }
+      appendCheckInLocal();
+      setCheckInCount(getTodayCheckInCount());
+      await refreshProfile();
+      return;
     }
-    router.push("/");
+    appendCheckInLocal();
+    setCheckInCount(getTodayCheckInCount());
   }
+
+  const privacyMembers = useMemo(() => {
+    const base =
+      members.length > 0
+        ? members
+        : user
+          ? [
+              {
+                id: user.id,
+                display_name: profile?.display_name ?? user.email?.split("@")[0] ?? null,
+                role_label: profile?.role_label ?? null,
+                is_me: true,
+              } satisfies HouseholdMember,
+            ]
+          : [];
+    if (empathyRecipientIds != null && empathyRecipientIds.length > 0) {
+      return base.filter((m) => empathyRecipientIds.includes(m.id));
+    }
+    return base;
+  }, [empathyRecipientIds, members, profile?.display_name, profile?.role_label, user]);
 
   const showOnboarding = hydrated && (!wellness.onboardingDone || showGoalEditor);
 
@@ -278,6 +361,8 @@ export default function ResetPage() {
           ))
         : null}
 
+      {hydrated && wellness.onboardingDone ? <ResetHealthSourcesPanel /> : null}
+
       {hydrated && wellness.onboardingDone ? (
         <ResetDailySignalsForm
           userId={user?.id ?? null}
@@ -289,17 +374,13 @@ export default function ResetPage() {
         <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
           {t("module.reset.blurb")}
         </p>
-        <div className="grid grid-cols-2 gap-3">
-          <MetricCard
-            label={t("reset.score")}
-            value={`${resetScoreValue}%`}
-          />
-          <MetricCard
-            label={t("reset.partnerAura")}
-            value={partnerAura}
-            hint={t("reset.partnerAuraHint")}
-          />
-        </div>
+        <ResetAuraGlow
+          scorePercent={resetScoreValue}
+          scoreLabel={t("reset.score")}
+          partnerLabel={t("reset.partnerAura")}
+          partnerValue={partnerGlow}
+          partnerHint={t("reset.partnerAuraHint")}
+        />
       </GlassPanel>
 
       <GlassPanel className="space-y-3">
@@ -325,21 +406,9 @@ export default function ResetPage() {
           {t("reset.privacyBody")}
         </p>
         <div className="flex flex-wrap gap-2">
-          {(members.length > 0
-            ? members
-            : user
-              ? [
-                  {
-                    id: user.id,
-                    display_name: profile?.display_name ?? user.email?.split("@")[0] ?? null,
-                    role_label: profile?.role_label ?? null,
-                    is_me: true,
-                  } satisfies HouseholdMember,
-                ]
-              : []
-          ).map((member) => (
+          {privacyMembers.map((member) => (
             <StatusPill key={member.id} tone="neutral">
-              {member.display_name ?? t("household.membersList.member")} — {t("reset.seesAuraOnly")}
+              {member.display_name ?? t("household.membersList.member")} — {t("reset.seesGlowOnly")}
             </StatusPill>
           ))}
         </div>
@@ -348,19 +417,30 @@ export default function ResetPage() {
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("reset.recommendation")} />
         <p className="text-sm leading-relaxed text-[color:var(--color-text)]">{t("reset.aiBody")}</p>
+        <p className="text-xs text-[color:var(--color-secondary)]">
+          {t("reset.checkin.limitHint", { max: String(MAX_RESET_CHECKINS_PER_DAY) })}
+        </p>
         <button
           type="button"
           onClick={() => void onCheckIn()}
-          disabled={doneToday}
+          disabled={!canCheckInToday()}
           className={[
             "w-full rounded-xl px-4 py-3 text-sm font-semibold transition-opacity",
-            doneToday
+            !canCheckInToday()
               ? "cursor-default bg-[color:var(--color-surface-border)] text-[color:var(--color-secondary)]"
               : "bg-[color:var(--color-primary)] text-[color:var(--color-background)]",
           ].join(" ")}
         >
-          {doneToday ? t("module.reset.done") : t("module.reset.checkin")}
+          {!canCheckInToday()
+            ? t("module.reset.doneDay", { n: String(MAX_RESET_CHECKINS_PER_DAY) })
+            : t("module.reset.checkinWithCount", {
+                current: String(checkInCount + 1),
+                max: String(MAX_RESET_CHECKINS_PER_DAY),
+              })}
         </button>
+        {checkInMessage === "limit" ? (
+          <p className="text-sm text-rose-600 dark:text-rose-400">{t("reset.checkin.limitReached")}</p>
+        ) : null}
       </GlassPanel>
     </ModuleShell>
   );

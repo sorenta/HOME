@@ -1,6 +1,7 @@
 "use client";
 
 import { getBrowserClient } from "@/lib/supabase/client";
+import { decryptResetNote, encryptResetNote } from "@/lib/reset-notes-crypto";
 
 export type ResetDailySignalsRow = {
   steps: number | null;
@@ -53,6 +54,16 @@ export async function fetchTodaySignals(
 
   if (!data) return null;
 
+  const rawNotes = data.notes_private as string | null;
+  let notes_private: string | null = null;
+  if (rawNotes) {
+    if (rawNotes.startsWith("v1:")) {
+      notes_private = await decryptResetNote(rawNotes);
+    } else {
+      notes_private = rawNotes;
+    }
+  }
+
   return {
     steps: data.steps != null ? Number(data.steps) : null,
     screen_time_minutes:
@@ -61,7 +72,7 @@ export async function fetchTodaySignals(
       data.meditation_minutes != null ? Number(data.meditation_minutes) : null,
     mood: data.mood != null ? Number(data.mood) : null,
     energy: data.energy != null ? Number(data.energy) : null,
-    notes_private: data.notes_private ?? null,
+    notes_private,
   };
 }
 
@@ -73,6 +84,12 @@ export async function upsertTodaySignals(input: {
   const supabase = getBrowserClient();
   if (!supabase) return { ok: false };
 
+  let notesStored: string | null = null;
+  const nt = input.payload.notes_private?.trim();
+  if (nt) {
+    notesStored = (await encryptResetNote(nt)) ?? nt;
+  }
+
   const { error } = await supabase.from("reset_daily_signals").upsert(
     {
       user_id: input.userId,
@@ -82,7 +99,7 @@ export async function upsertTodaySignals(input: {
       meditation_minutes: input.payload.meditation_minutes,
       mood: input.payload.mood,
       energy: input.payload.energy,
-      notes_private: input.payload.notes_private?.trim() || null,
+      notes_private: notesStored,
       source: "manual",
       updated_at: new Date().toISOString(),
     },

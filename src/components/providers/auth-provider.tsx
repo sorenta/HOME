@@ -43,7 +43,7 @@ function profileSeed(user: User) {
       user.email?.split("@")[0] ??
       "Member",
     preferred_locale: "lv",
-    theme_id: "soft-spa",
+    theme_id: "lucent",
   };
 }
 

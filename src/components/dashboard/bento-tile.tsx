@@ -48,7 +48,7 @@ export function BentoTile({
         href={href}
         onClick={() => hapticTap()}
         className={[
-          "maj-bento-tile flex min-h-[5.5rem] flex-col justify-between bg-[color:var(--color-surface)] p-4 transition-[transform,box-shadow]",
+          "maj-bento-tile maj-dashboard-tile flex min-h-[5.5rem] flex-col justify-between bg-[color:var(--color-surface)] p-4 transition-[transform,box-shadow]",
           "active:scale-[0.98] hover:-translate-y-0.5",
           attention ? "maj-pulse-attention" : "",
           highlight
@@ -59,7 +59,7 @@ export function BentoTile({
         <span className="text-2xl" aria-hidden>
           {emoji}
         </span>
-        <span className="text-sm font-semibold leading-tight text-[color:var(--color-text)]">
+        <span className="maj-tile-title text-sm leading-tight text-[color:var(--color-text)]">
           {title}
         </span>
       </Link>
