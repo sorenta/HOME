@@ -7,6 +7,7 @@ export type KitchenInventoryRecord = {
   unit: string | null;
   expiry_date: string | null;
   status: string;
+  category: string | null;
 };
 
 export type ShoppingRecord = {
@@ -15,6 +16,8 @@ export type ShoppingRecord = {
   quantity: number;
   unit: string | null;
   status: string;
+  category: string | null;
+  suggested_by_ai: boolean;
 };
 
 export async function fetchKitchenInventory(householdId: string) {
@@ -23,7 +26,7 @@ export async function fetchKitchenInventory(householdId: string) {
 
   const { data, error } = await supabase
     .from("inventory_items")
-    .select("id, name, quantity, unit, expiry_date, status")
+    .select("id, name, quantity, unit, expiry_date, status, category")
     .eq("household_id", householdId)
     .eq("module", "kitchen")
     .eq("owner_scope", "household")
@@ -34,7 +37,10 @@ export async function fetchKitchenInventory(householdId: string) {
     return [];
   }
 
-  return data as KitchenInventoryRecord[];
+  return (data as KitchenInventoryRecord[]).map((row) => ({
+    ...row,
+    category: row.category ?? null,
+  }));
 }
 
 export async function fetchShoppingItems(householdId: string) {
@@ -43,7 +49,7 @@ export async function fetchShoppingItems(householdId: string) {
 
   const { data, error } = await supabase
     .from("shopping_items")
-    .select("id, title, quantity, unit, status")
+    .select("id, title, quantity, unit, status, category, suggested_by_ai")
     .eq("household_id", householdId)
     .neq("status", "archived")
     .order("created_at", { ascending: false });
@@ -53,7 +59,11 @@ export async function fetchShoppingItems(householdId: string) {
     return [];
   }
 
-  return data as ShoppingRecord[];
+  return (data as ShoppingRecord[]).map((row) => ({
+    ...row,
+    category: row.category ?? null,
+    suggested_by_ai: Boolean(row.suggested_by_ai),
+  }));
 }
 
 export async function addKitchenInventoryItem(input: {
@@ -62,6 +72,7 @@ export async function addKitchenInventoryItem(input: {
   quantity: number;
   unit?: string;
   expiryDate?: string;
+  category?: string | null;
 }) {
   const supabase = getBrowserClient();
   if (!supabase) {
@@ -72,6 +83,7 @@ export async function addKitchenInventoryItem(input: {
     household_id: input.householdId,
     module: "kitchen",
     name: input.name.trim(),
+    category: input.category?.trim() || null,
     quantity: input.quantity,
     unit: input.unit?.trim() || null,
     expiry_date: input.expiryDate || null,
@@ -121,6 +133,8 @@ export async function addShoppingItem(input: {
   title: string;
   quantity: number;
   unit?: string;
+  category?: string | null;
+  suggestedByAi?: boolean;
 }) {
   const supabase = getBrowserClient();
   if (!supabase) {
@@ -132,7 +146,9 @@ export async function addShoppingItem(input: {
     title: input.title.trim(),
     quantity: input.quantity,
     unit: input.unit?.trim() || null,
+    category: input.category?.trim() || null,
     status: "open",
+    suggested_by_ai: input.suggestedByAi ?? false,
   });
 
   if (error) throw error;

@@ -25,6 +25,26 @@ type HouseholdTaskRow = {
   is_done: boolean;
 };
 
+export type PlannerSyncResult =
+  | { ok: true }
+  | { ok: false; message: string };
+
+function syncErr(message: string): PlannerSyncResult {
+  return { ok: false, message };
+}
+
+function syncOk(): PlannerSyncResult {
+  return { ok: true };
+}
+
+function errorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "message" in error) {
+    const m = (error as { message?: string }).message;
+    if (typeof m === "string" && m.trim()) return m.trim();
+  }
+  return "Sync failed";
+}
+
 function isMissingRelation(error: unknown) {
   const message =
     typeof error === "object" && error
@@ -119,11 +139,18 @@ export async function addPlannerEventSynced(input: {
   title: string;
   date: string;
   style: "shared" | "personal";
-}) {
+}): Promise<PlannerSyncResult> {
   const supabase = getBrowserClient();
-  if (!supabase) return false;
+  if (!supabase) return syncErr("SUPABASE_MISSING");
 
   const visibility = input.style === "shared" ? "household" : "individual";
+  if (visibility === "household" && !input.householdId) {
+    return syncErr("HOUSEHOLD_REQUIRED");
+  }
+  if (visibility === "individual" && !input.userId) {
+    return syncErr("USER_REQUIRED");
+  }
+
   const { error } = await supabase.from("calendar_events").insert({
     household_id: visibility === "household" ? input.householdId : null,
     user_id: visibility === "individual" ? input.userId : null,
@@ -137,24 +164,30 @@ export async function addPlannerEventSynced(input: {
     if (!isMissingRelation(error)) {
       console.error("Failed to add planner event", error);
     }
-    return false;
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_CALENDAR_EVENTS" : errorMessage(error),
+    );
   }
 
-  return true;
+  return syncOk();
 }
 
 export async function addPlannerTaskSynced(input: {
   householdId: string | null;
+  userId: string | null;
   title: string;
   assigneeId: string;
   dueDate: string;
-}) {
-  if (!input.householdId) return false;
+}): Promise<PlannerSyncResult> {
+  if (!input.householdId) {
+    return syncErr("HOUSEHOLD_REQUIRED");
+  }
   const supabase = getBrowserClient();
-  if (!supabase) return false;
+  if (!supabase) return syncErr("SUPABASE_MISSING");
 
   const { error } = await supabase.from("household_tasks").insert({
     household_id: input.householdId,
+    created_by: input.userId ?? null,
     assignee_user_id: input.assigneeId || null,
     title: input.title.trim(),
     due_on: input.dueDate,
@@ -165,20 +198,22 @@ export async function addPlannerTaskSynced(input: {
     if (!isMissingRelation(error)) {
       console.error("Failed to add planner task", error);
     }
-    return false;
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_HOUSEHOLD_TASKS" : errorMessage(error),
+    );
   }
 
-  return true;
+  return syncOk();
 }
 
 export async function togglePlannerTaskSynced(input: {
   householdId: string | null;
   taskId: string;
   done: boolean;
-}) {
-  if (!input.householdId) return false;
+}): Promise<PlannerSyncResult> {
+  if (!input.householdId) return syncErr("HOUSEHOLD_REQUIRED");
   const supabase = getBrowserClient();
-  if (!supabase) return false;
+  if (!supabase) return syncErr("SUPABASE_MISSING");
 
   const { error } = await supabase
     .from("household_tasks")
@@ -190,10 +225,56 @@ export async function togglePlannerTaskSynced(input: {
     if (!isMissingRelation(error)) {
       console.error("Failed to toggle planner task", error);
     }
-    return false;
+    return syncErr(isMissingRelation(error) ? "SCHEMA_HOUSEHOLD_TASKS" : errorMessage(error));
   }
 
-  return true;
+  return syncOk();
+}
+
+export async function deletePlannerEventSynced(input: {
+  eventId: string;
+}): Promise<PlannerSyncResult> {
+  const supabase = getBrowserClient();
+  if (!supabase) return syncErr("SUPABASE_MISSING");
+
+  const { error } = await supabase.from("calendar_events").delete().eq("id", input.eventId);
+
+  if (error) {
+    if (!isMissingRelation(error)) {
+      console.error("Failed to delete planner event", error);
+    }
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_DELETE_CALENDAR" : errorMessage(error),
+    );
+  }
+
+  return syncOk();
+}
+
+export async function deletePlannerTaskSynced(input: {
+  householdId: string | null;
+  taskId: string;
+}): Promise<PlannerSyncResult> {
+  if (!input.householdId) return syncErr("HOUSEHOLD_REQUIRED");
+  const supabase = getBrowserClient();
+  if (!supabase) return syncErr("SUPABASE_MISSING");
+
+  const { error } = await supabase
+    .from("household_tasks")
+    .delete()
+    .eq("household_id", input.householdId)
+    .eq("id", input.taskId);
+
+  if (error) {
+    if (!isMissingRelation(error)) {
+      console.error("Failed to delete planner task", error);
+    }
+    return syncErr(
+      isMissingRelation(error) ? "SCHEMA_DELETE_TASKS" : errorMessage(error),
+    );
+  }
+
+  return syncOk();
 }
 
 export async function fetchOpenHouseholdTaskCount(householdId: string | null) {
