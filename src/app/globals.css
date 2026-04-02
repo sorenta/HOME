@@ -3,75 +3,64 @@
 @tailwind utilities;
 
 @layer base {
-  /* 1. LUCENT (Noklusējums - Bēšs, kokvilna) */
   :root, :root[data-theme="lucent"] {
-    --background: 250 248 245; /* #faf8f5 */
-    --foreground: 122 115 105; /* #7a7369 */
-    --card: 255 255 255;
-    --card-foreground: 122 115 105;
-    --border: 240 236 230; /* #f0ece6 */
-    --primary: 240 235 225;
-    --primary-foreground: 122 115 105;
+    --background: 40 25% 97%;
+    --foreground: 34 8% 45%;
+    --card: 0 0% 100%;
+    --card-foreground: 34 8% 45%;
+    --primary: 40 30% 91%;
+    --primary-foreground: 34 8% 45%;
+    --border: 36 20% 92%;
     --radius: 2rem;
-    --theme-shadow: 0 20px 50px rgba(214, 211, 204, 0.4);
   }
 
-  /* 2. HIVE (Dzeltens, astoņstūri, medus) */
   :root[data-theme="hive"] {
-    --background: 255 249 230; /* #fff9e6 */
-    --foreground: 120 53 15;   /* amber-900 */
-    --card: 255 251 235;
-    --card-foreground: 120 53 15;
-    --border: 252 211 77;      /* amber-300 */
-    --primary: 251 191 36;     /* amber-400 */
-    --primary-foreground: 69 26 3;
+    --background: 45 100% 96%;
+    --foreground: 25 78% 26%;
+    --card: 45 100% 98%;
+    --card-foreground: 25 78% 26%;
+    --primary: 43 96% 56%;
+    --primary-foreground: 25 78% 10%;
+    --border: 45 93% 65%;
     --radius: 0.75rem;
-    --theme-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
-  /* 3. PULSE (Komiksi, Neo-brutalisms) */
   :root[data-theme="pulse"] {
-    --background: 255 255 255;
-    --foreground: 0 0 0;
-    --card: 255 255 255;
-    --card-foreground: 0 0 0;
-    --border: 0 0 0;
-    --primary: 217 70 239;     /* fuchsia-500 */
-    --primary-foreground: 255 255 255;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --primary: 292 84% 61%;
+    --primary-foreground: 0 0% 100%;
+    --border: 0 0% 0%;
     --radius: 0.75rem;
-    --theme-shadow: 8px 8px 0px #000;
   }
 
-  /* 4. FORGE (Tumšs, metāls, sarkans) */
   :root[data-theme="forge"] {
-    --background: 10 10 10;
-    --foreground: 228 228 231; /* zinc-200 */
-    --card: 15 15 15;
-    --card-foreground: 228 228 231;
-    --border: 127 29 29;       /* red-900 */
-    --primary: 220 38 38;      /* red-600 */
-    --primary-foreground: 255 255 255;
+    --background: 0 0% 4%;
+    --foreground: 240 5% 90%;
+    --card: 0 0% 6%;
+    --card-foreground: 240 5% 90%;
+    --primary: 0 72% 50%;
+    --primary-foreground: 0 0% 100%;
+    --border: 0 63% 31%;
     --radius: 0.25rem;
-    --theme-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
   }
 
-  /* 5. BOTANICAL (Daba, organika) */
   :root[data-theme="botanical"] {
-    --background: 240 236 225; /* #f0ece1 */
-    --foreground: 74 94 61;    /* #4a5e3d */
-    --card: 235 231 220;
-    --card-foreground: 51 66 41;
-    --border: 227 223 211;
-    --primary: 90 107 74;      /* #5a6b4a */
-    --primary-foreground: 240 236 225;
+    --background: 46 29% 91%;
+    --foreground: 96 21% 30%;
+    --card: 46 29% 89%;
+    --card-foreground: 96 21% 21%;
+    --primary: 85 26% 35%;
+    --primary-foreground: 46 29% 91%;
+    --border: 46 20% 86%;
     --radius: 3rem;
-    --theme-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5);
   }
 
   body {
-    background-color: rgb(var(--background));
-    color: rgb(var(--foreground));
-    transition: background-color 0.5s ease, color 0.5s ease;
+    @apply bg-background text-foreground transition-colors duration-500;
+    min-height: 100dvh;
   }
 }
 

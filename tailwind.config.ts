@@ -9,18 +9,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "rgb(var(--background))",
-        foreground: "rgb(var(--foreground))",
-        card: "rgb(var(--card))",
-        "card-foreground": "rgb(var(--card-foreground))",
-        border: "rgb(var(--border))",
-        primary: "rgb(var(--primary))",
-        "primary-foreground": "rgb(var(--primary-foreground))",
+        // Izmantojam HSL, lai saskanētu ar globals.css mainīgajiem
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        border: "hsl(var(--border))",
       },
       borderRadius: {
+        // Šis ļaus izmantot klasi 'rounded-theme'
         theme: "var(--radius)",
       },
       boxShadow: {
+        // Šis ļaus izmantot klasi 'shadow-theme'
         theme: "var(--theme-shadow)",
       }
     },
