@@ -59,42 +59,11 @@
   }
 
   body {
-    @apply bg-background text-foreground transition-colors duration-500;
+    /* Izmantojam tīru CSS bez @apply sākumā */
+    background-color: hsl(40 25% 97%); /* Fallback */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     min-height: 100dvh;
-  }
-}
-
-@layer utilities {
-  /* Tavas speciālās stila klases, ko izmantosim komponentos */
-  .octagon { clip-path: polygon(29% 0%, 71% 0%, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0% 71%, 0% 29%); }
-  
-  .comic-bg {
-    background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
-    background-size: 16px 16px;
-  }
-
-  .organic-shape {
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    animation: morph 8s ease-in-out infinite;
-  }
-  
-  .honey-drip {
-    position: absolute; width: 16px; height: 38px; background: #fbbf24;
-    border-radius: 0 0 50px 50px; box-shadow: inset -2px -4px 6px rgba(180, 83, 9, 0.4);
-  }
-  .honey-drip::before { 
-    content: ''; position: absolute; width: 10px; height: 20px; background: #fbbf24; 
-    border-radius: 0 0 50px 50px; left: -18px; top: 0px; box-shadow: inset -1px -2px 3px rgba(180, 83, 9, 0.4);
-  }
-  .honey-drip::after {
-    content: ''; position: absolute; width: 4px; height: 14px; background: rgba(255, 255, 255, 0.7);
-    border-radius: 10px; left: 3px; top: 12px;
-  }
-
-  .metal-gradient { background: linear-gradient(145deg, #2a2a2a, #111); }
-
-  @keyframes morph {
-    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-    50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    margin: 0;
   }
 }
