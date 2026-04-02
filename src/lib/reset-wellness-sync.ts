@@ -41,7 +41,11 @@ function isMissingRelation(error: unknown) {
     typeof error === "object" && error
       ? `${(error as { message?: string }).message ?? ""}`.toLowerCase()
       : "";
-  return message.includes("does not exist") || message.includes("could not find");
+  return (
+    message.includes("does not exist") ||
+    message.includes("could not find") ||
+    (message.includes("column") && message.includes("does not exist"))
+  );
 }
 
 function hasRemoteData(state: ResetWellnessV1) {
@@ -118,7 +122,7 @@ export async function loadWellnessStateSynced(userId: string | null): Promise<Re
       .order("weighed_at", { ascending: false }),
     supabase
       .from("reset_training_state")
-      .select("training_week_index")
+      .select("training_week_index, wellness_onboarding_done")
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
@@ -133,13 +137,25 @@ export async function loadWellnessStateSynced(userId: string | null): Promise<Re
     return local;
   }
 
+  const trainingRow = trainingRes.data as {
+    training_week_index?: number | null;
+    wellness_onboarding_done?: boolean | null;
+  } | null;
+
+  const remoteGoals = (goalsRes.data ?? [])
+    .map(mapGoal)
+    .filter((goal): goal is WellnessGoal => Boolean(goal));
+
+  const remoteOnboarding =
+    Boolean(trainingRow?.wellness_onboarding_done) || remoteGoals.length > 0;
+
   const remote: ResetWellnessV1 = {
     version: 1,
-    onboardingDone: (goalsRes.data?.length ?? 0) > 0,
-    goals: (goalsRes.data ?? []).map(mapGoal).filter((goal): goal is WellnessGoal => Boolean(goal)),
+    onboardingDone: remoteOnboarding,
+    goals: remoteGoals,
     measurements: (measurementsRes.data ?? []).map(mapMeasurement),
     weighIns: (weighInsRes.data ?? []).map(mapWeighIn),
-    trainingWeekIndex: Number(trainingRes.data?.training_week_index ?? 0) % 4,
+    trainingWeekIndex: Number(trainingRow?.training_week_index ?? 0) % 4,
   };
 
   if (!hasRemoteData(remote)) {
@@ -213,6 +229,7 @@ export async function persistWellnessStateSynced(
     supabase.from("reset_training_state").upsert({
       user_id: userId,
       training_week_index: next.trainingWeekIndex % 4,
+      wellness_onboarding_done: next.onboardingDone,
       updated_at: new Date().toISOString(),
     }),
   ] as const;

@@ -18,12 +18,15 @@ import {
   bodyGoals,
   defaultWellnessState,
   hasTrainingRelevantBodyGoal,
-  hasWeightLossGoal,
   loadWellnessState,
   quitGoals,
   type ResetWellnessV1,
   type WellnessGoal,
 } from "@/lib/reset-wellness";
+import {
+  scoreToAura,
+  submitResetCheckInToSupabase,
+} from "@/lib/reset-checkin-sync";
 import {
   loadWellnessStateSynced,
   persistWellnessStateSynced,
@@ -34,7 +37,7 @@ import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 export default function ResetPage() {
   const { t } = useI18n();
   const router = useRouter();
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [doneToday, setDoneToday] = useState(true);
   const [wellness, setWellness] = useState<ResetWellnessV1>(defaultWellnessState);
   const [hydrated, setHydrated] = useState(false);
@@ -80,23 +83,24 @@ export default function ResetPage() {
 
   const onSurveyComplete = useCallback(
     (goals: WellnessGoal[]) => {
-      persistWellness({
-        ...wellness,
-        goals,
-        onboardingDone: true,
+      setWellness((prev) => {
+        const next = { ...prev, goals, onboardingDone: true };
+        void persistWellnessStateSynced(user?.id ?? null, next);
+        return next;
       });
       setShowGoalEditor(false);
     },
-    [persistWellness, wellness],
+    [user?.id],
   );
 
   const onSurveySkip = useCallback(() => {
-    persistWellness({
-      ...wellness,
-      onboardingDone: true,
+    setWellness((prev) => {
+      const next = { ...prev, onboardingDone: true };
+      void persistWellnessStateSynced(user?.id ?? null, next);
+      return next;
     });
     setShowGoalEditor(false);
-  }, [persistWellness, wellness]);
+  }, [user?.id]);
 
   const quits = useMemo(() => quitGoals(wellness.goals), [wellness.goals]);
   const bodies = useMemo(() => bodyGoals(wellness.goals), [wellness.goals]);
@@ -120,6 +124,12 @@ export default function ResetPage() {
     if (resetScoreValue >= 40) return t("reset.aura.steady");
     return t("reset.aura.low");
   }, [resetScoreValue, t]);
+
+  const scoreAfterCheckIn = useMemo(
+    () => Math.min(100, resetScoreValue + (doneToday ? 0 : 15)),
+    [doneToday, resetScoreValue],
+  );
+
   const liveMetrics = useMemo(
     () => [
       { label: t("reset.metric.goals"), value: String(wellness.goals.length), tone: "good" as const },
@@ -148,10 +158,23 @@ export default function ResetPage() {
     ],
   );
 
-  function onCheckIn() {
+  async function onCheckIn() {
+    if (doneToday) return;
     hapticTap();
     markResetCheckInDone();
     setDoneToday(true);
+    const aura = scoreToAura(scoreAfterCheckIn);
+    if (user?.id) {
+      const ok = await submitResetCheckInToSupabase({
+        userId: user.id,
+        householdId: profile?.household_id ?? null,
+        score: scoreAfterCheckIn,
+        aura,
+      });
+      if (ok) {
+        await refreshProfile();
+      }
+    }
     router.push("/");
   }
 
@@ -161,7 +184,7 @@ export default function ResetPage() {
     <ModuleShell title={t("tile.reset")} moduleId="reset">
       {showOnboarding ? (
         <ResetWellnessOnboarding
-          onComplete={(goals) => onSurveyComplete(goals)}
+          onComplete={(goals, _startedAtIso) => onSurveyComplete(goals)}
           onSkip={onSurveySkip}
         />
       ) : null}
@@ -203,7 +226,7 @@ export default function ResetPage() {
 
       {hydrated && quits.length > 0 ? <ResetQuitStreak goals={quits} /> : null}
 
-      {hydrated && hasWeightLossGoal(wellness.goals) ? (
+      {hydrated && bodyGoals(wellness.goals).length > 0 ? (
         <ResetBodyTracking state={wellness} onUpdate={persistWellness} />
       ) : null}
 
@@ -283,7 +306,7 @@ export default function ResetPage() {
         <p className="text-sm leading-relaxed text-[color:var(--color-text)]">{t("reset.aiBody")}</p>
         <button
           type="button"
-          onClick={onCheckIn}
+          onClick={() => void onCheckIn()}
           disabled={doneToday}
           className={[
             "w-full rounded-xl px-4 py-3 text-sm font-semibold transition-opacity",
