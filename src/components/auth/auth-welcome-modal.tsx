@@ -43,9 +43,10 @@ export function AuthWelcomeModal() {
       <div className="maj-auth-welcome-orb maj-auth-welcome-orb--pearl" aria-hidden />
 
       <div className="maj-auth-welcome-card">
-        <p className="maj-auth-brand text-base uppercase tracking-[0.24em]">
-          {t("auth.brand")}
-        </p>
+        <div className="maj-ho-mark mx-auto">
+          <span className="maj-ho-mark-text maj-ho-mark-text--large">H:O</span>
+        </div>
+        <p className="maj-splash-kicker">HOME:OS</p>
         <h2 className="maj-auth-welcome-title">
           {t("auth.welcome.title")}
         </h2>

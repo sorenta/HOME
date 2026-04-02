@@ -1,13 +1,20 @@
 export default function Loading() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center px-6">
-      <div className="w-full max-w-xs rounded-3xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-6 text-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--color-secondary)]">
-          HOME:OS
+    <div className="maj-splash-shell">
+      <div className="maj-splash-card">
+        <div className="maj-ho-mark mx-auto">
+          <span className="maj-ho-mark-text">H:O</span>
+        </div>
+        <p className="maj-splash-kicker">HOME:OS</p>
+        <p className="maj-splash-title">Ielādē mājas ritmu</p>
+        <p className="maj-splash-copy">
+          Gaiša, mierīga un sakārtota telpa tavai ikdienai.
         </p>
-        <p className="mt-2 text-lg font-semibold text-[color:var(--color-text)]">
-          Ielādē mājas ritmu...
-        </p>
+        <div className="maj-splash-loader" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
       </div>
     </div>
   );
