@@ -49,28 +49,31 @@ export function TimeOfDayNoticeCard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.03 }}
-      className="maj-glass-panel maj-section-gap relative z-10 px-[length:var(--maj-space-card-pad)] py-3"
+      className="maj-notice-strip relative z-10 rounded-[var(--radius-card)] border border-[color:color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color:color-mix(in_srgb,var(--color-surface)_78%,transparent)] px-3 py-2.5"
       aria-label={t("dashboard.timeNotice.aria")}
     >
-      <p className="maj-theme-eyebrow">{t("dashboard.timeNotice.eyebrow")}</p>
-      <h2 className="maj-theme-section-title mt-1">
-        {resolveCopy(`dashboard.timeNotice.${slice}.title`)}
-      </h2>
-      <p className="maj-theme-subtitle mt-2 text-sm text-[color:var(--color-text-primary)]">
-        {resolveCopy(`dashboard.timeNotice.${slice}.body`)}
-      </p>
-      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[color:var(--color-border)] pt-3">
-        <p className="maj-metric-label">{t("tile.reset")}</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[color:var(--color-text-secondary)]">
+            {t("dashboard.timeNotice.eyebrow")}
+          </p>
+          <p className="mt-0.5 text-sm font-semibold leading-snug text-[color:var(--color-text-primary)]">
+            {resolveCopy(`dashboard.timeNotice.${slice}.title`)}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-[color:var(--color-text-secondary)]">
+            {resolveCopy(`dashboard.timeNotice.${slice}.body`)}
+          </p>
+        </div>
         <Link
           href="/reset"
           onClick={() => hapticTap()}
-          className="rounded-[var(--radius-button)] border border-[color:var(--color-border)] px-3 py-1.5 font-[family-name:var(--font-theme-sans)] text-xs font-semibold text-[color:var(--color-text-primary)]"
+          className="shrink-0 self-start rounded-[var(--radius-button)] border border-[color:var(--color-border)] px-2.5 py-1 font-[family-name:var(--font-theme-sans)] text-[0.7rem] font-semibold text-[color:var(--color-text-primary)] sm:mt-5"
         >
           {sleep ? t("module.reset.checkin") : t("tile.reset")}
         </Link>
       </div>
       {sleep ? (
-        <p className="maj-theme-subtitle mt-3 text-sm">
+        <p className="mt-2 border-t border-[color:color-mix(in_srgb,var(--color-border)_55%,transparent)] pt-2 text-xs text-[color:var(--color-text-secondary)]">
           {t("dashboard.timeNotice.sleepHint")}
         </p>
       ) : null}

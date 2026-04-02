@@ -7,6 +7,17 @@ import { HouseholdOnboarding } from "@/components/household/household-onboarding
 import { HouseholdSummary } from "@/components/household/household-summary";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ModuleShell } from "@/components/layout/module-shell";
+import {
+  ForgeDivider,
+  ForgeInset,
+  ForgeMetricDot,
+  ForgeRowButton,
+  ForgeRowStatic,
+  ForgeSubLabel,
+  ForgeZone,
+  ForgeZoneBody,
+  ForgeZoneHeader,
+} from "@/components/layout/forge/forge-inner";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
@@ -495,8 +506,332 @@ export default function SettingsPage() {
     );
   }
 
+  function renderForgeProviderBlock(provider: AiProvider, label: string) {
+    const state = byok[provider];
+    const isSaved = Boolean(
+      state.savedValue && state.savedValue === state.value.trim(),
+    );
+
+    const tone =
+      state.status === "error"
+        ? "warn"
+        : state.status === "testing"
+          ? "neutral"
+          : isSaved
+            ? "good"
+            : "neutral";
+
+    const statusLabel =
+      state.status === "error"
+        ? t("settings.byok.state.error")
+        : state.status === "testing"
+          ? t("settings.byok.state.testing")
+          : isSaved
+            ? t("settings.byok.state.saved")
+            : t("settings.byok.state.notSaved");
+
+    const helperText = state.error
+      ? state.error
+      : isSaved
+        ? `${t("settings.byok.savedDevice")} ${maskKey(state.savedValue)}`
+        : state.value.trim()
+          ? t("settings.byok.unsaved")
+          : t("settings.byok.notSaved");
+
+    return (
+      <div key={provider} className="space-y-2 p-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-[color:var(--color-text-primary)]">{label}</p>
+          <StatusPill tone={tone}>{statusLabel}</StatusPill>
+        </div>
+        <label className="block text-xs text-[color:var(--color-text-secondary)]">
+          {label}
+          <input
+            type="password"
+            autoComplete="off"
+            value={state.value}
+            onChange={(e) => setProviderValue(provider, e.target.value)}
+            placeholder={provider === "gemini" ? "AIza..." : "sk-..."}
+            className="maj-forge-field mt-1 w-full px-3 py-2 text-sm"
+          />
+        </label>
+        <p className="text-[0.7rem] leading-snug text-[color:var(--color-text-secondary)]">
+          {helperText}
+        </p>
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => verifyAndSaveProvider(provider)}
+            disabled={state.status === "testing"}
+            className="flex-1 rounded-md border border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-background))] px-3 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] disabled:opacity-60"
+          >
+            {state.status === "testing"
+              ? t("settings.byok.action.testing")
+              : t("settings.byok.action.verify")}
+          </button>
+          <button
+            type="button"
+            onClick={() => removeProvider(provider)}
+            disabled={!state.value && !state.savedValue}
+            className="rounded-md border border-[color:color-mix(in_srgb,var(--color-border)_90%,transparent)] px-3 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] disabled:opacity-50"
+          >
+            {t("settings.byok.action.remove")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <ModuleShell title={t("settings.title")}>
+    <ModuleShell
+      shellVariant={themeId === "forge" ? "forge" : "default"}
+      title={t("settings.title")}
+    >
+      {themeId === "forge" ? (
+        <>
+          <ForgeZone>
+            <ForgeZoneHeader
+              title={t("settings.theme")}
+              detail={<ForgeMetricDot active label={locale.toUpperCase()} />}
+            />
+            <ForgeZoneBody>
+              <ForgeInset>
+                {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+                  <ForgeRowButton
+                    key={id}
+                    onClick={() => void handleThemeChange(id)}
+                    className={[
+                      themeId === id
+                        ? "border-l-[3px] border-l-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,transparent)] pl-[calc(0.75rem-3px)]"
+                        : "border-l-[3px] border-l-transparent",
+                    ].join(" ")}
+                  >
+                    <span className="min-w-0">
+                      {THEMES[id].emoji} {t(THEMES[id].labelKey)}
+                    </span>
+                    {themeId === id ? (
+                      <ForgeMetricDot active />
+                    ) : (
+                      <span className="text-[color:var(--color-text-secondary)] opacity-40">·</span>
+                    )}
+                  </ForgeRowButton>
+                ))}
+              </ForgeInset>
+              <ForgeSubLabel>{t("settings.language")}</ForgeSubLabel>
+              <ForgeInset>
+                <ForgeRowStatic>
+                  <div className="flex w-full gap-1.5 py-0.5">
+                    {(["lv", "en"] as const).map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => {
+                          hapticTap();
+                          setLocale(loc);
+                        }}
+                        className={[
+                          "min-h-[2.5rem] flex-1 rounded-md border text-sm font-semibold",
+                          locale === loc
+                            ? "border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--color-background))] text-[color:var(--color-text-primary)]"
+                            : "border-[color:color-mix(in_srgb,var(--color-border)_75%,transparent)] text-[color:var(--color-text-secondary)]",
+                        ].join(" ")}
+                      >
+                        {loc === "lv" ? "Latviešu" : "English"}
+                      </button>
+                    ))}
+                  </div>
+                </ForgeRowStatic>
+              </ForgeInset>
+            </ForgeZoneBody>
+          </ForgeZone>
+
+          <ForgeZone>
+            <ForgeZoneHeader title={t("settings.household")} />
+            <ForgeZoneBody className="px-2 pb-2">
+              {profile?.household_id ? (
+                <HouseholdSummary householdId={profile.household_id} density="compact" />
+              ) : (
+                <HouseholdOnboarding compact />
+              )}
+            </ForgeZoneBody>
+          </ForgeZone>
+
+          <ForgeZone>
+            <ForgeZoneHeader
+              title={t("settings.notifications")}
+              detail={
+                <ForgeMetricDot
+                  active={settings.pushFinance || settings.pushPharmacy}
+                />
+              }
+            />
+            <ForgeZoneBody>
+              <ForgeInset>
+                <ForgeRowButton
+                  onClick={() =>
+                    void persistSettings({
+                      ...settings,
+                      pushFinance: !settings.pushFinance,
+                    })
+                  }
+                >
+                  <span>{t("settings.notifications.finance")}</span>
+                  <StatusPill tone={settings.pushFinance ? "good" : "neutral"}>
+                    {settings.pushFinance ? "ON" : "OFF"}
+                  </StatusPill>
+                </ForgeRowButton>
+                <ForgeRowButton
+                  onClick={() =>
+                    void persistSettings({
+                      ...settings,
+                      pushPharmacy: !settings.pushPharmacy,
+                    })
+                  }
+                >
+                  <span>{t("settings.notifications.pharmacy")}</span>
+                  <StatusPill tone={settings.pushPharmacy ? "good" : "neutral"}>
+                    {settings.pushPharmacy ? "ON" : "OFF"}
+                  </StatusPill>
+                </ForgeRowButton>
+              </ForgeInset>
+              <ForgeSubLabel>{t("settings.privacy")}</ForgeSubLabel>
+              <ForgeInset>
+                <ForgeRowButton
+                  onClick={() =>
+                    void persistSettings({
+                      ...settings,
+                      showResetAura: !settings.showResetAura,
+                    })
+                  }
+                >
+                  <span>{t("settings.privacy.resetAura")}</span>
+                  <StatusPill tone={settings.showResetAura ? "warn" : "neutral"}>
+                    {settings.showResetAura
+                      ? t("settings.state.allowed")
+                      : t("settings.state.hidden")}
+                  </StatusPill>
+                </ForgeRowButton>
+                {members.length > 0 ? (
+                  <div className="space-y-2 px-3 py-2.5">
+                    <p className="text-sm font-medium text-[color:var(--color-text-primary)]">
+                      {t("settings.empathy.recipients")}
+                    </p>
+                    <p className="text-[0.65rem] leading-snug text-[color:var(--color-text-secondary)]">
+                      {t("settings.empathy.hint")}
+                    </p>
+                    <ul className="flex flex-col gap-0">
+                      {members.map((m) => {
+                        const on = empathyRecipientIds.includes(m.id);
+                        return (
+                          <li key={m.id} className="border-t border-[color:color-mix(in_srgb,var(--color-border)_50%,transparent)] first:border-t-0 first:pt-0 pt-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleEmpathyRecipient(m.id)}
+                              className="flex w-full items-center justify-between gap-2 rounded-md border border-[color:color-mix(in_srgb,var(--color-border)_65%,transparent)] bg-[color:color-mix(in_srgb,var(--color-background)_40%,transparent)] px-2.5 py-2 text-left text-sm text-[color:var(--color-text-primary)]"
+                            >
+                              <span className="min-w-0">
+                                {m.display_name ?? m.id.slice(0, 8)}
+                                {m.is_me ? ` (${t("household.membersList.you")})` : ""}
+                              </span>
+                              <StatusPill tone={on ? "good" : "neutral"}>
+                                {on ? "ON" : "OFF"}
+                              </StatusPill>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ) : null}
+              </ForgeInset>
+            </ForgeZoneBody>
+          </ForgeZone>
+
+          <ForgeZone>
+            <ForgeZoneHeader title={t("settings.byok.title")} />
+            <ForgeZoneBody className="space-y-2 px-3 pb-2 pt-1">
+              <p className="text-[0.7rem] leading-snug text-[color:var(--color-text-secondary)]">
+                {t("settings.byok.hint")}
+              </p>
+              <p className="text-[0.65rem] leading-snug text-[color:var(--color-text-secondary)]">
+                {t("settings.byok.localStorageNote")}
+              </p>
+              <ForgeInset>
+                {renderForgeProviderBlock("gemini", "Gemini")}
+                {renderForgeProviderBlock("openai", "OpenAI")}
+              </ForgeInset>
+              <ForgeSubLabel>{t("settings.supabase")}</ForgeSubLabel>
+              <div className="space-y-2 px-1 pb-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <ForgeMetricDot active={supabaseReady} />
+                  <StatusPill tone={supabaseReady ? "good" : "warn"}>
+                    {supabaseReady ? t("settings.connected") : t("settings.localOnly")}
+                  </StatusPill>
+                </div>
+                <p className="text-sm leading-relaxed text-[color:var(--color-text-primary)]">
+                  {supabaseReady
+                    ? "Supabase klientu var savienot ar reālajiem datiem."
+                    : t("supabase.missing")}
+                </p>
+                {user?.email ? (
+                  <p className="text-[0.7rem] text-[color:var(--color-text-secondary)]">{user.email}</p>
+                ) : null}
+              </div>
+            </ForgeZoneBody>
+          </ForgeZone>
+
+          <ForgeZone>
+            <ForgeZoneHeader title={t("settings.gdpr.title")} />
+            <ForgeZoneBody className="space-y-3 px-3 pb-2 pt-1">
+              <p className="text-sm leading-relaxed text-[color:var(--color-text-primary)]">
+                {t("settings.gdpr.body")}
+              </p>
+              {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL ? (
+                <a
+                  href={`mailto:${process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}`}
+                  className="block text-sm font-medium text-[color:var(--color-primary)] underline"
+                >
+                  {process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL}
+                </a>
+              ) : (
+                <p className="text-xs text-[color:var(--color-text-secondary)]">
+                  {t("legal.privacy.contactMissing")}
+                </p>
+              )}
+              <Link
+                href="/legal/privacy"
+                className="inline-flex rounded-md border border-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-primary)]"
+                onClick={() => hapticTap()}
+              >
+                {t("settings.gdpr.openPrivacy")}
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  hapticTap();
+                  clearStoredConsent();
+                  window.location.reload();
+                }}
+                className="w-full rounded-md border border-[color:color-mix(in_srgb,var(--color-border)_85%,transparent)] px-4 py-2.5 text-sm font-semibold text-[color:var(--color-text-primary)]"
+              >
+                {t("settings.gdpr.resetConsent")}
+              </button>
+            </ForgeZoneBody>
+            <ForgeDivider />
+            <ForgeSubLabel>{t("auth.signout")}</ForgeSubLabel>
+            <ForgeZoneBody className="px-3 pb-3">
+              <button
+                type="button"
+                onClick={onSignOut}
+                className="w-full rounded-md border border-[color:color-mix(in_srgb,var(--color-border)_80%,transparent)] px-4 py-3 text-sm font-semibold text-[color:var(--color-text-primary)]"
+              >
+                {t("auth.signout")}
+              </button>
+            </ForgeZoneBody>
+          </ForgeZone>
+        </>
+      ) : (
+        <>
       <GlassPanel className="space-y-4">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-secondary)]">
@@ -711,6 +1046,8 @@ export default function SettingsPage() {
           {t("auth.signout")}
         </button>
       </GlassPanel>
+        </>
+      )}
     </ModuleShell>
   );
 }

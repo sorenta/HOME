@@ -10,9 +10,15 @@ import { useI18n } from "@/lib/i18n/i18n-context";
 type Props = {
   householdId: string;
   showQr?: boolean;
+  /** compact = dense strip for dashboard; comfortable = full card (default). */
+  density?: "compact" | "comfortable";
 };
 
-export function HouseholdSummary({ householdId, showQr = false }: Props) {
+export function HouseholdSummary({
+  householdId,
+  showQr = false,
+  density = "comfortable",
+}: Props) {
   const { t } = useI18n();
   const [household, setHousehold] = useState<Household | null>(null);
   const [memberCount, setMemberCount] = useState(0);
@@ -57,6 +63,28 @@ export function HouseholdSummary({ householdId, showQr = false }: Props) {
     return (
       <div className="maj-surface-panel text-sm text-[color:var(--color-text-secondary)]">
         {t("household.loading")}
+      </div>
+    );
+  }
+
+  if (density === "compact") {
+    return (
+      <div className="maj-utility-strip relative z-10 rounded-[var(--radius-card)] border border-[color:color-mix(in_srgb,var(--color-border)_75%,transparent)] bg-[color:color-mix(in_srgb,var(--color-surface)_82%,transparent)] px-3 py-2.5">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="min-w-0 truncate font-[family-name:var(--font-theme-display)] text-base font-semibold text-[color:var(--color-text-primary)]">
+            {household.name}
+          </p>
+          <div className="flex flex-shrink-0 flex-wrap gap-1.5">
+            <StatusPill tone="good">
+              {memberCount} {t("household.members")}
+            </StatusPill>
+            <StatusPill>{t(plan === "premium" ? "billing.plan.premium" : "billing.plan.free")}</StatusPill>
+            {household.qr_code ? <StatusPill>{household.qr_code}</StatusPill> : null}
+          </div>
+        </div>
+        <p className="mt-2 text-xs leading-snug text-[color:var(--color-text-secondary)]">
+          {t("household.shareHint")}
+        </p>
       </div>
     );
   }

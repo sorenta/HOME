@@ -154,10 +154,11 @@ export async function addShoppingItem(input: {
   if (error) throw error;
 }
 
-export async function updateShoppingItemStatus(
-  itemId: string,
-  status: "open" | "picked" | "archived",
-) {
+export async function updateShoppingItemStatus(input: {
+  householdId: string;
+  itemId: string;
+  status: "open" | "picked" | "archived";
+}) {
   const supabase = getBrowserClient();
   if (!supabase) {
     throw new Error("Supabase is not configured.");
@@ -166,25 +167,37 @@ export async function updateShoppingItemStatus(
   const { error } = await supabase
     .from("shopping_items")
     .update({ status })
-    .eq("id", itemId);
+    .eq("id", input.itemId)
+    .eq("household_id", input.householdId);
 
   if (error) throw error;
 }
 
-export async function moveShoppingItemToInventory(itemId: string) {
+/** RPC validates membership; householdId is required at call sites for defense-in-depth and clarity. */
+export async function moveShoppingItemToInventory(input: {
+  householdId: string;
+  itemId: string;
+}) {
   const supabase = getBrowserClient();
   if (!supabase) {
     throw new Error("Supabase is not configured.");
   }
 
+  if (!input.householdId) {
+    throw new Error("householdId is required.");
+  }
+
   const { error } = await supabase.rpc("move_shopping_item_to_inventory", {
-    p_item_id: itemId,
+    p_item_id: input.itemId,
   });
 
   if (error) throw error;
 }
 
-export async function deleteKitchenInventoryItem(itemId: string) {
+export async function deleteKitchenInventoryItem(input: {
+  householdId: string;
+  itemId: string;
+}) {
   const supabase = getBrowserClient();
   if (!supabase) {
     throw new Error("Supabase is not configured.");
@@ -193,8 +206,10 @@ export async function deleteKitchenInventoryItem(itemId: string) {
   const { error } = await supabase
     .from("inventory_items")
     .delete()
-    .eq("id", itemId)
-    .eq("module", "kitchen");
+    .eq("id", input.itemId)
+    .eq("household_id", input.householdId)
+    .eq("module", "kitchen")
+    .eq("owner_scope", "household");
 
   if (error) throw error;
 }

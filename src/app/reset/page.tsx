@@ -59,7 +59,7 @@ export default function ResetPage() {
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [todaySignals, setTodaySignals] = useState<ResetDailySignalsRow | null>(null);
   const [signalsVersion, setSignalsVersion] = useState(0);
-  const [checkInMessage, setCheckInMessage] = useState<"limit" | null>(null);
+  const [checkInMessage, setCheckInMessage] = useState<"limit" | "rpc" | null>(null);
   const [empathyRecipientIds, setEmpathyRecipientIds] = useState<string[] | null>(null);
 
   useEffect(() => {
@@ -257,7 +257,6 @@ export default function ResetPage() {
     const aura = scoreToAura(scoreAfterCheckIn);
     if (user?.id) {
       const res = await submitResetCheckInToSupabase({
-        userId: user.id,
         householdId: profile?.household_id ?? null,
         score: scoreAfterCheckIn,
         aura,
@@ -266,6 +265,8 @@ export default function ResetPage() {
       if (!res.ok) {
         if (res.code === "LIMIT") {
           setCheckInMessage("limit");
+        } else if (res.code === "RPC_UNAVAILABLE") {
+          setCheckInMessage("rpc");
         }
         return;
       }
@@ -440,6 +441,8 @@ export default function ResetPage() {
         </button>
         {checkInMessage === "limit" ? (
           <p className="text-sm text-rose-600 dark:text-rose-400">{t("reset.checkin.limitReached")}</p>
+        ) : checkInMessage === "rpc" ? (
+          <p className="text-sm text-rose-600 dark:text-rose-400">{t("reset.checkin.rpcUnavailable")}</p>
         ) : null}
       </GlassPanel>
     </ModuleShell>

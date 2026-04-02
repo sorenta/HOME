@@ -23,16 +23,35 @@ type Profile = {
   name_day_at?: string | null;
 };
 
+export type EnsureProfileResult = {
+  profile: Profile | null;
+  /** Set when profile row could not be loaded or created; user can retry via refreshProfile. */
+  error: string | null;
+};
+
 type AuthContextValue = {
   ready: boolean;
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  /** Last profile load failure for the signed-in user; cleared on success or sign-out. */
+  profileLoadError: string | null;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+/** Dedupe concurrent ensureProfile calls per user id (auth churn + getSession + onAuthStateChange). */
+const ensureProfileInFlight = new Map<string, Promise<EnsureProfileResult>>();
+
+function formatProfileError(prefix: string, error: unknown): string {
+  const msg =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message: string }).message)
+      : String(error);
+  return `${prefix}: ${msg}`;
+}
 
 function profileSeed(user: User) {
   return {
@@ -47,9 +66,11 @@ function profileSeed(user: User) {
   };
 }
 
-async function ensureProfile(user: User): Promise<Profile | null> {
+async function runEnsureProfile(user: User): Promise<EnsureProfileResult> {
   const supabase = getBrowserClient();
-  if (!supabase) return null;
+  if (!supabase) {
+    return { profile: null, error: null };
+  }
 
   const seed = profileSeed(user);
 
@@ -58,8 +79,10 @@ async function ensureProfile(user: User): Promise<Profile | null> {
     .upsert(seed, { onConflict: "id", ignoreDuplicates: true });
 
   if (upsertError) {
-    console.error("Failed to ensure profile", upsertError);
-    return null;
+    return {
+      profile: null,
+      error: formatProfileError("profiles upsert", upsertError),
+    };
   }
 
   const { data, error } = await supabase
@@ -71,7 +94,7 @@ async function ensureProfile(user: User): Promise<Profile | null> {
     .single();
 
   if (!error) {
-    return data satisfies Profile;
+    return { profile: data satisfies Profile, error: null };
   }
 
   const { data: fallbackData, error: fallbackError } = await supabase
@@ -83,15 +106,33 @@ async function ensureProfile(user: User): Promise<Profile | null> {
     .single();
 
   if (fallbackError) {
-    console.error("Failed to ensure profile", fallbackError);
-    return null;
+    return {
+      profile: null,
+      error: formatProfileError("profiles select", fallbackError),
+    };
   }
 
   return {
-    ...(fallbackData satisfies Omit<Profile, "birthday_at" | "name_day_at">),
-    birthday_at: null,
-    name_day_at: null,
+    profile: {
+      ...(fallbackData satisfies Omit<Profile, "birthday_at" | "name_day_at">),
+      birthday_at: null,
+      name_day_at: null,
+    },
+    error: null,
   };
+}
+
+function ensureProfile(user: User): Promise<EnsureProfileResult> {
+  const existing = ensureProfileInFlight.get(user.id);
+  if (existing) {
+    return existing;
+  }
+
+  const p = runEnsureProfile(user).finally(() => {
+    ensureProfileInFlight.delete(user.id);
+  });
+  ensureProfileInFlight.set(user.id, p);
+  return p;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -99,15 +140,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoadError, setProfileLoadError] = useState<string | null>(null);
 
   const refreshProfile = useCallback(async () => {
     if (!user) {
       setProfile(null);
+      setProfileLoadError(null);
       return;
     }
 
-    const nextProfile = await ensureProfile(user);
-    setProfile(nextProfile);
+    setProfileLoadError(null);
+    const result = await ensureProfile(user);
+    setProfile(result.profile);
+    setProfileLoadError(result.error);
   }, [user]);
 
   useEffect(() => {
@@ -129,9 +174,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
-        const nextProfile = await ensureProfile(currentSession.user);
+        setProfileLoadError(null);
+        const result = await ensureProfile(currentSession.user);
         if (!alive) return;
-        setProfile(nextProfile);
+        setProfile(result.profile);
+        setProfileLoadError(result.error);
       }
 
       if (alive) {
@@ -147,13 +194,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!nextSession?.user) {
         setProfile(null);
+        setProfileLoadError(null);
         return;
       }
 
       queueMicrotask(async () => {
-        const nextProfile = await ensureProfile(nextSession.user);
+        setProfileLoadError(null);
+        const result = await ensureProfile(nextSession.user);
         if (alive) {
-          setProfile(nextProfile);
+          setProfile(result.profile);
+          setProfileLoadError(result.error);
         }
       });
     });
@@ -169,12 +219,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     const supabase = getBrowserClient();
     if (!supabase) return;
+    setProfileLoadError(null);
     await supabase.auth.signOut();
   }, []);
 
   const value = useMemo(
-    () => ({ ready, user, session, profile, signOut, refreshProfile }),
-    [ready, user, session, profile, signOut, refreshProfile],
+    () => ({
+      ready,
+      user,
+      session,
+      profile,
+      profileLoadError,
+      signOut,
+      refreshProfile,
+    }),
+    [ready, user, session, profile, profileLoadError, signOut, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

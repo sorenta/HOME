@@ -259,11 +259,12 @@ export default function KitchenPage() {
   }
 
   async function handleInventoryDelete(itemId: string) {
+    if (!householdId) return;
     setError(null);
     setMessage(null);
 
     try {
-      await deleteKitchenInventoryItem(itemId);
+      await deleteKitchenInventoryItem({ householdId, itemId });
       setSelectedId(null);
       setMessage(t("kitchen.saved"));
       hapticTap();
@@ -277,11 +278,12 @@ export default function KitchenPage() {
     itemId: string,
     status: "open" | "picked" | "archived",
   ) {
+    if (!householdId) return;
     setError(null);
     setMessage(null);
 
     try {
-      await updateShoppingItemStatus(itemId, status);
+      await updateShoppingItemStatus({ householdId, itemId, status });
       if (status === "archived") {
         setSelectedId(null);
       }
@@ -294,11 +296,12 @@ export default function KitchenPage() {
   }
 
   async function handleMoveToInventory(itemId: string) {
+    if (!householdId) return;
     setError(null);
     setMessage(null);
 
     try {
-      await moveShoppingItemToInventory(itemId);
+      await moveShoppingItemToInventory({ householdId, itemId });
       setSelectedId(null);
       setMessage(t("kitchen.moved"));
       hapticTap();

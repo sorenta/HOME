@@ -370,6 +370,11 @@ export default function EventsPage() {
 
   async function removeEvent(eventId: string) {
     setFormError(null);
+    const event = events.find((e) => e.id === eventId);
+    if (!event) {
+      setFormError(mapSyncMessage("EVENT_DELETE_NOT_FOUND"));
+      return;
+    }
     const client = getBrowserClient();
     if (!client) {
       const next = events.filter((e) => e.id !== eventId);
@@ -377,7 +382,12 @@ export default function EventsPage() {
       writePlannerEvents(next);
       return;
     }
-    const res = await deletePlannerEventSynced({ eventId });
+    const res = await deletePlannerEventSynced({
+      eventId,
+      style: event.style,
+      householdId: profile?.household_id ?? null,
+      userId: user?.id ?? null,
+    });
     if (!res.ok) {
       setFormError(mapSyncMessage(res.message));
       return;

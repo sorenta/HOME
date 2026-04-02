@@ -18,7 +18,6 @@ import {
   type HouseholdMember,
 } from "@/lib/household";
 import { MetricCard } from "@/components/ui/metric-card";
-import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useTheme } from "@/components/providers/theme-provider";
@@ -26,12 +25,10 @@ import {
   getAdaptiveModuleOrder,
   type ModuleId,
 } from "@/lib/bento-usage";
-import { hapticTap } from "@/lib/haptic";
 import { hasResetCheckInToday } from "@/lib/reset-checkin";
-import type { ThemeId } from "@/lib/theme-logic";
 import { getGeminiKeyFromStorage, getOpenAIKeyFromStorage } from "@/lib/ai/keys";
 import { fetchOpenHouseholdTaskCount } from "@/lib/events-sync";
-import { BentoTile } from "./bento-tile";
+import { BentoTile, type BentoTileTier } from "./bento-tile";
 import { AppMark } from "@/components/branding/app-mark";
 import { DashboardHomeLayout } from "@/components/dashboard/dashboard-home-layout";
 import { HouseholdWaterWidget } from "./household-water-widget";
@@ -51,18 +48,19 @@ const DEFAULT_ORDER: ModuleId[] = [
 
 const MODULE_META: Record<
   ModuleId,
-  { href: string; titleKey: string; emoji: string; colSpan?: 1 | 2 }
+  { href: string; titleKey: string; emoji: string; colSpan?: 1 | 2; tier: BentoTileTier }
 > = {
-  calendar: { href: "/events", titleKey: "tile.calendar", emoji: "📅" },
-  finance: { href: "/finance", titleKey: "tile.finance", emoji: "💰" },
-  reset: { href: "/reset", titleKey: "tile.reset", emoji: "🧘" },
+  calendar: { href: "/events", titleKey: "tile.calendar", emoji: "📅", tier: "featured" },
+  finance: { href: "/finance", titleKey: "tile.finance", emoji: "💰", tier: "compact" },
+  reset: { href: "/reset", titleKey: "tile.reset", emoji: "🧘", tier: "compact" },
   kitchen: {
     href: "/kitchen",
     titleKey: "tile.kitchen",
     emoji: "🍳",
     colSpan: 2,
+    tier: "featured",
   },
-  pharmacy: { href: "/pharmacy", titleKey: "tile.pharmacy", emoji: "💊" },
+  pharmacy: { href: "/pharmacy", titleKey: "tile.pharmacy", emoji: "💊", tier: "compact" },
 };
 
 function memberInitials(name: string | null | undefined): string {
@@ -187,6 +185,7 @@ export function BentoDashboard() {
             emoji={meta.emoji}
             highlight={highlight}
             colSpan={meta.colSpan ?? 1}
+            tier={meta.tier}
             attention={highlight}
           />
         );
@@ -208,6 +207,140 @@ export function BentoDashboard() {
     ? `${household.name} · ${t("dashboard.subtitle")}`
     : t("dashboard.subtitle");
   const waterScopeId = household?.id ?? (user?.id ? `personal:${user.id}` : "personal:guest");
+
+  const metricsSlot = (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 }}
+      className="maj-dashboard-metrics maj-dashboard-metrics--split relative z-10"
+    >
+      <div className="maj-dashboard-metrics-pair">
+        <MetricCard
+          variant="compact"
+          label={t("dashboard.members")}
+          value={members.length || household?.member_count || 0}
+        />
+        <MetricCard variant="compact" label={t("dashboard.pending")} value={pendingCount} />
+      </div>
+      <MetricCard
+        variant="emphasis"
+        label={t("dashboard.aiReady")}
+        value={aiReady ? "ON" : "OFF"}
+      />
+    </motion.div>
+  );
+
+  const householdPanelSlot = (
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+      className={`maj-panel-lite maj-shell-household maj-shell-household--${themeId} relative z-10`}
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="maj-theme-section-title">{t("household.members")}</h2>
+        <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-[color:var(--color-text-secondary)]">
+          {t("app.realtime")}
+        </span>
+      </div>
+      <ul className="maj-divider-list mt-3">
+        {members.length === 0 ? (
+          <li className="maj-divider-list-item border-none py-1 text-sm text-[color:var(--color-secondary)]">
+            {t("household.membersList.empty")}
+          </li>
+        ) : (
+          members.map((member) => {
+            const label = member.display_name ?? t("household.membersList.member");
+            return (
+              <li key={member.id} className="maj-divider-list-item">
+                <div className="flex items-start gap-3">
+                  <div
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-button)] text-xs font-semibold tracking-tight text-[color:var(--color-primary)]"
+                    style={{
+                      background:
+                        "color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))",
+                    }}
+                    aria-hidden
+                  >
+                    {memberInitials(label)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-[family-name:var(--font-theme-display)] text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        {label}
+                      </p>
+                      {member.is_me ? (
+                        <StatusPill tone="neutral">{t("household.membersList.you")}</StatusPill>
+                      ) : null}
+                    </div>
+                    <p className="mt-0.5 text-xs text-[color:var(--color-secondary)]">
+                      {member.role_label ?? t("household.membersList.member")}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            );
+          })
+        )}
+      </ul>
+      <div className="mt-3 flex flex-wrap gap-2 border-t border-[color:color-mix(in_srgb,var(--color-border)_80%,transparent)] pt-3">
+        <StatusPill tone={aiReady ? "good" : "neutral"}>{t("app.smartAssistant")}</StatusPill>
+        {!resetDoneToday ? (
+          <StatusPill tone="critical">{t("dashboard.pendingReset")}</StatusPill>
+        ) : (
+          <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
+        )}
+      </div>
+    </motion.section>
+  );
+
+  const modulesSlot = (
+    <motion.div
+      layout={themeId !== "lucent"}
+      className="maj-dashboard-modules relative z-10"
+    >
+      {tiles}
+    </motion.div>
+  );
+
+  const feedSlot = (
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.14 }}
+      className={`maj-dashboard-feed maj-panel-lite maj-feed-shell maj-shell-feed maj-shell-feed--${themeId} relative z-10 mt-[length:var(--maj-space-section-y)]`}
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="maj-theme-section-title">{t("dashboard.feed")}</h2>
+        <span className="text-[0.68rem] font-medium text-[color:var(--color-text-secondary)]">
+          {t("dashboard.feedLive")}
+        </span>
+      </div>
+      <p className="maj-theme-subtitle mt-1 text-xs text-[color:var(--color-text-secondary)]">
+        {t("dashboard.feedHint")}
+      </p>
+      <ul className="maj-feed-timeline mt-3">
+        {homeFeed.map((item) => (
+          <li key={item.id} className="maj-feed-timeline-item">
+            <span className="maj-feed-timeline-dot" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm leading-snug text-[color:var(--color-text)]">{item.line}</p>
+              <div className="mt-1 flex items-center gap-2">
+                <p className="text-xs text-[color:var(--color-secondary)]">{item.time}</p>
+                {item.source === "db" ? (
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/80"
+                    title="Realtime"
+                  />
+                ) : null}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </motion.section>
+  );
 
   if (!profile?.household_id) {
     return (
@@ -253,139 +386,6 @@ export function BentoDashboard() {
     </motion.header>
   );
 
-  const metricsSlot = (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.05 }}
-      className="maj-dashboard-metrics relative z-10"
-    >
-      <MetricCard
-        label={t("dashboard.members")}
-        value={members.length || household?.member_count || 0}
-      />
-      <MetricCard
-        label={t("dashboard.pending")}
-        value={pendingCount}
-      />
-      <MetricCard
-        label={t("dashboard.aiReady")}
-        value={aiReady ? "ON" : "OFF"}
-      />
-    </motion.div>
-  );
-
-  const householdPanelSlot = (
-    <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className={`maj-glass-panel maj-shell-household maj-shell-household--${themeId} relative z-10 p-[length:var(--maj-space-card-pad)]`}
-    >
-      <SectionHeading
-        eyebrow={t("app.household")}
-        title={household?.name ?? t("app.household")}
-        detail={t("app.realtime")}
-      />
-      <p className="maj-theme-subtitle mt-3 text-sm text-[color:var(--color-text-primary)]">
-        {t("dashboard.householdHint")}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-[var(--maj-space-stack)]">
-        <StatusPill tone={aiReady ? "good" : "neutral"}>
-          {t("app.smartAssistant")}
-        </StatusPill>
-        {!resetDoneToday ? (
-          <StatusPill tone="critical">{t("dashboard.pendingReset")}</StatusPill>
-        ) : (
-          <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
-        )}
-      </div>
-      <div className="maj-bento-grid mt-4 grid sm:grid-cols-2">
-        {members.length === 0 ? (
-          <p className="text-sm text-[color:var(--color-secondary)] sm:col-span-2">
-            {t("household.membersList.empty")}
-          </p>
-        ) : (
-          members.map((member) => {
-            const label = member.display_name ?? t("household.membersList.member");
-            return (
-              <div
-                key={member.id}
-                className="maj-nested-surface flex items-start gap-3 px-3 py-3"
-              >
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-button)] text-sm font-semibold tracking-tight text-[color:var(--color-primary)]"
-                  style={{
-                    background:
-                      "color-mix(in srgb, var(--color-primary) 14%, var(--color-surface))",
-                  }}
-                  aria-hidden
-                >
-                  {memberInitials(label)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-[family-name:var(--font-theme-display)] font-semibold text-[color:var(--color-text-primary)]">
-                      {label}
-                    </p>
-                    {member.is_me ? (
-                      <StatusPill tone="neutral">{t("household.membersList.you")}</StatusPill>
-                    ) : null}
-                  </div>
-                  <p className="mt-0.5 text-sm text-[color:var(--color-secondary)]">
-                    {member.role_label ?? t("household.membersList.member")}
-                  </p>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </motion.section>
-  );
-
-  const modulesSlot = (
-    <motion.div
-      layout={themeId !== "lucent"}
-      className="maj-dashboard-modules relative z-10"
-    >
-      {tiles}
-    </motion.div>
-  );
-
-  const feedSlot = (
-    <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.14 }}
-      className={`maj-dashboard-feed maj-surface-panel maj-shell-feed maj-shell-feed--${themeId} relative z-10 mt-[length:var(--maj-space-section-y)]`}
-    >
-      <SectionHeading
-        title={t("dashboard.feed")}
-        detail={t("dashboard.feedLive")}
-      />
-      <p className="maj-theme-subtitle mt-1 text-xs text-[color:var(--color-text-secondary)]">
-        {t("dashboard.feedHint")}
-      </p>
-      <div className="mt-3 space-y-[var(--maj-space-stack)]">
-        {homeFeed.map((item) => (
-          <div key={item.id} className="maj-nested-surface px-3 py-3">
-            <p className="text-sm leading-snug text-[color:var(--color-text)]">{item.line}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <p className="text-xs text-[color:var(--color-secondary)]">{item.time}</p>
-              {item.source === "db" ? (
-                <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500/80"
-                  title="Realtime"
-                />
-              ) : null}
-            </div>
-          </div>
-        ))}
-      </div>
-    </motion.section>
-  );
-
   return (
     <div className="maj-dashboard-root maj-page-shell relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
       <DashboardHomeLayout
@@ -395,7 +395,7 @@ export function BentoDashboard() {
           notice: <TimeOfDayNoticeCard />,
           householdSummary: (
             <div className="relative z-10">
-              <HouseholdSummary householdId={profile.household_id} />
+              <HouseholdSummary householdId={profile.household_id} density="compact" />
             </div>
           ),
           water: (

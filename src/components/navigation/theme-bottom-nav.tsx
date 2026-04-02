@@ -51,7 +51,7 @@ function ForgeBottomNav() {
   const { themeId, navItems, isActive } = useNavState();
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 border-t border-[color:var(--color-border)] bg-[color:var(--color-nav-background)]"
+      className="maj-forge-bottom-nav fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 border-t border-[color:color-mix(in_srgb,var(--color-border)_80%,transparent)]"
       aria-label="Primary"
     >
       <div className="grid grid-cols-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-0">
@@ -121,15 +121,15 @@ function CanopyBottomNav() {
   );
 }
 
-/** Poster / brutal: thick top rule + offset chip buttons. */
+/** Poster / brutal: lighter strip — chips stay readable without dominating the canvas. */
 function PulseBottomNav() {
   const { themeId, navItems, isActive } = useNavState();
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 border-t-[3px] border-[color:var(--color-border)] bg-[color:var(--color-nav-background)] shadow-[4px_-4px_0_rgba(43,45,66,0.12)]"
+      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 border-t border-[color:var(--color-border)] bg-[color:var(--color-nav-background)] shadow-[0_-6px_24px_rgba(43,45,66,0.06)]"
       aria-label="Primary"
     >
-      <div className="scrollbar-none flex gap-2 overflow-x-auto px-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2">
+      <div className="scrollbar-none flex gap-1.5 overflow-x-auto px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5">
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
@@ -138,17 +138,17 @@ function PulseBottomNav() {
               href={item.href}
               onClick={() => hapticTap()}
               className={[
-                "flex min-w-[4.5rem] shrink-0 flex-col items-center gap-1 border-2 border-[color:var(--color-border)] px-2 py-2 text-[0.65rem] font-bold",
+                "flex min-w-[3.85rem] shrink-0 flex-col items-center gap-0.5 border border-[color:var(--color-border)] px-1.5 py-1.5 text-[0.6rem] font-bold leading-tight",
                 active
-                  ? "bg-[color:var(--color-border)] text-[color:var(--color-background)] shadow-[3px_3px_0_rgba(255,107,107,0.35)]"
-                  : "bg-[color:var(--color-surface)] text-[color:var(--color-text-primary)] shadow-[3px_3px_0_rgba(43,45,66,0.12)]",
+                  ? "bg-[color:color-mix(in_srgb,var(--color-border)_88%,var(--color-background))] text-[color:var(--color-background)] shadow-[2px_2px_0_rgba(255,107,107,0.22)]"
+                  : "bg-[color:var(--color-surface)] text-[color:var(--color-text-primary)] shadow-[1px_1px_0_rgba(43,45,66,0.08)]",
               ].join(" ")}
               style={{ borderRadius: "var(--radius-button)" }}
             >
-              <span className="text-lg leading-none" aria-hidden>
+              <span className="text-base leading-none" aria-hidden>
                 {THEME_NAV_ICONS[item.id][themeId]}
               </span>
-              <span className="max-w-[5rem] text-center leading-tight">{item.label}</span>
+              <span className="max-w-[4.5rem] text-center leading-tight">{item.label}</span>
             </Link>
           );
         })}
@@ -196,16 +196,16 @@ function LucentBottomNav() {
   );
 }
 
-/** Warm modular cells + honey accent rail. */
+/** Warm modular cells — slimmer rail so content stays primary. */
 function HiveBottomNav() {
   const { themeId, navItems, isActive } = useNavState();
   return (
     <nav
-      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 rounded-t-[1.75rem] border-x border-t-2 border-[color:color-mix(in_srgb,var(--color-accent)_35%,var(--color-border))] bg-[color:var(--color-nav-background)] shadow-[0_-8px_32px_rgba(120,90,40,0.14)]"
+      className="fixed bottom-0 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 rounded-t-[1.35rem] border-x border-t border-[color:color-mix(in_srgb,var(--color-accent)_28%,var(--color-border))] bg-[color:var(--color-nav-background)] shadow-[0_-6px_22px_rgba(120,90,40,0.1)]"
       aria-label="Primary"
     >
-      <div className="h-1 w-full rounded-t-[1.75rem] bg-[color:color-mix(in_srgb,var(--color-accent)_55%,transparent)]" aria-hidden />
-      <div className="flex items-stretch justify-between gap-1 px-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-2">
+      <div className="h-0.5 w-full rounded-t-[1.35rem] bg-[color:color-mix(in_srgb,var(--color-accent)_45%,transparent)]" aria-hidden />
+      <div className="flex items-stretch justify-between gap-0.5 px-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))] pt-1.5">
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
@@ -214,18 +214,18 @@ function HiveBottomNav() {
               href={item.href}
               onClick={() => hapticTap()}
               className={[
-                "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-[0.62rem] font-bold",
+                "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[0.58rem] font-bold",
                 active
-                  ? "bg-[color:var(--color-surface)] text-[color:var(--color-primary)] shadow-[0_0_0_2px_color-mix(in_srgb,var(--color-accent)_45%,transparent)]"
+                  ? "bg-[color:var(--color-surface)] text-[color:var(--color-primary)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_38%,transparent)]"
                   : "text-[color:var(--color-nav-inactive)]",
               ].join(" ")}
             >
               <span
-                className="flex h-9 w-9 items-center justify-center text-lg"
+                className="flex h-8 w-8 items-center justify-center text-[0.95rem]"
                 style={{
                   borderRadius: "30%",
                   background: active
-                    ? "color-mix(in srgb, var(--color-accent) 22%, var(--color-surface))"
+                    ? "color-mix(in srgb, var(--color-accent) 18%, var(--color-surface))"
                     : "transparent",
                 }}
                 aria-hidden

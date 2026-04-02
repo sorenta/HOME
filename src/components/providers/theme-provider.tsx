@@ -27,16 +27,17 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = "majapps-theme";
+/** Persisted device theme; used by ThemeProfileSync to decide if DB theme may override. */
+export const MAJAPPS_THEME_STORAGE_KEY = "majapps-theme";
 
 function getInitialThemeId(): ThemeId {
   if (typeof window === "undefined") return DEFAULT_THEME;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(MAJAPPS_THEME_STORAGE_KEY);
     if (!raw) return DEFAULT_THEME;
     const resolved = migrateLegacyThemeId(raw);
     if (resolved !== raw) {
-      localStorage.setItem(STORAGE_KEY, resolved);
+      localStorage.setItem(MAJAPPS_THEME_STORAGE_KEY, resolved);
     }
     return resolved;
   } catch {
@@ -186,7 +187,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setThemeId = useCallback((id: ThemeId) => {
     setThemeIdState(id);
     try {
-      localStorage.setItem(STORAGE_KEY, id);
+      localStorage.setItem(MAJAPPS_THEME_STORAGE_KEY, id);
     } catch {
       /* ignore */
     }

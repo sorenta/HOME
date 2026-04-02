@@ -20,7 +20,7 @@ type Props = {
 };
 
 /**
- * Theme-specific home composition (order + wrappers), not decoration-only.
+ * Theme-specific home composition: order, grouping, and density — not only wrappers.
  */
 export function DashboardHomeLayout({ themeId, slots }: Props) {
   const { header, notice, householdSummary, water, metrics, householdPanel, modules, feed } =
@@ -34,10 +34,10 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
           {notice}
           <div className="mt-3">{metrics}</div>
         </div>
+        <div className="maj-section-gap">{modules}</div>
         <div className="maj-section-gap">{householdSummary}</div>
         {water}
         <div className="maj-section-gap">{householdPanel}</div>
-        <div className="maj-section-gap">{modules}</div>
         {feed}
       </div>
     );
@@ -47,6 +47,10 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
     return (
       <div className="maj-dash-compose maj-dash-compose--canopy">
         {header}
+        <section className="maj-canopy-shelf maj-section-gap">
+          <p className="maj-canopy-shelf-label">Spaces</p>
+          <div className="maj-canopy-shelf-plate">{modules}</div>
+        </section>
         <section className="maj-canopy-shelf maj-section-gap">
           <p className="maj-canopy-shelf-label">Today</p>
           <div className="maj-canopy-shelf-plate space-y-3">
@@ -61,10 +65,6 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
         </section>
         <div className="maj-section-gap">{householdPanel}</div>
         <section className="maj-canopy-shelf maj-section-gap">
-          <p className="maj-canopy-shelf-label">Spaces</p>
-          <div className="maj-canopy-shelf-plate">{modules}</div>
-        </section>
-        <section className="maj-canopy-shelf maj-section-gap">
           <p className="maj-canopy-shelf-label">Live</p>
           <div className="maj-canopy-shelf-plate">{feed}</div>
         </section>
@@ -77,14 +77,14 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
       <div className="maj-dash-compose maj-dash-compose--pulse">
         <div className="maj-pulse-hero-band" aria-hidden />
         {header}
-        <div className="maj-section-gap">{notice}</div>
-        <div className="maj-section-gap">{householdSummary}</div>
-        {water}
-        <div className="maj-section-gap">{metrics}</div>
-        <div className="maj-section-gap">{householdPanel}</div>
-        <div className="maj-section-gap border-t-2 border-[color:var(--color-border)] pt-4">
+        <div className="maj-section-gap border-b-2 border-[color:var(--color-border)] pb-4">
           {modules}
         </div>
+        <div className="maj-section-gap">{notice}</div>
+        <div className="maj-section-gap">{metrics}</div>
+        <div className="maj-section-gap">{householdSummary}</div>
+        {water}
+        <div className="maj-section-gap">{householdPanel}</div>
         <div className="maj-section-gap">{feed}</div>
       </div>
     );
@@ -94,14 +94,14 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
     return (
       <div className="maj-dash-compose maj-dash-compose--lucent">
         {header}
-        <div className="maj-lucent-stack maj-section-gap space-y-4">
+        <div className="maj-section-gap">{modules}</div>
+        <div className="maj-section-gap">{metrics}</div>
+        <div className="maj-lucent-stack maj-section-gap space-y-3">
           {notice}
           {householdSummary}
         </div>
         {water}
-        <div className="maj-section-gap">{metrics}</div>
         <div className="maj-lucent-float-panel maj-section-gap">{householdPanel}</div>
-        <div className="maj-section-gap">{modules}</div>
         {feed}
       </div>
     );
@@ -111,12 +111,12 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
     return (
       <div className="maj-dash-compose maj-dash-compose--hive">
         {header}
-        <div className="maj-section-gap">{notice}</div>
+        <div className="maj-section-gap">{modules}</div>
         <div className="maj-hive-metrics-honey maj-section-gap">{metrics}</div>
+        <div className="maj-section-gap">{notice}</div>
         <div className="maj-section-gap">{householdSummary}</div>
         {water}
         <div className="maj-section-gap">{householdPanel}</div>
-        <div className="maj-hive-modules maj-section-gap">{modules}</div>
         <div className="maj-section-gap">{feed}</div>
       </div>
     );
@@ -125,12 +125,14 @@ export function DashboardHomeLayout({ themeId, slots }: Props) {
   return (
     <div className="maj-dash-compose maj-dash-compose--fallback">
       {header}
-      {notice}
+      <div className="maj-section-gap">{modules}</div>
+      <div className="maj-forge-command maj-section-gap rounded-[var(--radius-card)] border border-[color:var(--color-border)] bg-[color:color-mix(in_srgb,var(--color-surface)_92%,transparent)] p-3">
+        {notice}
+        <div className="mt-3">{metrics}</div>
+      </div>
       {householdSummary}
       {water}
-      {metrics}
       {householdPanel}
-      {modules}
       {feed}
     </div>
   );

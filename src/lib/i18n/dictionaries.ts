@@ -104,6 +104,8 @@ export const dictionaries: Record<
     "auth.session.helper":
       "Reģistrācija izveidos tavu kontu un pirmo profila ierakstu Supabase pusē.",
     "auth.session.cta": "Atvērt autentifikāciju",
+    "auth.profile.loadFailed": "Neizdevās ielādēt profilu no servera.",
+    "auth.profile.retry": "Mēģināt vēlreiz",
     "auth.signout": "Iziet",
     "nav.home": "Sākums",
     "nav.profile": "Profils",
@@ -500,6 +502,8 @@ export const dictionaries: Record<
     "reset.checkin.limitHint":
       "Vienā dienā vari saglabāt līdz {max} check-in ierakstiem — tie papildina viens otru (vidējais profila rādītājs).",
     "reset.checkin.limitReached": "Šodien jau sasniegts dienas limits mākonī.",
+    "reset.checkin.rpcUnavailable":
+      "Mākoņa check-in nav pieejams — palaid Supabase skriptu reset_checkin_atomic_submit.sql (funkcija submit_reset_checkin).",
     "reset.health.title": "Veselības avoti",
     "reset.health.intro":
       "Soļus un līdzīgus datus drīz varēs vilkt no Google Fit vai, Android ierīcē, caur Health Connect (Samsung Health u.c.).",
@@ -587,6 +591,8 @@ export const dictionaries: Record<
     "events.sync.SUPABASE_MISSING": "Nav datu servera savienojuma — saglabāts tikai šajā ierīcē.",
     "events.sync.HOUSEHOLD_REQUIRED": "Šai darbībai vajag mājsaimniecību.",
     "events.sync.USER_REQUIRED": "Personīgiem notikumiem vajag aktīvu sesiju.",
+    "events.sync.EVENT_DELETE_NOT_FOUND":
+      "Notikums netika dzēsts (nav atrasts vai nav tiesību). Atjauno lapu un mēģini vēlreiz.",
     "events.sync.SCHEMA_CALENDAR_EVENTS":
       "Kalendāra tabula vai tiesības nav gatavas. Palaid Supabase migrācijas (calendar_events politikas).",
     "events.sync.SCHEMA_HOUSEHOLD_TASKS":
@@ -666,6 +672,14 @@ export const dictionaries: Record<
     "water.widget.goalOpen": "{pct}% no dienas mērķa",
     "water.widget.yesterdayTitle": "Vakardienas rezultāts",
     "water.widget.yesterdayEmpty": "Vakar vēl nebija neviena ieraksta.",
+    "water.widget.syncLoadFailed":
+      "Neizdevās ielādēt ūdens datus no mākoņa — rādām šīs ierīces saglabāto versiju. Pārbaudi savienojumu un atver lapu vēlreiz.",
+    "water.widget.syncSettleFailed":
+      "Vakardienas medaļu aprēķins mākonī neizdevās; rādītā statistika var atjaunoties nākamajā ielādē.",
+    "water.widget.syncAddFailed":
+      "Šo ierakstu serveris nepieņēma — skaitlis atiestatīts uz pēdējo apstiprināto vērtību.",
+    "water.widget.syncPartial":
+      "Daļēji sinhronizēts: dati var pilnībā atjaunināties pēc nākamās veiksmīgās ielādes.",
     "supabase.missing": "Supabase nav konfigurēts (pievieno .env.local).",
   },
   en: {
@@ -768,6 +782,8 @@ export const dictionaries: Record<
     "auth.session.helper":
       "Signing up will create your account and the first profile row in Supabase.",
     "auth.session.cta": "Open authentication",
+    "auth.profile.loadFailed": "Could not load profile from the server.",
+    "auth.profile.retry": "Try again",
     "auth.signout": "Sign out",
     "nav.home": "Home",
     "nav.profile": "Profile",
@@ -1164,6 +1180,8 @@ export const dictionaries: Record<
     "reset.checkin.limitHint":
       "You can save up to {max} check-ins per day — they add up (your profile score uses the daily average).",
     "reset.checkin.limitReached": "Daily cloud limit reached for today.",
+    "reset.checkin.rpcUnavailable":
+      "Cloud check-in is not available — run supabase/reset_checkin_atomic_submit.sql (submit_reset_checkin) on your database.",
     "reset.health.title": "Health sources",
     "reset.health.intro":
       "Steps and similar metrics can be pulled from Google Fit or, on Android, via Health Connect (Samsung Health, etc.).",
@@ -1251,6 +1269,8 @@ export const dictionaries: Record<
     "events.sync.SUPABASE_MISSING": "No cloud connection — saved on this device only.",
     "events.sync.HOUSEHOLD_REQUIRED": "This action requires a household.",
     "events.sync.USER_REQUIRED": "Personal events require an active session.",
+    "events.sync.EVENT_DELETE_NOT_FOUND":
+      "The event was not deleted (not found or not allowed). Refresh and try again.",
     "events.sync.SCHEMA_CALENDAR_EVENTS":
       "Calendar table or policies are not ready. Run Supabase migrations for calendar_events.",
     "events.sync.SCHEMA_HOUSEHOLD_TASKS":
@@ -1330,6 +1350,14 @@ export const dictionaries: Record<
     "water.widget.goalOpen": "{pct}% of daily goal",
     "water.widget.yesterdayTitle": "Yesterday's result",
     "water.widget.yesterdayEmpty": "There were no entries yesterday.",
+    "water.widget.syncLoadFailed":
+      "Could not load water data from the cloud — showing what this device last saved. Check your connection and try again.",
+    "water.widget.syncSettleFailed":
+      "Yesterday’s medal settlement didn’t complete in the cloud; counts may refresh on the next load.",
+    "water.widget.syncAddFailed":
+      "The server did not accept that entry — the amount was reverted to the last confirmed value.",
+    "water.widget.syncPartial":
+      "Partially synced; totals may fully refresh after the next successful load.",
     "supabase.missing": "Supabase is not configured (add .env.local).",
   },
 };

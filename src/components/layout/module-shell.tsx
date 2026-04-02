@@ -14,6 +14,8 @@ type Props = {
   moduleId?: ModuleId;
   children: React.ReactNode;
   requireAuth?: boolean;
+  /** Forge inner pages: tighter shell rhythm + control-surface framing. */
+  shellVariant?: "default" | "forge";
 };
 
 export function ModuleShell({
@@ -21,13 +23,24 @@ export function ModuleShell({
   moduleId,
   children,
   requireAuth = true,
+  shellVariant = "default",
 }: Props) {
   useEffect(() => {
     if (moduleId) recordModuleVisit(moduleId);
   }, [moduleId]);
 
+  const shellMod =
+    shellVariant === "forge" ? "maj-module-shell--forge" : "";
+
   return (
-    <div className="maj-module-shell maj-page-shell relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div
+      className={[
+        "maj-module-shell maj-page-shell relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden",
+        shellMod,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <motion.header
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
