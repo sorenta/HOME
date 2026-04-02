@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import type { CSSProperties } from "react";
 import {
   Barlow_Condensed,
   Fraunces,
@@ -13,7 +14,7 @@ import {
 import { AppProviders } from "@/components/providers/app-providers";
 import { ThemeBottomNav } from "@/components/navigation/theme-bottom-nav";
 import { GlobalCornerActions } from "@/components/layout/global-corner-actions";
-import { THEMES, DEFAULT_THEME } from "@/lib/theme-logic";
+import { THEMES, DEFAULT_THEME, buildRootThemeCssVars } from "@/lib/theme-logic";
 import "./globals.css";
 
 const inter = Inter({
@@ -94,16 +95,30 @@ export const viewport: Viewport = {
   ],
 };
 
+const defaultThemeManifest = THEMES[DEFAULT_THEME];
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const rootStyle: CSSProperties = {
+    ...buildRootThemeCssVars(defaultThemeManifest),
+    colorScheme:
+      defaultThemeManifest.id === "forge" || defaultThemeManifest.id === "canopy"
+        ? "dark"
+        : "light",
+  };
+
   return (
     <html
       lang="lv"
       className="h-full"
-      data-home-layout={THEMES[DEFAULT_THEME].homeScreenLayout}
+      data-theme={defaultThemeManifest.id}
+      data-layout-density={defaultThemeManifest.layoutDensity}
+      data-theme-motion={defaultThemeManifest.motion}
+      data-home-layout={defaultThemeManifest.homeScreenLayout}
+      style={rootStyle}
       suppressHydrationWarning
     >
       <body

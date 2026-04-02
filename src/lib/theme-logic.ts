@@ -526,3 +526,95 @@ export function getLegacyFontVars(m: ThemeManifestV2): LegacyFontVars {
   return { sans: m.fonts.ui, display: m.fonts.display };
 }
 
+/**
+ * All theme CSS custom properties for `document.documentElement` / `<html style>`.
+ * Used by ThemeProvider (client) and RootLayout (SSR) so tokens exist before hydration.
+ */
+export function buildRootThemeCssVars(m: ThemeManifestV2): Record<string, string> {
+  const c = m.colors;
+  const r = m.radius;
+  const s = m.spacing;
+  const legacy = getLegacyThemeColors(m);
+  const legacyUi = getLegacyThemeUi(m);
+  const fonts = getLegacyFontVars(m);
+  const scale = s.sectionScale;
+  const strength = m.ui.bodyOverlayStrength;
+
+  const out: Record<string, string> = {
+    "--color-text": legacy.text,
+    "--color-background": legacy.background,
+    "--color-primary": legacy.primary,
+    "--color-secondary": legacy.secondary,
+    "--color-accent": legacy.accent,
+    "--color-surface": legacy.surface,
+    "--color-surface-border": legacy.surfaceBorder,
+    "--color-background-secondary": c.backgroundSecondary,
+    "--color-surface-2": c.surface2,
+    "--color-card": c.card,
+    "--color-card-elevated": c.cardElevated,
+    "--color-text-primary": c.textPrimary,
+    "--color-text-secondary": c.textSecondary,
+    "--color-text-muted": c.textMuted,
+    "--color-border": c.border,
+    "--color-border-strong": c.borderStrong,
+    "--color-accent-hover": c.accentHover,
+    "--color-accent-soft": c.accentSoft,
+    "--color-success": c.success,
+    "--color-warning": c.warning,
+    "--color-danger": c.danger,
+    "--color-info": c.info,
+    "--color-button-primary": c.buttonPrimary,
+    "--color-button-primary-text": c.buttonPrimaryText,
+    "--color-button-secondary": c.buttonSecondary,
+    "--color-button-secondary-text": c.buttonSecondaryText,
+    "--color-input-background": c.inputBackground,
+    "--color-input-border": c.inputBorder,
+    "--color-focus-ring": c.focusRing,
+    "--color-nav-background": c.navBackground,
+    "--color-nav-active": c.navActive,
+    "--color-nav-inactive": c.navInactive,
+    "--color-auth-background": c.authBackground,
+    "--color-auth-card": c.authCard,
+    "--color-auth-border": c.authBorder,
+    "--effect-hero-glow": c.heroGlow,
+    "--shadow-panel": c.panelShadow,
+    "--font-theme-sans": fonts.sans,
+    "--font-theme-display": fonts.display,
+    "--font-ui": m.fonts.ui,
+    "--font-display": m.fonts.display,
+    "--radius-card": r.card,
+    "--radius-button": r.button,
+    "--radius-input": r.input,
+    "--radius-nav": r.nav,
+    "--radius-chip": r.chip,
+    "--spacing-section-scale": String(s.sectionScale),
+    "--spacing-base-px": `${s.basePx}px`,
+    "--maj-space-page-x": `${Math.round(16 * scale)}px`,
+    "--maj-space-section-y": `${Math.round(16 * scale)}px`,
+    "--maj-space-bento-gap": `${Math.round(12 * scale)}px`,
+    "--maj-space-card-pad": `${Math.round(16 * scale)}px`,
+    "--maj-space-stack": `${Math.round(12 * scale)}px`,
+    "--maj-page-padding-top": `${Math.round(72 * scale)}px`,
+    "--maj-page-padding-bottom": `${Math.round(112 * scale)}px`,
+    "--layout-density": m.layoutDensity,
+    "--theme-motion": m.motion,
+    "--theme-background-image": legacyUi.backgroundImage,
+    "--theme-panel-shadow": legacyUi.panelShadow,
+    "--theme-panel-highlight": legacyUi.panelHighlight,
+    "--theme-tile-shadow": legacyUi.tileShadow,
+    "--theme-header-glow": legacyUi.headerGlow,
+    "--theme-panel-radius": legacyUi.panelRadius,
+    "--theme-tile-radius": legacyUi.tileRadius,
+    "--theme-chip-radius": legacyUi.chipRadius,
+    "--theme-panel-border": legacyUi.panelBorderStyle,
+    "--theme-tile-border": legacyUi.tileBorderStyle,
+    "--theme-body-overlay-strength": String(m.ui.bodyOverlayStrength),
+    "--body-overlay-before-opacity": String(0.9 * strength),
+    "--body-overlay-after-opacity": String(0.65 * strength),
+    "--theme-id": m.id,
+    "--panel-shadow": c.panelShadow,
+  };
+
+  return out;
+}
+
