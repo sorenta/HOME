@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useSeasonal } from "@/components/providers/seasonal-provider";
 
 const ORBS = [
   "maj-theme-orb maj-theme-orb--one",
@@ -14,9 +13,8 @@ const ORBS = [
 
 export function ThemeAmbientChrome() {
   const pathname = usePathname();
-  const { activeTheme } = useSeasonal();
 
-  if (pathname.startsWith("/auth") || activeTheme) {
+  if (pathname.startsWith("/auth")) {
     return null;
   }
 

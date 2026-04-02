@@ -29,17 +29,16 @@ import {
   type ModuleId,
 } from "@/lib/bento-usage";
 import { hapticTap } from "@/lib/haptic";
-import { useSeasonal } from "@/components/providers/seasonal-provider";
 import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { SeasonalRewardModal } from "@/components/seasonal/seasonal-reward-modal";
+import { HomeRollingEgg } from "@/components/spring/home-rolling-egg";
+import { PussyWillowFrame } from "@/components/spring/pussy-willow-frame";
 import { hasResetCheckInToday } from "@/lib/reset-checkin";
 import type { ThemeId } from "@/lib/theme-logic";
 import { getGeminiKeyFromStorage, getOpenAIKeyFromStorage } from "@/lib/ai/keys";
 import { fetchOpenHouseholdTaskCount } from "@/lib/events-sync";
 import { BentoTile } from "./bento-tile";
 import { HouseholdWaterWidget } from "./household-water-widget";
-import { PeakHolidayCard } from "./peak-holiday-card";
-import { SeasonalHomeBanner } from "./seasonal-home-banner";
 import { TimeOfDayNoticeCard } from "./time-of-day-notice-card";
 
 type GreetingPeriod = "morning" | "day" | "evening" | "night";
@@ -145,7 +144,6 @@ export function BentoDashboard() {
   const { t, locale } = useI18n();
   const { themeId } = useTheme();
   const { profile, user } = useAuth();
-  const { activeTheme } = useSeasonal();
   const [order, setOrder] = useState<ModuleId[]>(DEFAULT_ORDER);
   const [resetDoneToday, setResetDoneToday] = useState(true);
   const [greetingPeriod, setGreetingPeriod] = useState<GreetingPeriod>("day");
@@ -288,10 +286,11 @@ export function BentoDashboard() {
             <HiddenSeasonalCollectible spotId="home" />
           </div>
         </motion.header>
-        {activeTheme ? <PeakHolidayCard theme={activeTheme} displayName={displayName} /> : null}
-        {activeTheme ? <SeasonalHomeBanner theme={activeTheme} /> : null}
-        <TimeOfDayNoticeCard />
+        <PussyWillowFrame>
+          <TimeOfDayNoticeCard />
+        </PussyWillowFrame>
         <HouseholdOnboarding />
+        <HomeRollingEgg />
         <SeasonalRewardModal />
       </div>
     );
@@ -320,9 +319,9 @@ export function BentoDashboard() {
         </div>
       </motion.header>
 
-      {activeTheme ? <PeakHolidayCard theme={activeTheme} displayName={displayName} /> : null}
-      {activeTheme ? <SeasonalHomeBanner theme={activeTheme} /> : null}
-      <TimeOfDayNoticeCard />
+      <PussyWillowFrame>
+        <TimeOfDayNoticeCard />
+      </PussyWillowFrame>
 
       <div className="relative z-10 mb-4">
         <HouseholdSummary householdId={profile.household_id} />
@@ -453,6 +452,7 @@ export function BentoDashboard() {
           ))}
         </div>
       </motion.section>
+      <HomeRollingEgg />
       <SeasonalRewardModal />
     </div>
   );

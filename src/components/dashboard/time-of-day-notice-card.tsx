@@ -49,7 +49,7 @@ export function TimeOfDayNoticeCard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.03 }}
-      className="relative z-10 mb-4 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] px-4 py-3"
+      className="relative z-10 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] px-4 py-3"
       aria-label={t("dashboard.timeNotice.aria")}
     >
       <p className="text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-[color:var(--color-secondary)]">
