@@ -7,11 +7,13 @@ import { HouseholdPlanCard } from "@/components/billing/household-plan-card";
 import { HouseholdMembersList } from "@/components/household/household-members-list";
 import { HouseholdSummary } from "@/components/household/household-summary";
 import { useAuth } from "@/components/providers/auth-provider";
+import { fetchMyHouseholdSummary } from "@/lib/household";
 import { ModuleShell } from "@/components/layout/module-shell";
 import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { loadWaterState } from "@/lib/household-water-local";
 import { growthTips, profileSummary } from "@/lib/demo-data";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
@@ -22,16 +24,18 @@ function toDateInputValue(value: string | null | undefined) {
 }
 
 export default function ProfilePage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { user, profile, refreshProfile } = useAuth();
   const [birthdayAt, setBirthdayAt] = useState("");
   const [nameDayAt, setNameDayAt] = useState("");
+  const [householdName, setHouseholdName] = useState<string | null>(null);
+  const [medals, setMedals] = useState({ gold: 0, silver: 0, bronze: 0 });
   const [savingDates, setSavingDates] = useState(false);
   const [datesMessage, setDatesMessage] = useState<string | null>(null);
   const [datesTone, setDatesTone] = useState<"good" | "critical">("good");
   const secondaryModules = [
     { href: "/household", label: t("app.household"), icon: "⌂" },
-    { href: "/calendar", label: t("tile.calendar"), icon: "📅" },
+    { href: "/events", label: t("tile.calendar"), icon: "📅" },
     { href: "/reset", label: t("tile.reset"), icon: "🧘" },
     { href: "/pharmacy", label: t("tile.pharmacy"), icon: "💊" },
     { href: "/settings", label: t("nav.settings"), icon: "⚙" },
@@ -48,6 +52,34 @@ export default function ProfilePage() {
 
     return () => cancelAnimationFrame(frame);
   }, [profile?.birthday_at, profile?.name_day_at]);
+
+  useEffect(() => {
+    let alive = true;
+
+    const loadHousehold = async () => {
+      const summary = await fetchMyHouseholdSummary();
+      if (!alive) return;
+      setHouseholdName(summary?.name ?? "");
+    };
+
+    void loadHousehold();
+
+    return () => {
+      alive = false;
+    };
+  }, [profile?.household_id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const frame = requestAnimationFrame(() => {
+      const scopeId = profile?.household_id ?? `personal:${user.id}`;
+      const water = loadWaterState(scopeId);
+      setMedals(water.achievements[user.id] ?? { gold: 0, silver: 0, bronze: 0 });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [profile?.household_id, user?.id]);
 
   async function saveSpecialDates() {
     if (!user?.id) return;
@@ -89,7 +121,12 @@ export default function ProfilePage() {
               {displayName}
             </p>
             <p className="text-sm text-[color:var(--color-secondary)]">
-              {role} · {profileSummary.household}
+              {role} ·{" "}
+              {householdName === null
+                ? t("profile.householdLoading")
+                : profile?.household_id
+                  ? householdName || t("profile.householdUnset")
+                  : t("profile.householdUnset")}
             </p>
             {user?.email ? (
               <p className="mt-1 text-xs text-[color:var(--color-secondary)]">
@@ -119,6 +156,22 @@ export default function ProfilePage() {
         <MetricCard label="Grozs" value={profileSummary.shoppingContributions} />
         <MetricCard label="Rēķini" value={profileSummary.financeActions} />
       </div>
+
+      <GlassPanel className="space-y-3">
+        <SectionHeading title={t("profile.medals.title")} />
+        <p className="text-sm leading-relaxed text-[color:var(--color-secondary)]">
+          {t("profile.medals.hint")}
+        </p>
+        <div className="grid grid-cols-4 gap-3">
+          <MetricCard
+            label={t("profile.medals.total")}
+            value={medals.gold + medals.silver + medals.bronze}
+          />
+          <MetricCard label={t("profile.medals.gold")} value={medals.gold} />
+          <MetricCard label={t("profile.medals.silver")} value={medals.silver} />
+          <MetricCard label={t("profile.medals.bronze")} value={medals.bronze} />
+        </div>
+      </GlassPanel>
 
       <GlassPanel className="space-y-3">
         <SectionHeading title={t("profile.shortcuts.title")} />
@@ -158,6 +211,7 @@ export default function ProfilePage() {
           {t("profile.specialDates.birthday")}
           <input
             type="date"
+            lang={locale === "lv" ? "lv-LV" : "en-US"}
             value={birthdayAt}
             onChange={(e) => setBirthdayAt(e.target.value)}
             className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
@@ -167,6 +221,7 @@ export default function ProfilePage() {
           {t("profile.specialDates.nameday")}
           <input
             type="date"
+            lang={locale === "lv" ? "lv-LV" : "en-US"}
             value={nameDayAt}
             onChange={(e) => setNameDayAt(e.target.value)}
             className="mt-1 w-full rounded-xl border border-[color:var(--color-surface-border)] bg-transparent px-3 py-2 text-sm"
