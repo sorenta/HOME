@@ -513,6 +513,47 @@
   background-size: 56px 100px;
 }
 
+/* ─── LUCENT: floating orb that drifts ─── */
+@keyframes lucent-orb-drift {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.06; }
+  33%  { transform: translate(15vw, -8vh) scale(1.15); opacity: 0.10; }
+  66%  { transform: translate(-10vw, 5vh) scale(0.9); opacity: 0.07; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.06; }
+}
+.maj-lucent-float-orb {
+  position: absolute;
+  width: 40vw;
+  height: 40vw;
+  max-width: 400px;
+  max-height: 400px;
+  top: 30%;
+  left: 35%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-secondary) 0%, transparent 70%);
+  opacity: 0.06;
+  filter: blur(60px);
+  animation: lucent-orb-drift 20s ease-in-out infinite;
+}
+
+/* ─── BOTANICAL: leaf silhouette overlay ─── */
+.maj-botanical-leaf-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M60 10 C40 30, 20 60, 60 110 C100 60, 80 30, 60 10Z' fill='%235a6b4a' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  background-repeat: repeat;
+}
+
+/* ─── PULSE: halftone dot pattern ─── */
+.maj-pulse-halftone {
+  position: absolute;
+  inset: 0;
+  opacity: 0.02;
+  background-image: radial-gradient(circle, #000 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
 /* ─── PULSE: jitter on hover ─── */
 @keyframes pulse-jitter {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
@@ -611,6 +652,69 @@
   outline: none;
 }
 
+/* ─── Theme-specific validation / error states ─── */
+
+/* Forge: neon red glow on error */
+:root[data-theme="forge"] input[aria-invalid="true"],
+:root[data-theme="forge"] .field-error input,
+:root[data-theme="forge"] .field-error textarea {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px #ef4444, 0 0 20px rgba(239, 68, 68, 0.25);
+}
+:root[data-theme="forge"] .field-error-text {
+  color: #fca5a5;
+  text-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+}
+
+/* Pulse: thick black border + red offset shadow */
+:root[data-theme="pulse"] input[aria-invalid="true"],
+:root[data-theme="pulse"] .field-error input,
+:root[data-theme="pulse"] .field-error textarea {
+  border: 3px solid #ef4444;
+  box-shadow: 4px 4px 0 #ef4444;
+}
+:root[data-theme="pulse"] .field-error-text {
+  color: #ef4444;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Botanical: warm organic error */
+:root[data-theme="botanical"] input[aria-invalid="true"],
+:root[data-theme="botanical"] .field-error input,
+:root[data-theme="botanical"] .field-error textarea {
+  border-color: #dc6b4a;
+  border-radius: 1.25rem;
+  box-shadow: 0 0 0 3px rgba(220, 107, 74, 0.18);
+}
+:root[data-theme="botanical"] .field-error-text {
+  color: #dc6b4a;
+}
+
+/* Lucent: soft frosted blush */
+:root[data-theme="lucent"] input[aria-invalid="true"],
+:root[data-theme="lucent"] .field-error input,
+:root[data-theme="lucent"] .field-error textarea {
+  border-color: #e07a8a;
+  box-shadow: 0 0 0 3px rgba(224, 122, 138, 0.15);
+  backdrop-filter: blur(4px);
+}
+:root[data-theme="lucent"] .field-error-text {
+  color: #e07a8a;
+}
+
+/* Hive: amber-red warning */
+:root[data-theme="hive"] input[aria-invalid="true"],
+:root[data-theme="hive"] .field-error input,
+:root[data-theme="hive"] .field-error textarea {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+}
+:root[data-theme="hive"] .field-error-text {
+  color: #f97316;
+}
+
 /* ─── Theme-specific primary buttons ─── */
 :root[data-theme="forge"] .btn-primary {
   background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 100%, #fff 12%) 0%, var(--color-primary) 100%);
@@ -659,6 +763,7 @@
 /* ─── Reduced motion: disable all theme animations ─── */
 @media (prefers-reduced-motion: reduce) {
   .maj-theme-ambient-glow,
+  .maj-lucent-float-orb,
   .glass-panel,
   .bento-tile {
     animation: none !important;

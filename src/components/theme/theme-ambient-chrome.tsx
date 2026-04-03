@@ -17,9 +17,24 @@ export function ThemeAmbientChrome() {
       <div className="maj-theme-ambient-glow maj-theme-ambient-glow--secondary" />
       <div className="maj-theme-ambient-grain" />
 
-      {/* Forge: secondary red scan line at top edge */}
+      {/* Forge: red scan line at top edge */}
       {themeId === "forge" && (
         <div className="absolute inset-x-0 top-0 h-px animate-forge-scan bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-30" />
+      )}
+
+      {/* Lucent: floating orb that drifts slowly */}
+      {themeId === "lucent" && (
+        <div className="maj-lucent-float-orb" />
+      )}
+
+      {/* Botanical: leaf silhouette overlay */}
+      {themeId === "botanical" && (
+        <div className="maj-botanical-leaf-overlay" />
+      )}
+
+      {/* Pulse: halftone dot pattern */}
+      {themeId === "pulse" && (
+        <div className="maj-pulse-halftone" />
       )}
     </div>
   );

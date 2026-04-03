@@ -19,8 +19,11 @@ type Props = {
 };
 
 function transitionForTheme(themeId: ThemeId): Transition {
+  if (themeId === "forge") return { type: "spring", stiffness: 450, damping: 24 };
   if (themeId === "botanical") return { type: "spring", stiffness: 280, damping: 28 };
   if (themeId === "pulse") return { type: "spring", stiffness: 520, damping: 32 };
+  if (themeId === "lucent") return { type: "spring", stiffness: 140, damping: 22 };
+  if (themeId === "hive") return { type: "spring", stiffness: 380, damping: 30 };
   return { type: "spring", stiffness: 200, damping: 36 };
 }
 
