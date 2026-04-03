@@ -664,3 +664,216 @@
     animation: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   SEASONAL OVERLAYS — activated via html[data-season]
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── ❄️ Christmas ─── */
+:root[data-season="christmas"] {
+  --seasonal-accent: #c0392b;
+  --seasonal-secondary: #27ae60;
+}
+:root[data-season="christmas"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image:
+    radial-gradient(2px 2px at 10% 10%, white 50%, transparent 60%),
+    radial-gradient(2px 2px at 30% 25%, white 50%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 50% 8%, white 50%, transparent 60%),
+    radial-gradient(2px 2px at 70% 18%, white 50%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 85% 12%, white 50%, transparent 60%),
+    radial-gradient(2px 2px at 15% 35%, white 50%, transparent 60%),
+    radial-gradient(1px 1px at 40% 42%, white 50%, transparent 60%),
+    radial-gradient(2px 2px at 60% 30%, white 50%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 90% 40%, white 50%, transparent 60%),
+    radial-gradient(2px 2px at 20% 55%, white 50%, transparent 60%);
+  animation: christmas-snow-drift 8s linear infinite;
+  opacity: 0.7;
+}
+@keyframes christmas-snow-drift {
+  0%   { background-position: 0 0; }
+  100% { background-position: 40px 100vh; }
+}
+:root[data-season="christmas"][data-season-phase="peak"]::after {
+  content: "🎄";
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  font-size: 1.5rem;
+  z-index: 10000;
+  pointer-events: none;
+  animation: christmas-tree-glow 2s ease-in-out infinite alternate;
+}
+@keyframes christmas-tree-glow {
+  0%   { filter: drop-shadow(0 0 4px #27ae60); }
+  100% { filter: drop-shadow(0 0 12px #f1c40f); }
+}
+/* Christmas gift bento */
+:root[data-season="christmas"] .bento-tile {
+  border: 2px solid var(--seasonal-accent);
+  box-shadow: 0 0 12px -4px var(--seasonal-accent);
+}
+
+/* ─── 🐣 Easter ─── */
+:root[data-season="easter"] {
+  --seasonal-accent: #a78bfa;
+  --seasonal-secondary: #6ee7b7;
+}
+:root[data-season="easter"]::before {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  pointer-events: none;
+  z-index: 9998;
+  background: linear-gradient(to top, #4ade80 0%, #4ade8060 40%, transparent 100%);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20'%3E%3Cpath d='M0 20 Q10 0 20 15 Q30 5 40 18 Q50 2 60 16 Q70 8 80 19 Q90 3 100 17 Q110 6 120 15 Q130 1 140 18 Q150 7 160 14 Q170 4 180 19 Q190 2 200 20Z' fill='white'/%3E%3C/svg%3E");
+  mask-size: 200px 20px;
+  mask-repeat: repeat-x;
+  mask-position: bottom;
+}
+/* Easter pastel tint */
+:root[data-season="easter"] .glass-panel {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.06), rgba(110, 231, 183, 0.06));
+}
+
+/* ─── 🇱🇻 Latvian State Holidays (May 4, Nov 18) ─── */
+:root[data-season="state"] {
+  --seasonal-accent: #9b2335;
+  --seasonal-secondary: #ffffff;
+}
+:root[data-season="state"]::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  pointer-events: none;
+  z-index: 10000;
+  background: repeating-linear-gradient(
+    90deg,
+    #9b2335 0px, #9b2335 20px,
+    #ffffff 20px, #ffffff 24px,
+    #9b2335 24px, #9b2335 44px
+  );
+}
+:root[data-season="state"]::after {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  pointer-events: none;
+  z-index: 10000;
+  background: repeating-linear-gradient(
+    90deg,
+    #9b2335 0px, #9b2335 20px,
+    #ffffff 20px, #ffffff 24px,
+    #9b2335 24px, #9b2335 44px
+  );
+}
+/* Lielvārdes jostas motifs — subtle woven pattern */
+:root[data-season="state"] .glass-panel {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(155, 35, 53, 0.04) 8px,
+      rgba(155, 35, 53, 0.04) 9px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      rgba(155, 35, 53, 0.04) 8px,
+      rgba(155, 35, 53, 0.04) 9px
+    );
+}
+
+/* ─── 🌼 Midsummer (Jāņi) ─── */
+:root[data-season="midsummer"] {
+  --seasonal-accent: #65a30d;
+  --seasonal-secondary: #fbbf24;
+}
+:root[data-season="midsummer"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background: radial-gradient(ellipse at 50% 120%, rgba(251, 191, 36, 0.08), transparent 60%);
+}
+
+/* ─── 💖 Valentine ─── */
+:root[data-season="valentine"] {
+  --seasonal-accent: #e11d48;
+  --seasonal-secondary: #fda4af;
+}
+:root[data-season="valentine"] .glass-panel {
+  box-shadow: 0 0 16px -6px rgba(225, 29, 72, 0.15);
+}
+
+/* ─── 🎆 New Year ─── */
+:root[data-season="newyear"] {
+  --seasonal-accent: #eab308;
+  --seasonal-secondary: #6366f1;
+}
+:root[data-season="newyear"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background:
+    radial-gradient(1px 1px at 15% 20%, #eab308 50%, transparent 60%),
+    radial-gradient(1px 1px at 45% 10%, #6366f1 50%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 75% 30%, #eab308 50%, transparent 60%),
+    radial-gradient(1px 1px at 60% 50%, #6366f1 50%, transparent 60%),
+    radial-gradient(1px 1px at 30% 65%, #eab308 50%, transparent 60%);
+  animation: newyear-twinkle 3s ease-in-out infinite alternate;
+  opacity: 0.5;
+}
+@keyframes newyear-twinkle {
+  0%   { opacity: 0.3; }
+  100% { opacity: 0.7; }
+}
+
+/* ─── Seasonal banner base ─── */
+.maj-seasonal-banner {
+  background: linear-gradient(135deg, var(--seasonal-accent, transparent) 0%, transparent 60%);
+  background-size: 200% 200%;
+  animation: seasonal-banner-shimmer 6s ease-in-out infinite;
+}
+.maj-seasonal-banner-top,
+.maj-seasonal-banner-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--seasonal-accent, var(--color-primary)), transparent);
+  opacity: 0.4;
+}
+.maj-seasonal-banner-top { top: 0; }
+.maj-seasonal-banner-bottom { bottom: 0; transform: scaleX(-1); }
+@keyframes seasonal-banner-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* ─── Seasonal reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-season]::before,
+  :root[data-season]::after,
+  .maj-seasonal-banner {
+    animation: none !important;
+  }
+}

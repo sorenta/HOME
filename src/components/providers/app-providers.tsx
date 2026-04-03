@@ -10,6 +10,7 @@ import { ThemeProfileSync } from "./theme-profile-sync";
 import { ThemeProvider } from "./theme-provider";
 import { ThemeAmbientChrome } from "@/components/theme/theme-ambient-chrome";
 import { SeasonalRewardModal } from "@/components/seasonal/seasonal-reward-modal";
+import { SeasonalOverlays } from "@/components/seasonal/seasonal-overlays";
 import { CookieConsentBar } from "@/components/legal/cookie-consent-bar";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
             {children}
             <AuthWelcomeModal />
             <SeasonalRewardModal />
+            <SeasonalOverlays />
             <PwaProvider />
             <CookieConsentBar />
           </SeasonalProvider>

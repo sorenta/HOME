@@ -17,10 +17,15 @@ import {
   type ThemeId,
   type ThemeManifestV2,
 } from "@/lib/theme-logic";
+import { getActiveSeasonalTheme, type SeasonalTheme } from "@/lib/seasonal-home";
 
 type ThemeContextValue = {
   themeId: ThemeId;
   setThemeId: (id: ThemeId) => void;
+  /** True when a peak holiday overrides the user's theme choice. */
+  seasonalLocked: boolean;
+  /** Active seasonal theme (any phase), or null. */
+  activeSeason: SeasonalTheme | null;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -65,30 +70,44 @@ function applyThemeManifest(root: HTMLElement, m: ThemeManifestV2): void {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<ThemeId>(DEFAULT_THEME);
+  const [activeSeason, setActiveSeason] = useState<SeasonalTheme | null>(null);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       setThemeIdState(getInitialThemeId());
+      setActiveSeason(getActiveSeasonalTheme(new Date()));
     });
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  const seasonalLocked = activeSeason?.phase === "peak";
+
   useEffect(() => {
     applyThemeManifest(document.documentElement, THEMES[themeId]);
-  }, [themeId]);
+    // Apply seasonal CSS hook on <html>
+    if (activeSeason) {
+      document.documentElement.dataset.season = activeSeason.id;
+      document.documentElement.dataset.seasonPhase = activeSeason.phase;
+    } else {
+      delete document.documentElement.dataset.season;
+      delete document.documentElement.dataset.seasonPhase;
+    }
+  }, [themeId, activeSeason]);
 
   const setThemeId = useCallback((id: ThemeId) => {
+    // During peak holiday, block theme changes
+    if (activeSeason?.phase === "peak") return;
     setThemeIdState(id);
     try {
       localStorage.setItem(MAJAPPS_THEME_STORAGE_KEY, id);
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [activeSeason]);
 
   const value = useMemo(
-    () => ({ themeId, setThemeId }),
-    [themeId, setThemeId],
+    () => ({ themeId, setThemeId, seasonalLocked, activeSeason }),
+    [themeId, setThemeId, seasonalLocked, activeSeason],
   );
 
   return (
