@@ -80,7 +80,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const seasonalLocked = activeSeason?.phase === "peak";
+  const seasonalLocked = activeSeason !== null;
 
   useEffect(() => {
     applyThemeManifest(document.documentElement, THEMES[themeId]);
@@ -95,8 +95,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [themeId, activeSeason]);
 
   const setThemeId = useCallback((id: ThemeId) => {
-    // During peak holiday, block theme changes
-    if (activeSeason?.phase === "peak") return;
+    // During active holiday period, block theme changes
+    if (activeSeason) return;
     setThemeIdState(id);
     try {
       localStorage.setItem(MAJAPPS_THEME_STORAGE_KEY, id);
