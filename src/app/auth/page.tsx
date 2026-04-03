@@ -2,7 +2,10 @@ import { AuthScreen } from "@/components/auth/auth-screen";
 
 export default function AuthPage() {
   return (
-    <div className="relative flex h-[100dvh] min-h-[100dvh] flex-1 flex-col overflow-hidden bg-background px-4 pb-8 pt-8 transition-colors duration-500">
+    <div
+      className="relative flex h-[100dvh] min-h-[100dvh] flex-1 flex-col overflow-hidden px-4 pb-8 pt-8 transition-colors duration-500"
+      style={{ background: "var(--color-auth-background)" }}
+    >
       
       {/* Skaisti, tēmai pielāgoti fona atspīdumi (Ambient glow) */}
       <div className="absolute -left-[20%] -top-[10%] h-[50%] w-[50%] rounded-full bg-primary/20 blur-[100px] animate-pulse" aria-hidden />
@@ -21,7 +24,7 @@ export default function AuthPage() {
         </div>
 
         {/* Galvenais autorizācijas panelis (Pielāgojas tēmai) */}
-        <div className="w-full bg-card/80 backdrop-blur-xl text-card-foreground border border-border rounded-theme shadow-theme p-6 md:p-8 mb-auto transition-all duration-500">
+        <div className="mb-auto w-full">
           <AuthScreen />
         </div>
         

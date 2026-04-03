@@ -11,6 +11,7 @@ import {
   type ResetDailySignalsRow,
   upsertTodaySignals,
 } from "@/lib/reset-daily-signals";
+import { QuitStreakProgressRing } from "@/components/reset/QuitStreakProgressRing";
 
 type Props = {
   userId: string | null;
@@ -248,6 +249,10 @@ export function ResetDailySignalsForm({ userId, onSaved }: Props) {
           {message === "err" ? (
             <p className="text-sm text-rose-600 dark:text-rose-400">{t("reset.signals.error")}</p>
           ) : null}
+
+          <div className="mt-4">
+            <QuitStreakProgressRing progress={form.steps ? (form.steps / 10000) * 100 : 0} />
+          </div>
         </div>
       )}
     </GlassPanel>

@@ -252,7 +252,7 @@ export function AuthScreen({ compact = false }: Props) {
           disabled={loading || !supabaseReady || (mode === "signup" && !acceptPrivacy)}
           className={[
             "w-full rounded-xl px-4 py-3 text-sm font-semibold transition-opacity",
-            loading || !supabaseReady
+            loading || !supabaseReady || (mode === "signup" && !acceptPrivacy)
               ? "cursor-not-allowed bg-[color:color-mix(in_srgb,var(--color-text-muted)_28%,var(--color-surface))] text-[color:var(--color-text-muted)] opacity-80"
               : "maj-auth-primary-button",
           ].join(" ")}
