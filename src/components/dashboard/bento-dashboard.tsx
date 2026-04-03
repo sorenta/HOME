@@ -289,50 +289,61 @@ export function BentoDashboard() {
   );
 
   const defaultHouseholdPanelSlot = (
-    <motion.section
+    <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className={`${panelThemeClasses} z-10`}
+      className="grid gap-3 sm:grid-cols-2"
     >
-      <div className="flex items-center justify-between border-b border-border/50 pb-3">
-        <h2 className="text-lg font-bold tracking-wide">{t("household.members")}</h2>
-        <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded-full">
-          {t("app.realtime")}
-        </span>
-      </div>
-      <ul className="flex flex-col gap-3 pt-2">
-        {members.length === 0 ? (
-          <li className="text-sm text-foreground/50 italic">{t("household.membersList.empty")}</li>
-        ) : (
-          members.map((member) => {
-            const label = member.display_name ?? t("household.membersList.member");
-            return (
-              <li key={member.id} className="flex items-center gap-4 bg-background/50 p-3 rounded-xl border border-border/30">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-sm">
-                  {memberInitials(label)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm truncate">{label}</p>
-                    {member.is_me && <span className="text-[10px] bg-foreground/10 px-2 py-0.5 rounded-md uppercase font-bold text-foreground/70">{t("household.membersList.you")}</span>}
+      <section className={`${panelThemeClasses} z-10`}>
+        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+          <h2 className="text-base font-bold tracking-wide">{t("household.members")}</h2>
+          <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded-full">
+            {t("app.realtime")}
+          </span>
+        </div>
+        <ul className="flex flex-col gap-2 pt-2">
+          {members.length === 0 ? (
+            <li className="text-sm text-foreground/50 italic">{t("household.membersList.empty")}</li>
+          ) : (
+            members.slice(0, 4).map((member) => {
+              const label = member.display_name ?? t("household.membersList.member");
+              return (
+                <li key={member.id} className="flex items-center gap-3 bg-background/50 p-2.5 rounded-xl border border-border/30">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-xs">
+                    {memberInitials(label)}
                   </div>
-                  <p className="text-xs text-foreground/60 mt-0.5">{member.role_label ?? t("household.membersList.member")}</p>
-                </div>
-              </li>
-            );
-          })
-        )}
-      </ul>
-      <div className="flex flex-wrap gap-2 pt-4 border-t border-border/50 mt-2">
-        <StatusPill tone={aiReady ? "good" : "neutral"}>{t("app.smartAssistant")}</StatusPill>
-        {!resetDoneToday ? (
-          <StatusPill tone="critical">{t("dashboard.pendingReset")}</StatusPill>
-        ) : (
-          <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
-        )}
-      </div>
-    </motion.section>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-sm truncate">{label}</p>
+                      {member.is_me && <span className="text-[10px] bg-foreground/10 px-2 py-0.5 rounded-md uppercase font-bold text-foreground/70">{t("household.membersList.you")}</span>}
+                    </div>
+                    <p className="text-xs text-foreground/60 mt-0.5">{member.role_label ?? t("household.membersList.member")}</p>
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </section>
+      <section className={`${panelThemeClasses} z-10`}>
+        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+          <h2 className="text-base font-bold tracking-wide">{t("dashboard.pending")}</h2>
+          <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded-full">
+            {t("app.smartAssistant")}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2 pt-3">
+          <StatusPill tone={aiReady ? "good" : "neutral"}>{t("dashboard.aiReady")}</StatusPill>
+          {!resetDoneToday ? (
+            <StatusPill tone="critical">{t("dashboard.pendingReset")}</StatusPill>
+          ) : (
+            <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
+          )}
+          <StatusPill tone="neutral">{`${t("dashboard.members")}: ${members.length || household?.member_count || 0}`}</StatusPill>
+        </div>
+      </section>
+    </motion.div>
   );
 
   const modulesSlot = (
@@ -367,37 +378,33 @@ export function BentoDashboard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.14 }}
-      className={`${panelThemeClasses} z-10 mt-4`}
+      className="grid gap-3 sm:grid-cols-2"
     >
-      <div className="flex items-center justify-between border-b border-border/50 pb-3">
-        <h2 className="text-lg font-bold tracking-wide">{t("dashboard.feed")}</h2>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse">
-          {t("dashboard.feedLive")}
-        </span>
-      </div>
-      <ul className="flex flex-col relative pt-2">
-        {/* Plūsmas vertikālā līnija */}
-        <div className="absolute left-2.5 top-6 bottom-4 w-px bg-border/50" aria-hidden />
-        
-        {homeFeed.map((item) => (
-          <li key={item.id} className="relative pl-8 py-3 group">
-            <span className="absolute left-1.5 top-4.5 w-3 h-3 rounded-full bg-background border-2 border-primary group-hover:scale-125 transition-transform" aria-hidden />
-            <div>
-              <p className="text-sm font-medium">{item.line}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-xs text-foreground/60 font-mono">{item.time}</p>
-                {item.source === "db" && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]" />}
-              </div>
+      {homeFeed.length === 0 ? (
+        <section className={`${panelThemeClasses} z-10`}>
+          <p className="text-sm text-foreground/60">{t("household.membersList.empty")}</p>
+        </section>
+      ) : (
+        homeFeed.slice(0, 4).map((item) => (
+          <section key={item.id} className={`${panelThemeClasses} z-10`}>
+            <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
+              <p className="text-xs text-foreground/60 font-mono">{item.time}</p>
+              {item.source === "db" ? (
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                  {t("dashboard.feedLive")}
+                </span>
+              ) : null}
             </div>
-          </li>
-        ))}
-      </ul>
+            <p className="text-sm font-medium pt-2">{item.line}</p>
+          </section>
+        ))
+      )}
     </motion.section>
   );
 
   if (!profile?.household_id) {
     return (
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden p-6 gap-6">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden p-4 gap-4">
         <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">
           <AppMark size="sm" />
           <h1 className="text-3xl font-black mt-4 text-foreground tracking-tight">{greeting}</h1>
@@ -410,7 +417,7 @@ export function BentoDashboard() {
   }
 
   const headerSlot = (
-    <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 mb-6">
+    <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 mb-3">
       <AppMark size="sm" />
       <h1 className="text-4xl font-black mt-4 text-foreground tracking-tighter">{greeting}</h1>
       <p className="text-foreground/70 mt-2 max-w-sm font-medium">{headerSubtitle}</p>
@@ -428,7 +435,7 @@ export function BentoDashboard() {
           header: headerSlot,
           notice: <TimeOfDayNoticeCard />,
           householdSummary: (
-            <div className="relative z-10 mb-6">
+            <div className="relative z-10">
               <HouseholdSummary householdId={profile.household_id} density="compact" />
             </div>
           ),

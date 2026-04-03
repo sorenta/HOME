@@ -15,7 +15,7 @@ export function ThemeSwitcher() {
   const { themeId, setThemeId } = useTheme();
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex gap-2 p-2 bg-card border-2 border-border rounded-full shadow-theme-shadow backdrop-blur-md transition-all">
+    <div className="fixed bottom-6 right-6 z-50 flex gap-2 p-2 bg-card border-2 border-border rounded-full shadow-theme backdrop-blur-md transition-all">
       {THEMES.map((theme) => (
         <button
           key={theme.id}
