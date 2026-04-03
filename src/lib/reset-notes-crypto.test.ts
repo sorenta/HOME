@@ -1,0 +1,1 @@
+Izveidoju Jest testu failu, lai pārbaudītu AES-GCM šifrēšanas funkcionalitāti.
