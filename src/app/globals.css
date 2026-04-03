@@ -849,14 +849,21 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 48px;
+  height: 88px;
   pointer-events: none;
   z-index: 9998;
-  background: linear-gradient(to top, #4ade80 0%, #4ade8060 40%, transparent 100%);
+  background:
+    linear-gradient(to top, rgba(22, 163, 74, 0.82) 0%, rgba(74, 222, 128, 0.78) 26%, rgba(74, 222, 128, 0.40) 54%, transparent 100%),
+    radial-gradient(ellipse at 10% 96%, rgba(34, 197, 94, 0.78) 0 24%, transparent 48%),
+    radial-gradient(ellipse at 30% 96%, rgba(16, 185, 129, 0.72) 0 20%, transparent 44%),
+    radial-gradient(ellipse at 52% 98%, rgba(74, 222, 128, 0.75) 0 22%, transparent 45%),
+    radial-gradient(ellipse at 75% 97%, rgba(34, 197, 94, 0.72) 0 23%, transparent 46%),
+    radial-gradient(ellipse at 92% 96%, rgba(16, 185, 129, 0.74) 0 20%, transparent 44%);
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20'%3E%3Cpath d='M0 20 Q10 0 20 15 Q30 5 40 18 Q50 2 60 16 Q70 8 80 19 Q90 3 100 17 Q110 6 120 15 Q130 1 140 18 Q150 7 160 14 Q170 4 180 19 Q190 2 200 20Z' fill='white'/%3E%3C/svg%3E");
   mask-size: 200px 20px;
   mask-repeat: repeat-x;
   mask-position: bottom;
+  animation: easter-grass-sway 8s ease-in-out infinite;
 }
 /* Easter pastel tint on glass panels */
 :root[data-season="easter"] .glass-panel {
@@ -885,6 +892,15 @@
     #fbbf24 66%,
     #f9a8d4 100%
   ) 1 !important;
+}
+
+@keyframes easter-grass-sway {
+  0%, 100% {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  }
+  50% {
+    background-position: 0 0, -16px 0, 10px 0, -12px 0, 8px 0, -6px 0;
+  }
 }
 
 /* ─── 🇱🇻 Latvian State Holidays (May 4, Nov 18) ─── */

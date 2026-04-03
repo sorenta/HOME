@@ -13,18 +13,20 @@ export function PussyWillow({
   side?: "left" | "right";
 }) {
   const isLeft = side === "left";
+  const sideStyle = isLeft
+    ? { left: 0, transform: "scaleX(-1) rotate(-5deg)", transformOrigin: "left bottom" as const }
+    : { right: 0, transform: "rotate(5deg)", transformOrigin: "right bottom" as const };
 
   return (
     <motion.div
       aria-hidden
       initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+      animate={{ opacity: 1, y: 0, rotate: [0, 0.8, 0, -0.8, 0] }}
+      transition={{ duration: 7, ease: "easeInOut", repeat: Number.POSITIVE_INFINITY }}
       className="pointer-events-none fixed z-[9997]"
       style={{
         top: 60,
-        [isLeft ? "left" : "right"]: 0,
-        transform: isLeft ? "scaleX(-1)" : undefined,
+        ...sideStyle,
       }}
     >
       <svg

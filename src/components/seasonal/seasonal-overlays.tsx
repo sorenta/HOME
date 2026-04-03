@@ -1,8 +1,10 @@
 "use client";
 
 import { useSeasonal } from "@/components/providers/seasonal-provider";
+import { SpringGifBunnies } from "@/components/spring/spring-gif-bunnies";
 import { SpringRabbitCompanion } from "@/components/spring/spring-rabbit-companion";
 import { PussyWillow } from "@/components/spring/pussy-willow";
+import { SpringSunGlint } from "@/components/spring/spring-sun-glint";
 
 /**
  * Renders season-specific ambient overlays.
@@ -16,6 +18,8 @@ export function SeasonalOverlays() {
   if (activeTheme.id === "easter") {
     return (
       <>
+        <SpringSunGlint />
+        <SpringGifBunnies />
         <PussyWillow side="right" />
         <PussyWillow side="left" />
         <SpringRabbitCompanion />
