@@ -504,10 +504,21 @@ export const dictionaries: Record<
     "reset.checkin.limitReached": "Šodien jau sasniegts dienas limits mākonī.",
     "reset.checkin.rpcUnavailable":
       "Mākoņa check-in nav pieejams — palaid Supabase skriptu reset_checkin_atomic_submit.sql (funkcija submit_reset_checkin).",
+    "reset.wellness.summaryTitle": "Tavi mērķi",
+    "reset.wellness.editGoals": "Labot mērķus",
+    "reset.wellness.noGoalsHint": "Nav izvēlēts neviens mērķis — spied \"Labot mērķus\", lai sāktu.",
+    "reset.wellness.quit.sugar": "Cukurs",
+    "reset.wellness.quit.coffee": "Kafija",
+    "reset.wellness.quit.smoking": "Smēķēšana",
+    "reset.wellness.quit.custom": "Savs mērķis",
+    "reset.wellness.body.weightLoss": "Svara zaudēšana",
+    "reset.wellness.body.bulk": "Muskuļu uzbūve",
+    "reset.wellness.body.lean": "Lean",
     "reset.health.title": "Veselības avoti",
     "reset.health.intro":
       "Soļus un līdzīgus datus drīz varēs vilkt no Google Fit vai, Android ierīcē, caur Health Connect (Samsung Health u.c.).",
     "reset.health.googleConnect": "Savienot Google Fit (OAuth)",
+    "reset.health.googleNotReady": "Google Fit poga nav pieejama.",
     "reset.health.googleNeedsEnv":
       "Lai parādītos Google poga, Vercel / serverī iestatiet GOOGLE_FIT_OAUTH_CLIENT_ID un Google Cloud konsolē atļaujiet redirect uz …/api/integrations/google-fit/callback.",
     "reset.health.samsung":
@@ -517,6 +528,9 @@ export const dictionaries: Record<
     "reset.signals.title": "Šodienas privātie signāli",
     "reset.signals.intro":
       "Pēc H:0 RESET mērķa — soļi, ekrāna laiks un meditācija ietekmē tavu noskaņojumu. Partneris šos skaitļus neredz; saglabāti tikai tavā Supabase kontā (RLS). Vēlāk var pieslēgt Health / sensorus.",
+    "reset.signals.groupActivity": "Aktivitāte",
+    "reset.signals.groupFeeling": "Pašsajūta",
+    "reset.signals.groupNotes": "Privātās piezīmes",
     "reset.signals.steps": "Soļi (šodien)",
     "reset.signals.screen": "Ekrāna laiks (minūtes, šodien)",
     "reset.signals.meditation": "Meditācija / klusā brīža minūtes",
@@ -1206,10 +1220,21 @@ export const dictionaries: Record<
     "reset.checkin.limitReached": "Daily cloud limit reached for today.",
     "reset.checkin.rpcUnavailable":
       "Cloud check-in is not available — run supabase/reset_checkin_atomic_submit.sql (submit_reset_checkin) on your database.",
+    "reset.wellness.summaryTitle": "Your goals",
+    "reset.wellness.editGoals": "Edit goals",
+    "reset.wellness.noGoalsHint": "No goals selected — press \"Edit goals\" to get started.",
+    "reset.wellness.quit.sugar": "Sugar",
+    "reset.wellness.quit.coffee": "Coffee",
+    "reset.wellness.quit.smoking": "Smoking",
+    "reset.wellness.quit.custom": "Custom goal",
+    "reset.wellness.body.weightLoss": "Weight loss",
+    "reset.wellness.body.bulk": "Muscle building",
+    "reset.wellness.body.lean": "Lean",
     "reset.health.title": "Health sources",
     "reset.health.intro":
       "Steps and similar metrics can be pulled from Google Fit or, on Android, via Health Connect (Samsung Health, etc.).",
     "reset.health.googleConnect": "Connect Google Fit (OAuth)",
+    "reset.health.googleNotReady": "Google Fit button is not available.",
     "reset.health.googleNeedsEnv":
       "Set GOOGLE_FIT_OAUTH_CLIENT_ID on the server and allow redirect to …/api/integrations/google-fit/callback in Google Cloud.",
     "reset.health.samsung":
@@ -1219,6 +1244,9 @@ export const dictionaries: Record<
     "reset.signals.title": "Today’s private signals",
     "reset.signals.intro":
       "Per H:0 RESET — steps, screen time, and meditation shape your mood. Your partner does not see these numbers; stored only in your Supabase account (RLS). Health / sensors can be wired later.",
+    "reset.signals.groupActivity": "Activity",
+    "reset.signals.groupFeeling": "How you feel",
+    "reset.signals.groupNotes": "Private notes",
     "reset.signals.steps": "Steps (today)",
     "reset.signals.screen": "Screen time (minutes, today)",
     "reset.signals.meditation": "Meditation / quiet minutes",
