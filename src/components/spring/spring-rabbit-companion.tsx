@@ -6,94 +6,131 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { hapticTap } from "@/lib/haptic";
 import { useI18n } from "@/lib/i18n/i18n-context";
 
-/** Keep zaķis sānu joslās — mazāk šķērso vidu, kur parasti ir virsraksti un teksts. */
-function randomEdgeSpot() {
-  const left = Math.random() < 0.5;
-  const x = left ? 5 + Math.random() * 11 : 84 + Math.random() * 11;
-  const y = 36 + Math.random() * 30;
-  return { x, y };
-}
-
-function CartoonRabbit() {
+/** Brūns Lieldienu zaķis — skaists, apaļš, ar mīkstām proporcijām. */
+function EasterBunny({ facingRight }: { facingRight: boolean }) {
   return (
     <svg
-      width="56"
-      height="68"
+      width="52"
+      height="62"
       viewBox="0 0 100 120"
-      className="drop-shadow-lg"
+      className="drop-shadow-md"
       aria-hidden
+      style={{ transform: facingRight ? "scaleX(1)" : "scaleX(-1)" }}
     >
       <defs>
-        <linearGradient id="maj-bun-body" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#d7ccc8" />
-          <stop offset="100%" stopColor="#a1887f" />
+        <linearGradient id="maj-eb-body" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#a1887f" />
+          <stop offset="100%" stopColor="#795548" />
         </linearGradient>
-        <linearGradient id="maj-bun-ear" x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id="maj-eb-ear" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#bcaaa4" />
+          <stop offset="100%" stopColor="#8d6e63" />
+        </linearGradient>
+        <radialGradient id="maj-eb-belly" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#efebe9" />
-          <stop offset="100%" stopColor="#bcaaa4" />
-        </linearGradient>
+          <stop offset="100%" stopColor="#d7ccc8" />
+        </radialGradient>
       </defs>
+
+      {/* Ausis */}
       <motion.g
-        style={{ transformOrigin: "50px 38px" }}
-        animate={{ rotate: [0, 6, -5, 4, 0] }}
-        transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.8, ease: "easeInOut" }}
+        style={{ transformOrigin: "50px 30px" }}
+        animate={{ rotate: [0, 3, -2, 3, 0] }}
+        transition={{ repeat: Number.POSITIVE_INFINITY, duration: 3, ease: "easeInOut" }}
       >
-        <ellipse cx="34" cy="22" rx="10" ry="26" fill="url(#maj-bun-ear)" />
-        <ellipse cx="66" cy="22" rx="10" ry="26" fill="url(#maj-bun-ear)" />
-        <ellipse cx="34" cy="26" rx="5" ry="18" fill="#ffccbc" opacity="0.55" />
-        <ellipse cx="66" cy="26" rx="5" ry="18" fill="#ffccbc" opacity="0.55" />
+        {/* Kreisā auss */}
+        <ellipse cx="32" cy="18" rx="9" ry="24" fill="url(#maj-eb-ear)" />
+        <ellipse cx="32" cy="20" rx="5" ry="16" fill="#e8b4b8" opacity="0.6" />
+        {/* Labā auss */}
+        <ellipse cx="62" cy="14" rx="9" ry="26" fill="url(#maj-eb-ear)" />
+        <ellipse cx="62" cy="16" rx="5" ry="18" fill="#e8b4b8" opacity="0.6" />
       </motion.g>
-      <ellipse cx="50" cy="72" rx="28" ry="20" fill="url(#maj-bun-body)" />
-      <ellipse cx="50" cy="48" rx="32" ry="30" fill="url(#maj-bun-body)" />
-      <ellipse cx="50" cy="52" rx="30" ry="26" fill="#d7ccc8" opacity="0.35" />
-      <ellipse cx="38" cy="46" rx="14" ry="16" fill="#fafafa" />
-      <ellipse cx="62" cy="46" rx="14" ry="16" fill="#fafafa" />
-      <ellipse cx="38" cy="48" rx="9" ry="11" fill="#424242" />
-      <ellipse cx="62" cy="48" rx="9" ry="11" fill="#424242" />
-      <circle cx="41" cy="45" r="3.5" fill="#fff" />
-      <circle cx="65" cy="45" r="3.5" fill="#fff" />
-      <circle cx="42" cy="46" r="1.6" fill="#90caf9" opacity="0.9" />
-      <circle cx="66" cy="46" r="1.6" fill="#90caf9" opacity="0.9" />
-      <ellipse cx="50" cy="58" rx="5" ry="3.5" fill="#ffab91" />
-      <path
-        d="M44 62 Q50 66 56 62"
-        fill="none"
-        stroke="#5d4037"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <ellipse cx="28" cy="56" rx="6" ry="4" fill="#ffab91" opacity="0.35" />
-      <ellipse cx="72" cy="56" rx="6" ry="4" fill="#ffab91" opacity="0.35" />
-      <ellipse cx="32" cy="88" rx="9" ry="6" fill="#8d6e63" />
-      <ellipse cx="68" cy="88" rx="9" ry="6" fill="#8d6e63" />
+
+      {/* Ķermenis */}
+      <ellipse cx="50" cy="78" rx="30" ry="24" fill="url(#maj-eb-body)" />
+      {/* Vēderīņš */}
+      <ellipse cx="50" cy="80" rx="20" ry="16" fill="url(#maj-eb-belly)" opacity="0.7" />
+
+      {/* Galva */}
+      <ellipse cx="48" cy="50" rx="28" ry="24" fill="url(#maj-eb-body)" />
+
+      {/* Acis */}
+      <ellipse cx="38" cy="48" rx="7" ry="8" fill="white" />
+      <ellipse cx="58" cy="48" rx="7" ry="8" fill="white" />
+      <ellipse cx="39" cy="49" rx="4.5" ry="5.5" fill="#3e2723" />
+      <ellipse cx="59" cy="49" rx="4.5" ry="5.5" fill="#3e2723" />
+      <circle cx="41" cy="47" r="2" fill="white" />
+      <circle cx="61" cy="47" r="2" fill="white" />
+
+      {/* Deguns */}
+      <ellipse cx="48" cy="56" rx="4" ry="3" fill="#e8a0a0" />
+
+      {/* Mute */}
+      <path d="M42 60 Q48 64 54 60" fill="none" stroke="#5d4037" strokeWidth="1.5" strokeLinecap="round" />
+
+      {/* Vaigi */}
+      <circle cx="28" cy="54" r="5" fill="#e8b4b8" opacity="0.3" />
+      <circle cx="68" cy="54" r="5" fill="#e8b4b8" opacity="0.3" />
+
+      {/* Ūsas */}
+      <line x1="18" y1="53" x2="34" y2="55" stroke="#8d6e63" strokeWidth="0.8" opacity="0.5" />
+      <line x1="18" y1="57" x2="34" y2="57" stroke="#8d6e63" strokeWidth="0.8" opacity="0.5" />
+      <line x1="62" y1="55" x2="78" y2="53" stroke="#8d6e63" strokeWidth="0.8" opacity="0.5" />
+      <line x1="62" y1="57" x2="78" y2="57" stroke="#8d6e63" strokeWidth="0.8" opacity="0.5" />
+
+      {/* Ķepiņas */}
+      <ellipse cx="34" cy="96" rx="10" ry="6" fill="#8d6e63" />
+      <ellipse cx="66" cy="96" rx="10" ry="6" fill="#8d6e63" />
+
+      {/* Astiņa */}
+      <circle cx="78" cy="76" r="6" fill="#efebe9" />
     </svg>
   );
 }
 
+/** Zaķis lēkā pa apakšējo joslu no kreisās uz labo (un atpakaļ). */
 export function SpringRabbitCompanion() {
   const pathname = usePathname();
   const { t } = useI18n();
-  const [spot, setSpot] = useState(randomEdgeSpot);
   const bodyCtrl = useAnimationControls();
+  const hopCtrl = useAnimationControls();
   const hopping = useRef(false);
+  const [leftPct, setLeftPct] = useState(10);
+  const [facingRight, setFacingRight] = useState(true);
 
+  // Hop to a new random position along the bottom strip
+  const hopToNewSpot = useCallback(() => {
+    const next = 8 + Math.random() * 78; // 8%–86%
+    setFacingRight(next > leftPct);
+    setLeftPct(next);
+  }, [leftPct]);
+
+  // Re-position on page change
   useEffect(() => {
-    setSpot(randomEdgeSpot());
+    hopToNewSpot();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  // Periodically hop while idle
+  useEffect(() => {
+    const id = setInterval(hopToNewSpot, 4000 + Math.random() * 3000);
+    return () => clearInterval(id);
+  }, [hopToNewSpot]);
+
+  // Big jump when tapped
   const doJump = useCallback(async () => {
     if (hopping.current) return;
     hopping.current = true;
     hapticTap();
     try {
       await bodyCtrl.start({
-        y: [0, 10, -52, -38, 0],
-        scaleY: [1, 0.72, 1.08, 0.88, 1],
-        scaleX: [1, 1.14, 0.92, 1.06, 1],
-        rotate: [0, -6, 4, -2, 0],
+        y: [0, 6, -70, -50, -10, 0],
+        scaleY: [1, 0.7, 1.15, 1.05, 0.9, 1],
+        scaleX: [1, 1.2, 0.88, 0.95, 1.05, 1],
+        rotate: [0, 0, -8, 5, -2, 0],
         transition: {
-          duration: 0.62,
-          times: [0, 0.12, 0.35, 0.55, 1],
+          duration: 0.72,
+          times: [0, 0.1, 0.32, 0.52, 0.78, 1],
           ease: [0.33, 1, 0.68, 1],
         },
       });
@@ -108,19 +145,17 @@ export function SpringRabbitCompanion() {
 
   return (
     <motion.div
-      className="pointer-events-none fixed z-[45] -translate-x-1/2 -translate-y-1/2"
+      className="pointer-events-none fixed z-[45]"
+      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 60px)" }}
       initial={false}
-      animate={{
-        left: `${spot.x}%`,
-        top: `${spot.y}%`,
-      }}
-      transition={{ type: "spring", stiffness: 260, damping: 24, mass: 0.9 }}
+      animate={{ left: `${leftPct}%` }}
+      transition={{ type: "spring", stiffness: 100, damping: 16, mass: 0.8 }}
       aria-hidden
     >
       <motion.button
         type="button"
         onClick={() => void doJump()}
-        className="pointer-events-auto relative flex cursor-pointer touch-manipulation items-center justify-center rounded-full p-1 outline-none ring-offset-2 ring-offset-[color:var(--color-background)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+        className="pointer-events-auto relative flex cursor-pointer touch-manipulation items-center justify-center rounded-full p-0 outline-none ring-offset-2 ring-offset-[color:var(--color-background)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
         aria-label={t("spring.rabbit.tapJump")}
       >
         <motion.div
@@ -128,18 +163,22 @@ export function SpringRabbitCompanion() {
           initial={{ y: 0, scaleY: 1, scaleX: 1, rotate: 0 }}
           className="origin-bottom"
         >
+          {/* Idle small hops */}
           <motion.div
-            animate={{
-              y: [0, -18, 0, -11, 0],
-            }}
-            transition={{
-              repeat: Number.POSITIVE_INFINITY,
-              duration: 0.48,
-              ease: [0.25, 0.1, 0.25, 1],
-              repeatDelay: 0.22,
-            }}
+            animate={hopCtrl}
+            initial={{ y: 0 }}
           >
-            <CartoonRabbit />
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{
+                repeat: Number.POSITIVE_INFINITY,
+                duration: 0.6,
+                ease: "easeInOut",
+                repeatDelay: 1.4,
+              }}
+            >
+              <EasterBunny facingRight={facingRight} />
+            </motion.div>
           </motion.div>
         </motion.div>
       </motion.button>

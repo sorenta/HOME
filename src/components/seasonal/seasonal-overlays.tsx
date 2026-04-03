@@ -1,12 +1,11 @@
 "use client";
 
 import { useSeasonal } from "@/components/providers/seasonal-provider";
-import { HomeRollingEgg } from "@/components/spring/home-rolling-egg";
 import { SpringRabbitCompanion } from "@/components/spring/spring-rabbit-companion";
 
 /**
  * Renders season-specific ambient overlays.
- * Easter: rolling eggs + rabbit companion.
+ * Easter: rabbit companion hopping along the bottom.
  */
 export function SeasonalOverlays() {
   const { activeTheme } = useSeasonal();
@@ -14,12 +13,7 @@ export function SeasonalOverlays() {
   if (!activeTheme) return null;
 
   if (activeTheme.id === "easter") {
-    return (
-      <>
-        <HomeRollingEgg />
-        <SpringRabbitCompanion />
-      </>
-    );
+    return <SpringRabbitCompanion />;
   }
 
   return null;
