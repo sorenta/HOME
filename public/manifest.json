@@ -1,6 +1,7 @@
 {
   "name": "H:0 · Mājas",
   "short_name": "H:0",
+  "id": "/",
   "description": "Mājsaimniecības lietotne: virtuve, finanses, RESET, aptieciņa un notikumi.",
   "start_url": "/",
   "scope": "/",
@@ -10,11 +11,18 @@
   "theme_color": "#f4f4f5",
   "orientation": "portrait",
   "lang": "lv",
+  "categories": ["lifestyle", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icon",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/apple-icon",

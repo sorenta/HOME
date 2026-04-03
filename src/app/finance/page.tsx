@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { FinanceThemeLayer } from "@/components/finance/finance-theme-layer";
+import { FinanceAiPanel } from "@/components/finance/finance-ai-panel";
 import { OdometerValue } from "@/components/finance/odometer-value";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
@@ -383,6 +384,15 @@ export default function FinancePage() {
           {t("finance.partnerHint")}
         </p>
       </GlassPanel>
+
+      {profile?.household_id && (
+        <FinanceAiPanel
+          householdId={profile.household_id}
+          transactions={transactions}
+          fixedCosts={fixedCosts}
+          balance={summary.balance}
+        />
+      )}
      </FinanceThemeLayer>
     </ModuleShell>
   );

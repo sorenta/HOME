@@ -39,6 +39,7 @@ import {
 } from "@/lib/reset-wellness-sync";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ResetThemeLayer } from "@/components/reset/reset-theme-layer";
+import { ResetAiPanel } from "@/components/reset/reset-ai-panel";
 import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 import {
   bodyGoals,
@@ -342,6 +343,17 @@ export default function ResetPage() {
           ))}
         </div>
       </GlassPanel>
+
+      {hydrated && wellness.onboardingDone && profile?.household_id && (
+        <ResetAiPanel
+          householdId={profile.household_id}
+          mood={scoreToMood(resetScoreValue)}
+          moodScore={resetScoreValue}
+          signals={todaySignals ? Object.entries(todaySignals).filter(([k]) => !['id','user_id','logged_on','created_at','updated_at'].includes(k)).map(([k, v]) => ({ label: k, value: Number(v) || 0 })) : undefined}
+          quitDays={quits.length > 0 ? quits[0].startedAt ? Math.floor((Date.now() - new Date(quits[0].startedAt).getTime()) / 86400000) : null : null}
+          goals={wellness.goals.map(g => g.kind === 'quit' ? (g.customLabel ?? g.subkind) : g.mode)}
+        />
+      )}
 
       <GlassPanel className="space-y-5">
         <div className="space-y-2">
