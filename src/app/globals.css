@@ -80,8 +80,44 @@
     gap: clamp(0.75rem, 2vw, 1rem);
   }
 
+  .maj-dash-compose--forge {
+    gap: 0.7rem;
+  }
+
+  .maj-dash-compose--botanical {
+    gap: 0.75rem;
+  }
+
+  .maj-dash-compose--pulse {
+    gap: 0.8rem;
+  }
+
+  .maj-dash-compose--lucent {
+    gap: 0.75rem;
+  }
+
+  .maj-dash-compose--hive {
+    gap: 0.75rem;
+  }
+
   .maj-section-gap {
     display: block;
+  }
+
+  .maj-forge-control-deck,
+  .maj-forge-module-rail,
+  .maj-forge-ops-stack,
+  .maj-forge-sleeve,
+  .maj-forge-command {
+    border: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+    border-radius: calc(var(--radius-card) * 0.62);
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    padding: 0.6rem;
+    box-shadow: var(--theme-panel-shadow);
+  }
+
+  .maj-forge-ops-stack__metrics {
+    margin-top: 0.55rem;
   }
 
   .maj-botanical-shelf {
@@ -112,5 +148,37 @@
     border-radius: calc(var(--radius-card) * 0.62);
     background: color-mix(in srgb, var(--color-surface) 86%, transparent);
     box-shadow: var(--theme-panel-shadow);
+  }
+
+  .maj-pulse-hero-band {
+    height: 0.35rem;
+    border: 2px solid hsl(var(--border));
+    border-radius: calc(var(--radius-card) * 0.35);
+    background: repeating-linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0 14px,
+      transparent 14px 22px
+    );
+  }
+
+  .maj-lucent-stack,
+  .maj-lucent-float-panel {
+    border: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+    border-radius: calc(var(--radius-card) * 0.7);
+    background: color-mix(in srgb, var(--color-card) 90%, transparent);
+    padding: 0.6rem;
+  }
+
+  .maj-hive-metrics-honey {
+    border: 2px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+    border-radius: 1rem;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 92%, transparent), transparent),
+      repeating-linear-gradient(
+        60deg,
+        color-mix(in srgb, var(--color-border) 18%, transparent) 0 6px,
+        transparent 6px 12px
+      );
+    padding: 0.55rem;
   }
 }

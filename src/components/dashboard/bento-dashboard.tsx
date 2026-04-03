@@ -87,7 +87,7 @@ function getGreetingPeriod(date: Date): GreetingPeriod {
 
 // MAĢISKAIS PANEĻU STILOTĀJS (Piešķir tēmas identitāti lielajiem blokiem)
 function getThemePanelClass(themeId: ThemeId) {
-  const base = "bg-card text-card-foreground rounded-theme p-6 relative overflow-hidden transition-all duration-500 flex flex-col gap-4";
+  const base = "bg-card text-card-foreground rounded-theme p-4 relative overflow-hidden transition-all duration-500 flex flex-col gap-3";
   if (themeId === "lucent") return `${base} border border-border/50 backdrop-blur-md shadow-theme`;
   if (themeId === "hive") return `${base} border-4 border-border shadow-sm`;
   if (themeId === "pulse") return `${base} border-4 border-black shadow-[6px_6px_0px_#000]`;
@@ -235,9 +235,9 @@ export function BentoDashboard() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 }}
-      className="flex flex-col gap-4 relative z-10"
+      className="flex flex-col gap-3 relative z-10"
     >
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <MetricCard variant="compact" label={t("dashboard.members")} value={members.length || household?.member_count || 0} />
         <MetricCard variant="compact" label={t("dashboard.pending")} value={pendingCount} />
       </div>
@@ -336,7 +336,7 @@ export function BentoDashboard() {
   );
 
   const modulesSlot = (
-    <motion.div layout={themeId !== "lucent"} className="grid grid-cols-2 gap-4 relative z-10 my-4">
+    <motion.div layout={themeId !== "lucent"} className="grid grid-cols-2 gap-3 relative z-10 my-2">
       {tiles}
     </motion.div>
   );
@@ -421,7 +421,7 @@ export function BentoDashboard() {
   const feedSlot = themeId === "botanical" ? botanicalFeedSlot : defaultFeedSlot;
 
   return (
-    <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-8 md:p-8 space-y-6">
+    <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-6 md:p-6 space-y-4">
       <DashboardHomeLayout
         themeId={themeId}
         slots={{
