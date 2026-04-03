@@ -87,6 +87,21 @@ export function ModuleShell({
       >
         {requireAuth ? <RequireAuth>{children}</RequireAuth> : children}
       </motion.div>
+
+      {/* 3. Theme-specific decorative/content zones */}
+      <div aria-hidden className="relative z-0">
+        {themeId === "forge" ? (
+          <div className="maj-forge-control-deck" />
+        ) : themeId === "botanical" ? (
+          <div className="maj-botanical-shelf" />
+        ) : themeId === "pulse" ? (
+          <div className="maj-pulse-hero-band" />
+        ) : themeId === "lucent" ? (
+          <div className="maj-lucent-stack" />
+        ) : themeId === "hive" ? (
+          <div className="maj-hive-metrics-honey" />
+        ) : null}
+      </div>
     </div>
   );
 }
