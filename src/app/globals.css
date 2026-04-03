@@ -408,14 +408,6 @@
   top: 10px;
 }
 
-/* ─── Finance Theme Layer ─── */
-.finance-theme-layer {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
 /* Forge scanning line animation */
 @keyframes forge-scan {
   0%   { transform: translateY(0);   opacity: 0; }
@@ -425,4 +417,13 @@
 }
 .animate-forge-scan {
   animation: forge-scan 3s ease-in-out infinite;
+}
+
+/* ─── Kitchen / Finance Theme Layer shared base ─── */
+.kitchen-theme-layer,
+.finance-theme-layer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }

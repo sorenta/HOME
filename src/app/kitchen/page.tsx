@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { HouseholdOnboarding } from "@/components/household/household-onboarding";
 import { KitchenOnboardingSurvey } from "@/components/kitchen/kitchen-onboarding-survey";
 import { KitchenAiPanel } from "@/components/kitchen/kitchen-ai-panel";
+import { KitchenThemeLayer, useKitchenItemTheme } from "@/components/kitchen/kitchen-theme-layer";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ModuleShell } from "@/components/layout/module-shell";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -73,6 +74,7 @@ export default function KitchenPage() {
 
   const householdId = profile?.household_id ?? null;
   const userId = profile?.id ?? null;
+  const { itemCard: themeItemCard, categoryPill: themeCategoryPill, detailsSection: themeDetailsSection } = useKitchenItemTheme();
 
   const loadKitchenData = useCallback(async () => {
     if (!householdId) {
@@ -420,7 +422,7 @@ export default function KitchenPage() {
 
   return (
     <ModuleShell title={t("tile.kitchen")} moduleId="kitchen">
-      
+     <KitchenThemeLayer>
       {/* AI ASSISTANT PANELIS */}
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("kitchen.section.ai")} detail={t("kitchen.assistant")} />
@@ -467,7 +469,7 @@ export default function KitchenPage() {
         ) : (
           <div className="space-y-2">
             {shopping.map((item) => (
-              <div key={item.id} className="rounded-theme border border-border p-3 bg-background/40 transition-all hover:border-primary/50">
+              <div key={item.id} className={`rounded-theme border border-border p-3 bg-background/40 transition-all hover:border-primary/50 ${themeItemCard}`}>
                 <div className="flex items-start justify-between gap-3">
                   <button
                     type="button"
@@ -631,7 +633,7 @@ export default function KitchenPage() {
             {inventoryByCategorySection.map(([catKey, items]) => (
               <details
                 key={catKey || "none"}
-                className="rounded-theme border border-border bg-background/40 shadow-sm"
+                className={`rounded-theme border border-border bg-background/40 shadow-sm ${themeDetailsSection}`}
                 open
               >
                 <summary className="cursor-pointer list-none px-3 py-3 font-semibold text-foreground [&::-webkit-details-marker]:hidden">
@@ -642,7 +644,7 @@ export default function KitchenPage() {
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-theme border border-border bg-background/30 px-3 py-2.5"
+                      className={`flex flex-wrap items-center justify-between gap-2 rounded-theme border border-border bg-background/30 px-3 py-2.5 ${themeItemCard}`}
                     >
                       <div className="min-w-0">
                         <p className="font-semibold text-sm text-foreground">{item.name}</p>
@@ -773,6 +775,7 @@ export default function KitchenPage() {
           <p className="text-sm text-foreground">{message}</p>
         </GlassPanel>
       ) : null}
+     </KitchenThemeLayer>
     </ModuleShell>
   );
 }
