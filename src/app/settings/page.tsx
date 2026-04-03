@@ -41,11 +41,11 @@ const SETTINGS_KEY = "majapps-local-settings";
 type LocalSettings = {
   pushFinance: boolean;
   pushPharmacy: boolean;
-  showResetAura: boolean;
+  showResetMood: boolean;
 };
 
 function readLocalSettings(): LocalSettings {
-  const fallback: LocalSettings = { pushFinance: true, pushPharmacy: true, showResetAura: true };
+  const fallback: LocalSettings = { pushFinance: true, pushPharmacy: true, showResetMood: true };
   if (typeof window === "undefined") return fallback;
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
@@ -98,7 +98,7 @@ export default function SettingsPage() {
         user_id: user.id,
         finance_enabled: next.pushFinance,
         pharmacy_enabled: next.pushPharmacy,
-        reset_empathy_enabled: next.showResetAura,
+        reset_empathy_enabled: next.showResetMood,
         reset_empathy_recipient_ids: empathyRecipientIds,
         updated_at: new Date().toISOString(),
       });

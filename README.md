@@ -138,7 +138,7 @@ Detalizētāks skats uz tuvākajām 7 dienām ar laika joslu.
 🧘 RESET (Labsajūta)
 Kas ir šobrīd:
 Wellness mērķu onboarding (quit: cukurs/kafija/smēķēšana/custom + body: svara zaudēšana/bulk/lean)
-Dienas spīdums (score 0-100%) + Partnera aura (High/Steady/Low)
+Noskaņojums (mood) (score 0-100%) + Partnera noskaņojums (mood) (High/Steady/Low)
 Quit streak taimeri (dzīvā laika atskaite pa sekundēm)
 Ķermeņa mērījumi (svars + mērījumi: viduklis, gurni, krūtis, roka, augšstilbs)
 Treniņu plāns (4 nedēļu cikls Bulk/Lean režīmam)

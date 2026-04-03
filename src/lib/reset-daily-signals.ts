@@ -116,7 +116,7 @@ export async function upsertTodaySignals(input: {
   return { ok: true };
 }
 
-/** Neliels modifikators aura % (pēc HOME.pdf — soļi / ekrāns / meditācija). */
+/** Neliels modifikators mood % (pēc HOME.pdf — soļi / ekrāns / meditācija). */
 export function signalsScoreDelta(s: ResetDailySignalsRow | null): number {
   if (!s) return 0;
   let d = 0;

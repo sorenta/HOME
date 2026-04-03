@@ -10,12 +10,20 @@ export type BodyArea = "waist" | "hips" | "chest" | "arm" | "thigh";
 
 export type QuitSubkind = "sugar" | "coffee" | "smoking" | "custom";
 
+export type QuitIntensity = "reduce" | "easy" | "medium" | "hard";
+
 export type QuitGoal = {
   id: string;
   kind: "quit";
   subkind: QuitSubkind;
   customLabel?: string;
   startedAt: string;
+  /** Why the user chose this goal — strengthens commitment */
+  reason?: string;
+  /** Intensity / approach level */
+  intensity?: QuitIntensity;
+  /** Whether the user wants to share this challenge publicly */
+  sharePublic?: boolean;
 };
 
 export type BodyGoal = {

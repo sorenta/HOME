@@ -5,7 +5,7 @@ import { ModuleShell } from "@/components/layout/module-shell";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
-import { ResetAuraGlow } from "@/components/reset/reset-aura-glow";
+import { ResetMoodPanel } from "@/components/reset/reset-mood-panel";
 import { ResetDailySignalsForm } from "@/components/reset/reset-daily-signals-form";
 import { ResetBodyTracking } from "@/components/reset/reset-body-tracking";
 import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
@@ -23,7 +23,7 @@ import {
 } from "@/lib/reset-checkin";
 import {
   fetchTodayCheckInCount,
-  scoreToAura,
+  scoreToMood,
   submitResetCheckInToSupabase,
 } from "@/lib/reset-checkin-sync";
 import {
@@ -187,10 +187,10 @@ export default function ResetPage() {
     [baseWellnessScore, checkInBonus, todaySignals],
   );
 
-  const partnerGlow = useMemo(() => {
-    if (resetScoreValue >= 75) return t("reset.aura.high");
-    if (resetScoreValue >= 40) return t("reset.aura.steady");
-    return t("reset.aura.low");
+  const partnerMood = useMemo(() => {
+    if (resetScoreValue >= 75) return t("reset.mood.high");
+    if (resetScoreValue >= 40) return t("reset.mood.steady");
+    return t("reset.mood.low");
   }, [resetScoreValue, t]);
 
   const scoreAfterCheckIn = useMemo(() => {
@@ -215,12 +215,12 @@ export default function ResetPage() {
     if (!canCheckInToday()) return;
     hapticTap();
     setCheckInMessage(null);
-    const aura = scoreToAura(scoreAfterCheckIn);
+    const mood = scoreToMood(scoreAfterCheckIn);
     if (user?.id) {
       const res = await submitResetCheckInToSupabase({
         householdId: profile?.household_id ?? null,
         score: scoreAfterCheckIn,
-        aura,
+        mood,
         loggedOnLocal: localDateIso(),
       });
       if (!res.ok) {
@@ -301,12 +301,12 @@ export default function ResetPage() {
         <p className="text-sm leading-relaxed text-foreground/80">
           {t("module.reset.blurb")}
         </p>
-        <ResetAuraGlow
+        <ResetMoodPanel
           scorePercent={resetScoreValue}
           scoreLabel={t("reset.score")}
-          partnerLabel={t("reset.partnerAura")}
-          partnerValue={partnerGlow}
-          partnerHint={t("reset.partnerAuraHint")}
+          partnerLabel={t("reset.partnerMood")}
+          partnerValue={partnerMood}
+          partnerHint={t("reset.partnerMoodHint")}
         />
       </GlassPanel>
 
@@ -333,7 +333,7 @@ export default function ResetPage() {
         <div className="flex flex-wrap gap-2">
           {privacyMembers.map((member) => (
             <StatusPill key={member.id} tone="neutral">
-              {member.display_name ?? t("household.membersList.member")} — {t("reset.seesGlowOnly")}
+              {member.display_name ?? t("household.membersList.member")} — {t("reset.seesMoodOnly")}
             </StatusPill>
           ))}
         </div>

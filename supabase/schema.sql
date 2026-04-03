@@ -33,7 +33,7 @@ create table if not exists public.profiles (
   preferred_locale text not null default 'lv',
   theme_id text not null default 'lucent',
   reset_score numeric not null default 0,
-  reset_privacy_level text not null default 'aura_only',
+  reset_privacy_level text not null default 'mood_only',
   birthday_at date,
   name_day_at date,
   created_at timestamptz not null default now(),
@@ -53,7 +53,7 @@ create table if not exists public.household_members (
   can_see_kitchen boolean not null default true,
   can_see_pharmacy boolean not null default true,
   can_see_calendar boolean not null default true,
-  can_see_reset_aura boolean not null default true,
+  can_see_reset_mood boolean not null default true,
   joined_at timestamptz not null default now(),
   unique (household_id, user_id)
 );
@@ -132,7 +132,7 @@ create table if not exists public.reset_checkins (
   user_id uuid not null references auth.users (id) on delete cascade,
   household_id uuid references public.households (id) on delete set null,
   score numeric not null default 0,
-  aura text not null default 'steady' check (aura in ('low', 'steady', 'high')),
+  mood text not null default 'steady' check (mood in ('low', 'steady', 'high')),
   summary text,
   private_notes text,
   happened_at timestamptz not null default now(),
@@ -148,7 +148,7 @@ create table if not exists public.reset_metrics (
   metric_key text not null,
   metric_value numeric,
   metric_unit text,
-  visibility text not null default 'private' check (visibility in ('private', 'aura_only'))
+  visibility text not null default 'private' check (visibility in ('private', 'mood_only'))
 );
 
 create table if not exists public.calendar_events (

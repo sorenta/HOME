@@ -6,7 +6,7 @@
 create or replace function public.submit_reset_checkin(
   p_household_id uuid,
   p_score numeric,
-  p_aura text,
+  p_mood text,
   p_logged_on_local date
 )
 returns jsonb
@@ -28,8 +28,8 @@ begin
     return jsonb_build_object('ok', false, 'code', 'BAD_DAY');
   end if;
 
-  if p_aura is null or p_aura not in ('low', 'steady', 'high') then
-    return jsonb_build_object('ok', false, 'code', 'BAD_AURA');
+  if p_mood is null or p_mood not in ('low', 'steady', 'high') then
+    return jsonb_build_object('ok', false, 'code', 'BAD_MOOD');
   end if;
 
   -- Serialize concurrent check-ins for the same user and local calendar day (tabs / devices).
@@ -47,8 +47,8 @@ begin
     return jsonb_build_object('ok', false, 'code', 'LIMIT');
   end if;
 
-  insert into public.reset_checkins (user_id, household_id, score, aura, happened_at, logged_on_local)
-  values (v_uid, p_household_id, p_score, p_aura, now(), p_logged_on_local);
+  insert into public.reset_checkins (user_id, household_id, score, mood, happened_at, logged_on_local)
+  values (v_uid, p_household_id, p_score, p_mood, now(), p_logged_on_local);
 
   select round(avg(score))::numeric into v_avg
   from public.reset_checkins

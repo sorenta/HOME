@@ -29,9 +29,12 @@ function isRpcUnavailable(error: unknown) {
   );
 }
 
-export type ResetAuraLevel = "low" | "steady" | "high";
+export type ResetMoodLevel = "low" | "steady" | "high";
 
-export function scoreToAura(score: number): ResetAuraLevel {
+/** @deprecated Use ResetMoodLevel */
+export type ResetAuraLevel = ResetMoodLevel;
+
+export function scoreToMood(score: number): ResetMoodLevel {
   if (score >= 75) return "high";
   if (score >= 40) return "steady";
   return "low";
@@ -68,7 +71,7 @@ type RpcPayload = {
 export async function submitResetCheckInToSupabase(input: {
   householdId: string | null;
   score: number;
-  aura: ResetAuraLevel;
+  mood: ResetMoodLevel;
   loggedOnLocal?: string;
 }): Promise<{ ok: boolean; code?: "LIMIT" | "RPC_UNAVAILABLE" }> {
   const supabase = getBrowserClient();
@@ -79,7 +82,7 @@ export async function submitResetCheckInToSupabase(input: {
   const { data, error } = await supabase.rpc("submit_reset_checkin", {
     p_household_id: input.householdId,
     p_score: input.score,
-    p_aura: input.aura,
+    p_mood: input.mood,
     p_logged_on_local: day,
   });
 

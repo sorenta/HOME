@@ -8,7 +8,7 @@ type Props = {
   partnerHint: string;
 };
 
-export function ResetAuraGlow({
+export function ResetMoodPanel({
   scorePercent,
   scoreLabel,
   partnerLabel,
@@ -18,7 +18,7 @@ export function ResetAuraGlow({
   return (
     <div className="relative grid grid-cols-1 gap-4 overflow-hidden rounded-2xl border border-[color:var(--color-primary)]/40 bg-[color:var(--color-surface)]/45 p-4 sm:grid-cols-2">
       <div
-        className="maj-reset-aura-shine pointer-events-none absolute -inset-[20%] opacity-80"
+        className="maj-reset-mood-shine pointer-events-none absolute -inset-[20%] opacity-80"
         aria-hidden
       />
       <div className="relative z-[1] space-y-1">

@@ -2,7 +2,7 @@ export type HouseholdMember = {
   id: string;
   name: string;
   role: string;
-  aura: "low" | "steady" | "high";
+  mood: "low" | "steady" | "high";
 };
 
 export type FeedItem = {
@@ -38,9 +38,9 @@ export type EventItem = {
 };
 
 export const householdMembers: HouseholdMember[] = [
-  { id: "1", name: "Soren", role: "Partneris", aura: "steady" },
-  { id: "2", name: "Anna", role: "Partneris", aura: "low" },
-  { id: "3", name: "Leo", role: "Bērns", aura: "high" },
+  { id: "1", name: "Soren", role: "Partneris", mood: "steady" },
+  { id: "2", name: "Anna", role: "Partneris", mood: "low" },
+  { id: "3", name: "Leo", role: "Bērns", mood: "high" },
 ];
 
 export const liveFeed: FeedItem[] = [
