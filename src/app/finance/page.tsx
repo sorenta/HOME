@@ -6,6 +6,9 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { FinanceThemeLayer } from "@/components/finance/finance-theme-layer";
+import { OdometerValue } from "@/components/finance/odometer-value";
+import { useTheme } from "@/components/providers/theme-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useAuth } from "@/components/providers/auth-provider";
 import { formatAppDate } from "@/lib/date-format";
@@ -25,6 +28,7 @@ import {
 export default function FinancePage() {
   const { t, locale } = useI18n();
   const { profile } = useAuth();
+  const { themeId } = useTheme();
   const [fixedCosts, setFixedCosts] = useState<FixedCostRecord[]>([]);
   const [transactions, setTransactions] = useState<FinanceTransactionRecord[]>([]);
   const [billTitle, setBillTitle] = useState("");
@@ -139,21 +143,48 @@ export default function FinancePage() {
     }
   }
 
+  // Theme-specific card accent class
+  const billCardTheme =
+    themeId === "forge"
+      ? "border-l-2 border-l-primary/60"
+      : themeId === "botanical"
+        ? "rounded-[1.5rem]"
+        : themeId === "pulse"
+          ? "border-2 border-black shadow-[3px_3px_0px_#000]"
+          : "";
+
   return (
     <ModuleShell title={t("tile.finance")} moduleId="finance">
+     <FinanceThemeLayer>
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("finance.overview")} />
         <p className="text-sm leading-relaxed text-foreground/70">
           {t("finance.overviewHint")}
         </p>
         <div className="grid grid-cols-3 gap-3">
-          <MetricCard label={t("finance.wallet")} value={formatEuro(summary.balance, locale)} />
-          <MetricCard label={t("finance.form.income")} value={formatEuro(summary.income, locale)} />
-          <MetricCard
-            label={t("finance.cashflow")}
-            value={formatEuro(summary.expense, locale)}
-            hint={formatEuro(plannedSpend, locale)}
-          />
+          {themeId === "forge" ? (
+            <>
+              <MetricCard label={t("finance.wallet")}>
+                <OdometerValue value={summary.balance} format={(n) => formatEuro(n, locale)} className="text-2xl font-semibold text-primary" />
+              </MetricCard>
+              <MetricCard label={t("finance.form.income")}>
+                <OdometerValue value={summary.income} format={(n) => formatEuro(n, locale)} className="text-2xl font-semibold" />
+              </MetricCard>
+              <MetricCard label={t("finance.cashflow")}>
+                <OdometerValue value={summary.expense} format={(n) => formatEuro(n, locale)} className="text-2xl font-semibold" />
+              </MetricCard>
+            </>
+          ) : (
+            <>
+              <MetricCard label={t("finance.wallet")} value={formatEuro(summary.balance, locale)} />
+              <MetricCard label={t("finance.form.income")} value={formatEuro(summary.income, locale)} />
+              <MetricCard
+                label={t("finance.cashflow")}
+                value={formatEuro(summary.expense, locale)}
+                hint={formatEuro(plannedSpend, locale)}
+              />
+            </>
+          )}
         </div>
       </GlassPanel>
 
@@ -234,7 +265,7 @@ export default function FinancePage() {
               return (
                 <div
                   key={bill.id}
-                  className="flex items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50"
+                  className={`flex items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50 ${billCardTheme}`}
                 >
                   <div className="min-w-0">
                     <p className="font-semibold text-sm text-foreground">{bill.label}</p>
@@ -321,7 +352,7 @@ export default function FinancePage() {
             transactions.slice(0, 6).map((item) => (
               <div
                 key={item.id}
-                className="rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50"
+                className={`rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50 ${billCardTheme}`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-foreground">
@@ -350,6 +381,7 @@ export default function FinancePage() {
           {t("finance.partnerHint")}
         </p>
       </GlassPanel>
+     </FinanceThemeLayer>
     </ModuleShell>
   );
 }

@@ -1,7 +1,9 @@
 type Props = {
   label: string;
-  value: string | number;
+  value?: string | number;
   hint?: string;
+  /** Custom content (e.g. animated odometer) — replaces `value` when provided. */
+  children?: React.ReactNode;
   /**
    * default — full card (inner pages, dense stat grids).
    * compact — small stat cell for strips / pairs.
@@ -10,7 +12,7 @@ type Props = {
   variant?: "default" | "compact" | "emphasis";
 };
 
-export function MetricCard({ label, value, hint, variant = "default" }: Props) {
+export function MetricCard({ label, value, hint, children, variant = "default" }: Props) {
   if (variant === "compact") {
     return (
       <div className="maj-metric-card maj-metric-card--compact">
@@ -42,9 +44,15 @@ export function MetricCard({ label, value, hint, variant = "default" }: Props) {
   return (
     <div className="maj-metric-card">
       <p className="maj-metric-label">{label}</p>
-      <p className="mt-2 font-[family-name:var(--font-theme-display)] text-2xl font-semibold tracking-[var(--maj-hero-tracking)] text-[color:var(--color-text-primary)]">
-        {value}
-      </p>
+      {children ? (
+        <div className="mt-2 font-[family-name:var(--font-theme-display)] tracking-[var(--maj-hero-tracking)]">
+          {children}
+        </div>
+      ) : (
+        <p className="mt-2 font-[family-name:var(--font-theme-display)] text-2xl font-semibold tracking-[var(--maj-hero-tracking)] text-[color:var(--color-text-primary)]">
+          {value}
+        </p>
+      )}
       {hint ? (
         <p className="mt-1 text-xs text-[color:var(--color-secondary)]">{hint}</p>
       ) : null}
