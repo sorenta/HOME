@@ -41,7 +41,7 @@ export function BentoTile({
   const isFeatured = tier === "featured";
 
   // 1. BĀZES KLASE (Strādā automātiski visām tēmām)
-  const baseClass = "group relative flex overflow-hidden bg-card text-card-foreground rounded-theme shadow-theme transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]";
+  const baseClass = "bento-tile group relative flex overflow-hidden bg-card text-card-foreground rounded-theme shadow-theme transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]";
 
   // 2. TĒMAS SPECIFIKA (Mūsu dizaina odziņas)
   let themeClass = "border border-border"; // Noklusējums

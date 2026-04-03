@@ -2,10 +2,11 @@
 
 import { useSeasonal } from "@/components/providers/seasonal-provider";
 import { SpringRabbitCompanion } from "@/components/spring/spring-rabbit-companion";
+import { PussyWillow } from "@/components/spring/pussy-willow";
 
 /**
  * Renders season-specific ambient overlays.
- * Easter: rabbit companion hopping along the bottom.
+ * Easter: rabbit companion hopping along the bottom + pussy willow branches.
  */
 export function SeasonalOverlays() {
   const { activeTheme } = useSeasonal();
@@ -13,7 +14,13 @@ export function SeasonalOverlays() {
   if (!activeTheme) return null;
 
   if (activeTheme.id === "easter") {
-    return <SpringRabbitCompanion />;
+    return (
+      <>
+        <PussyWillow side="right" />
+        <PussyWillow side="left" />
+        <SpringRabbitCompanion />
+      </>
+    );
   }
 
   return null;
