@@ -7,6 +7,7 @@ import { KitchenAiPanel } from "@/components/kitchen/kitchen-ai-panel";
 import { KitchenThemeLayer, useKitchenItemTheme } from "@/components/kitchen/kitchen-theme-layer";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ModuleShell } from "@/components/layout/module-shell";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
@@ -423,6 +424,7 @@ export default function KitchenPage() {
   return (
     <ModuleShell title={t("tile.kitchen")} moduleId="kitchen">
      <KitchenThemeLayer>
+      <HiddenSeasonalCollectible spotId="kitchen" />
       {/* AI ASSISTANT PANELIS */}
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("kitchen.section.ai")} detail={t("kitchen.assistant")} />

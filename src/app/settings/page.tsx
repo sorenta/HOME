@@ -7,6 +7,7 @@ import { HouseholdOnboarding } from "@/components/household/household-onboarding
 import { HouseholdSummary } from "@/components/household/household-summary";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ModuleShell } from "@/components/layout/module-shell";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import {
   ForgeBandRule,
   ForgeDeckList,
@@ -177,6 +178,7 @@ export default function SettingsPage() {
 
   return (
     <ModuleShell title={t("settings.title")} moduleId="settings">
+      <HiddenSeasonalCollectible spotId="settings" />
       {themeId === "forge" ? (
         <div className="space-y-1">
           <ForgeMainDeck>

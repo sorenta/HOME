@@ -33,6 +33,10 @@ import { AppMark } from "@/components/branding/app-mark";
 import { DashboardHomeLayout } from "@/components/dashboard/dashboard-home-layout";
 import { HouseholdWaterWidget } from "./household-water-widget";
 import { TimeOfDayNoticeCard } from "./time-of-day-notice-card";
+import { PeakHolidayCard } from "./peak-holiday-card";
+import { SeasonalHomeBanner } from "./seasonal-home-banner";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
+import { useSeasonal } from "@/components/providers/seasonal-provider";
 import { ThemeId } from "@/lib/theme-logic";
 
 export { ThemeBottomNav as AppBottomNav } from "@/components/navigation/theme-bottom-nav";
@@ -128,6 +132,7 @@ export function BentoDashboard() {
   const { t, locale } = useI18n();
   const { themeId } = useTheme();
   const { profile, user } = useAuth();
+  const { activeTheme: seasonalTheme } = useSeasonal();
   const [order, setOrder] = useState<ModuleId[]>(DEFAULT_ORDER);
   const [resetDoneToday, setResetDoneToday] = useState(true);
   const [greetingPeriod, setGreetingPeriod] = useState<GreetingPeriod>("day");
@@ -429,6 +434,13 @@ export function BentoDashboard() {
 
   return (
     <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-6 md:p-6 space-y-4">
+      {seasonalTheme && (
+        <>
+          <PeakHolidayCard theme={seasonalTheme} displayName={displayName} />
+          <SeasonalHomeBanner theme={seasonalTheme} />
+        </>
+      )}
+      <HiddenSeasonalCollectible spotId="home" />
       <DashboardHomeLayout
         themeId={themeId}
         slots={{

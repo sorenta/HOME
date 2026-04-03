@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
+import { EventsThemeLayer } from "@/components/events/events-theme-layer";
 import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -20,6 +21,7 @@ import {
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 import { useAuth } from "@/components/providers/auth-provider";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import {
   addPlannerEventSynced,
   addPlannerTaskSynced,
@@ -413,6 +415,8 @@ export default function EventsPage() {
 
   return (
     <ModuleShell title={t("tile.calendarEvents")} moduleId="calendar">
+     <EventsThemeLayer>
+      <HiddenSeasonalCollectible spotId="events" />
       {formError ? (
         <GlassPanel className="border border-red-500/30 bg-red-500/10">
           <p className="text-sm font-medium text-red-500">{formError}</p>
@@ -913,6 +917,7 @@ export default function EventsPage() {
           )}
         </div>
       </GlassPanel>
+     </EventsThemeLayer>
     </ModuleShell>
   );
 }

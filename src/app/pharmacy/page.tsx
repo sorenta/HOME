@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
+import { PharmacyThemeLayer } from "@/components/pharmacy/pharmacy-theme-layer";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
@@ -9,6 +10,7 @@ import { useI18n } from "@/lib/i18n/i18n-context";
 import { fetchMyHouseholdSummary, type Household } from "@/lib/household";
 import { hasPlanFeature } from "@/lib/billing/plans";
 import { useAuth } from "@/components/providers/auth-provider";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { formatAppDate } from "@/lib/date-format";
 import {
   addPharmacyInventoryItem,
@@ -151,6 +153,8 @@ export default function PharmacyPage() {
 
   return (
     <ModuleShell title={t("tile.pharmacy")} moduleId="pharmacy">
+     <PharmacyThemeLayer>
+      <HiddenSeasonalCollectible spotId="pharmacy" />
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("pharmacy.stock")} />
         <p className="text-sm leading-relaxed text-foreground/70">
@@ -289,6 +293,7 @@ export default function PharmacyPage() {
           </div>
         )}
       </GlassPanel>
+     </PharmacyThemeLayer>
     </ModuleShell>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -156,6 +157,7 @@ export default function FinancePage() {
   return (
     <ModuleShell title={t("tile.finance")} moduleId="finance">
      <FinanceThemeLayer>
+      <HiddenSeasonalCollectible spotId="finance" />
       <GlassPanel className="space-y-4">
         <SectionHeading title={t("finance.overview")} />
         <p className="text-sm leading-relaxed text-foreground/70">

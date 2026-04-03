@@ -12,6 +12,7 @@ import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
 import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
 import { ResetWellnessOnboarding } from "@/components/reset/reset-wellness-onboarding";
 import { ResetHealthSourcesPanel } from "@/components/reset/reset-health-sources-panel";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
 import {
@@ -37,6 +38,7 @@ import {
   persistWellnessStateSynced,
 } from "@/lib/reset-wellness-sync";
 import { useAuth } from "@/components/providers/auth-provider";
+import { ResetThemeLayer } from "@/components/reset/reset-theme-layer";
 import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 import {
   bodyGoals,
@@ -247,6 +249,8 @@ export default function ResetPage() {
 
   return (
     <ModuleShell title={t("tile.reset")} moduleId="reset">
+     <ResetThemeLayer>
+      <HiddenSeasonalCollectible spotId="reset" />
       {showOnboarding && (
         <ResetWellnessOnboarding
           onComplete={(goals) => onSurveyComplete(goals)}
@@ -372,6 +376,7 @@ export default function ResetPage() {
           </p>
         )}
       </GlassPanel>
+     </ResetThemeLayer>
     </ModuleShell>
   );
 }

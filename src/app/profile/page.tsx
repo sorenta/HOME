@@ -9,6 +9,7 @@ import { HouseholdSummary } from "@/components/household/household-summary";
 import { useAuth } from "@/components/providers/auth-provider";
 import { fetchMyHouseholdSummary } from "@/lib/household";
 import { ModuleShell } from "@/components/layout/module-shell";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { MetricCard } from "@/components/ui/metric-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -150,6 +151,7 @@ export default function ProfilePage() {
 
   return (
     <ModuleShell title={t("nav.profile")}>
+      <HiddenSeasonalCollectible spotId="profile" />
       <GlassPanel className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
