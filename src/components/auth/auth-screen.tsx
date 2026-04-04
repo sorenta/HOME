@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { hapticTap } from "@/lib/haptic";
 import { AppMark } from "@/components/branding/app-mark";
@@ -24,8 +24,51 @@ export function AuthScreen({ compact = false }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [supabaseReady, setSupabaseReady] = useState(false);
 
-  const supabaseReady = useMemo(() => getBrowserClient() !== null, []);
+  useEffect(() => {
+    setSupabaseReady(getBrowserClient() !== null);
+  }, []);
+
+  async function onForgotPassword() {
+    const supabase = getBrowserClient();
+    if (!supabase) {
+      setError(t("supabase.missing"));
+      return;
+    }
+
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      setError(t("auth.forgot.emailRequired"));
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/auth`
+          : undefined;
+
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        normalizedEmail,
+        { redirectTo },
+      );
+
+      if (resetError) throw resetError;
+      setMessage(t("auth.forgot.success"));
+      hapticTap();
+    } catch (err) {
+      const nextError =
+        err instanceof Error ? err.message : t("auth.error.generic");
+      setError(nextError);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -207,6 +250,21 @@ export function AuthScreen({ compact = false }: Props) {
             required
           />
         </label>
+
+        <div className="-mt-1 text-right">
+          {mode === "signin" ? (
+            <button
+              type="button"
+              onClick={() => {
+                void onForgotPassword();
+              }}
+              disabled={loading || !supabaseReady}
+              className="text-xs font-medium text-[color:var(--color-accent)] underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t("auth.forgot.link")}
+            </button>
+          ) : null}
+        </div>
 
         {error ? (
           <p className="rounded-2xl border border-[color:color-mix(in_srgb,var(--color-danger)_45%,transparent)] bg-[color:color-mix(in_srgb,var(--color-danger)_12%,transparent)] px-3 py-2 text-sm text-[color:var(--color-danger)]">

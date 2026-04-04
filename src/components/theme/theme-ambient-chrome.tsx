@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/providers/theme-provider";
+import HiveBackground from "@/components/theme/hive-background";
 
 export function ThemeAmbientChrome() {
   const pathname = usePathname();
@@ -35,6 +36,20 @@ export function ThemeAmbientChrome() {
       {/* Pulse: halftone dot pattern */}
       {themeId === "pulse" && (
         <div className="maj-pulse-halftone" />
+      )}
+
+      {/* Hive: background bees (only for hive theme) */}
+      {themeId === "hive" && (
+        <HiveBackground beeCount={5} navSelector="header" />
+      )}
+      {themeId === "hive" && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          /* Hive-only: make all bento tiles hexagonal */
+          :root[data-theme="hive"] .bento-tile {
+            clip-path: polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%);
+            overflow: hidden;
+          }
+        ` }} />
       )}
     </div>
   );

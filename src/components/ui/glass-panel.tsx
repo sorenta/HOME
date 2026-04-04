@@ -1,14 +1,13 @@
 "use client";
 
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { useTheme } from "@/components/providers/theme-provider";
 
-type Props = {
-  children: ReactNode;
-  className?: string;
+type Props = React.HTMLAttributes<HTMLDivElement> & {
+  children?: ReactNode;
 };
 
-export function GlassPanel({ children, className = "" }: Props) {
+export function GlassPanel({ children, className = "", style, ...rest }: Props) {
   const { themeId } = useTheme();
 
   // Bāzes klases un maģiskais stils katrai tēmai
@@ -27,7 +26,16 @@ export function GlassPanel({ children, className = "" }: Props) {
   }
 
   return (
-    <div className={`${themeClass} transition-all duration-500 ${className}`}>
+    <div
+      className={`${themeClass} transition-all duration-500 ${className}`}
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderRadius: "var(--radius-card)",
+        borderColor: "var(--color-surface-border)",
+        ...style,
+      }}
+      {...rest}
+    >
       {/* Īpašās tēmu dekorācijas konteineriem */}
       {themeId === "hive" && (
         <div className="absolute -right-4 -top-4 w-12 h-12 bg-primary/10 octagon rotate-12 pointer-events-none" />

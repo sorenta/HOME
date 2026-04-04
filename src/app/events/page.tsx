@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
 import { EventsThemeLayer } from "@/components/events/events-theme-layer";
-import { MetricCard } from "@/components/ui/metric-card";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
+import { UpcomingEventCard } from "@/components/events/upcoming-event-card";
+import { CalendarGrid } from "@/components/events/calendar-grid";
+import { DayEventsList } from "@/components/events/day-events-list";
+import { EventAddMenu } from "@/components/events/event-add-menu";
 import { formatAppDate } from "@/lib/date-format";
 import { getBrowserClient } from "@/lib/supabase/client";
 import {
@@ -14,14 +16,12 @@ import {
   sortByDate,
   writePlannerEvents,
   writePlannerTasks,
-  isSameDay,
   type PlannerEvent,
   type PlannerTask,
 } from "@/lib/events-planner";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 import { useAuth } from "@/components/providers/auth-provider";
-import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import {
   addPlannerEventSynced,
   addPlannerTaskSynced,
@@ -31,22 +31,28 @@ import {
   subscribePlannerState,
   togglePlannerTaskSynced,
 } from "@/lib/events-sync";
-import {
-  buildHouseholdActivityFeed,
-  fetchHouseholdActivityFeed,
-  subscribeHouseholdActivity,
-  type ActivityFeedRow,
-} from "@/lib/household-activity";
-
-const WEEKDAY_LABELS = {
-  lv: ["P", "O", "T", "C", "Pk", "S", "Sv"],
-  en: ["M", "T", "W", "T", "F", "S", "S"],
-} as const;
 
 function isoForDate(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
-    .toISOString()
-    .slice(0, 10);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString().slice(0, 10);
+}
+
+function eventTypeFromTitle(title: string, t: (key: string) => string) {
+  const value = title.toLowerCase();
+  if (value.includes("dzim") || value.includes("birthday")) return t("events.type.birthday");
+  if (value.includes("atg") || value.includes("remind")) return t("events.type.reminder");
+  if (value.includes("darb") || value.includes("homework")) return t("events.type.homework");
+  return t("events.type.event");
+}
+
+function countdownLabel(isoDate: string, t: (key: string, vars?: Record<string, string>) => string) {
+  const today = new Date();
+  const from = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const target = new Date(`${isoDate}T00:00:00`).getTime();
+  const diff = Math.round((target - from) / 86400000);
+
+  if (diff <= 0) return t("events.today");
+  if (diff === 1) return t("events.tomorrow");
+  return t("events.inDays", { n: String(diff) });
 }
 
 export default function EventsPage() {
@@ -56,66 +62,12 @@ export default function EventsPage() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const [selectedDate, setSelectedDate] = useState(() => isoForDate(new Date()));
   const [events, setEvents] = useState<PlannerEvent[]>([]);
   const [tasks, setTasks] = useState<PlannerTask[]>([]);
   const [members, setMembers] = useState<HouseholdMember[]>([]);
-  const [activityRows, setActivityRows] = useState<ActivityFeedRow[]>([]);
-  const [selectedDate, setSelectedDate] = useState(() => isoForDate(new Date()));
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventDate, setEventDate] = useState(() => isoForDate(new Date()));
-  const [eventStyle, setEventStyle] = useState<"shared" | "personal">("shared");
-  const [taskTitle, setTaskTitle] = useState("");
-  const [taskDueDate, setTaskDueDate] = useState(() => isoForDate(new Date()));
-  const [taskAssigneeId, setTaskAssigneeId] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
-
-  function mapSyncMessage(msg: string) {
-    const dictKey = `events.sync.${msg}`;
-    const translated = t(dictKey);
-    if (translated !== dictKey) return translated;
-    if (msg.length > 2 && !msg.includes("_")) return msg;
-    return t("events.sync.generic");
-  }
-
-  async function reloadPlannerFromRemote() {
-    const state = await loadPlannerStateSynced({
-      householdId: profile?.household_id ?? null,
-      userId: user?.id ?? null,
-      memberNameById,
-      fallbackMemberName: t("events.todo.unassigned"),
-    });
-    setEvents(sortByDate(state.events));
-    setTasks(sortByDate(state.tasks));
-    writePlannerEvents(state.events);
-    writePlannerTasks(state.tasks);
-  }
-
-  useEffect(() => {
-    let alive = true;
-
-    const loadMembers = async () => {
-      const fetched = await fetchMyHouseholdMembers();
-      if (!alive) return;
-
-      setMembers(fetched);
-      if (fetched.length > 0) {
-        setTaskAssigneeId((current) => current || fetched[0].id);
-      } else {
-        setTaskAssigneeId("");
-      }
-    };
-
-    void loadMembers();
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    setEventDate(selectedDate);
-    setTaskDueDate(selectedDate);
-  }, [selectedDate]);
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
   const memberNameById = useMemo(
     () =>
@@ -125,24 +77,42 @@ export default function EventsPage() {
     [members, t],
   );
 
+  function mapSyncMessage(msg: string) {
+    const dictKey = `events.sync.${msg}`;
+    const translated = t(dictKey);
+    if (translated !== dictKey) return translated;
+    if (msg.length > 2 && !msg.includes("_")) return msg;
+    return t("events.sync.generic");
+  }
+
   useEffect(() => {
     let alive = true;
-    const frame = window.requestAnimationFrame(() => {
-      void loadPlannerStateSynced({
-        householdId: profile?.household_id ?? null,
-        userId: user?.id ?? null,
-        memberNameById,
-        fallbackMemberName: t("events.todo.unassigned"),
-      }).then((state) => {
-        if (!alive) return;
-        setEvents(sortByDate(state.events));
-        setTasks(sortByDate(state.tasks));
-      });
+
+    void fetchMyHouseholdMembers().then((fetched) => {
+      if (!alive) return;
+      setMembers(fetched);
     });
 
     return () => {
       alive = false;
-      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    void loadPlannerStateSynced({
+      householdId: profile?.household_id ?? null,
+      userId: user?.id ?? null,
+      memberNameById,
+      fallbackMemberName: t("events.todo.unassigned"),
+    }).then((state) => {
+      if (!alive) return;
+      setEvents(sortByDate(state.events));
+      setTasks(sortByDate(state.tasks));
+    });
+
+    return () => {
+      alive = false;
     };
   }, [memberNameById, profile?.household_id, t, user?.id]);
 
@@ -164,760 +134,351 @@ export default function EventsPage() {
     };
   }, [memberNameById, profile?.household_id, t, user?.id]);
 
-  useEffect(() => {
-    if (!profile?.household_id) {
-      const frame = window.requestAnimationFrame(() => {
-        setActivityRows([]);
-      });
-      return () => window.cancelAnimationFrame(frame);
-    }
+  const monthDays = useMemo(() => buildMonthGrid(calendarMonth), [calendarMonth]);
 
-    let alive = true;
-    void fetchHouseholdActivityFeed(profile.household_id).then((rows) => {
-      if (alive) {
-        setActivityRows(rows);
-      }
-    });
+  const indicatorsByDate = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of events) counts[item.date] = (counts[item.date] ?? 0) + 1;
+    for (const item of tasks) counts[item.dueDate] = (counts[item.dueDate] ?? 0) + 1;
+    return counts;
+  }, [events, tasks]);
 
-    const unsubscribe = subscribeHouseholdActivity(profile.household_id, () => {
-      void fetchHouseholdActivityFeed(profile.household_id!).then((rows) => {
-        if (alive) {
-          setActivityRows(rows);
-        }
-      });
-    });
+  const nextEvent = useMemo(() => {
+    const todayIso = isoForDate(new Date());
+    return events.find((item) => item.date >= todayIso) ?? events[0] ?? null;
+  }, [events]);
 
-    return () => {
-      alive = false;
-      unsubscribe?.();
+  const selectedDayItems = useMemo(() => {
+    const dayEvents = events
+      .filter((item) => item.date === selectedDate)
+      .map((item) => ({
+        id: `event-${item.id}`,
+        sourceId: item.id,
+        kind: "event" as const,
+        title: item.title,
+        timeLabel: t("events.allDay"),
+        typeLabel: eventTypeFromTitle(item.title, t),
+        note: t("events.plannedEntry"),
+        style: item.style,
+      }));
+
+    const dayTasks = tasks
+      .filter((item) => item.dueDate === selectedDate)
+      .map((item) => ({
+        id: `task-${item.id}`,
+        sourceId: item.id,
+        kind: "task" as const,
+        title: item.title,
+        timeLabel: t("events.byEndOfDay"),
+        typeLabel: t("events.type.homework"),
+        note: `${t("events.assigneePrefix")}: ${item.assigneeName}`,
+        style: "shared" as const,
+        done: item.done,
+      }));
+
+    return [...dayEvents, ...dayTasks];
+  }, [events, selectedDate, t, tasks]);
+
+  const upcomingDetails = useMemo(() => {
+    if (!nextEvent) return null;
+
+    const styleLabel = nextEvent.style === "personal" ? t("events.personal") : t("events.shared");
+
+    return {
+      id: nextEvent.id,
+      title: nextEvent.title,
+      dateLabel: formatAppDate(nextEvent.date, locale) ?? nextEvent.date,
+      countdownLabel: countdownLabel(nextEvent.date, t),
+      typeLabel: eventTypeFromTitle(nextEvent.title, t),
+      style: nextEvent.style,
+      styleLabel,
+      location: nextEvent.style === "personal" ? t("events.personal") : t("events.sharedSpace"),
+      note: t("events.dayContextHint"),
+      timeLabel: t("events.allDay"),
     };
-  }, [profile?.household_id]);
+  }, [locale, nextEvent, t]);
 
-  const nextEvent = events[0] ?? null;
-  const sharedEvents = useMemo(() => events.filter((item) => item.style === "shared"), [events]);
-  const personalEvents = useMemo(() => events.filter((item) => item.style === "personal"), [events]);
-  const openTasks = useMemo(() => tasks.filter((item) => !item.done), [tasks]);
-  const calendarDays = useMemo(() => buildMonthGrid(calendarMonth), [calendarMonth]);
-  const selectedDayEvents = useMemo(
-    () => events.filter((item) => item.date === selectedDate),
-    [events, selectedDate],
-  );
-  const selectedDayTasks = useMemo(
-    () => tasks.filter((item) => item.dueDate === selectedDate),
-    [tasks, selectedDate],
-  );
-  const feedItems = useMemo(
-    () =>
-      buildHouseholdActivityFeed(
-        activityRows,
-        members,
-        locale,
-        t("events.todo.unassigned"),
-        6,
-      ),
-    [activityRows, locale, members, t],
-  );
-  const monthLabel = new Intl.DateTimeFormat(locale === "lv" ? "lv-LV" : "en-US", {
-    month: "long",
-    year: "numeric",
-  }).format(calendarMonth);
-
-  useEffect(() => {
-    const selected = new Date(`${selectedDate}T00:00:00`);
-    if (Number.isNaN(selected.getTime())) return;
-    if (
-      selected.getFullYear() !== calendarMonth.getFullYear() ||
-      selected.getMonth() !== calendarMonth.getMonth()
-    ) {
-      const frame = window.requestAnimationFrame(() => {
-        setCalendarMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
-      });
-      return () => window.cancelAnimationFrame(frame);
-    }
-  }, [calendarMonth, selectedDate]);
-
-  function goToToday() {
-    const now = new Date();
-    setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
-    const iso = isoForDate(now);
-    setSelectedDate(iso);
-    setEventDate(iso);
-    setTaskDueDate(iso);
+  async function reloadPlanner() {
+    const state = await loadPlannerStateSynced({
+      householdId: profile?.household_id ?? null,
+      userId: user?.id ?? null,
+      memberNameById,
+      fallbackMemberName: t("events.todo.unassigned"),
+    });
+    setEvents(sortByDate(state.events));
+    setTasks(sortByDate(state.tasks));
   }
 
-  async function addEvent() {
+  async function handleQuickAdd(kind: "event" | "reminder" | "birthday" | "homework" | "personal" | "shared") {
     setFormError(null);
-    if (!eventTitle.trim() || !eventDate) return;
 
+    const todayLabel = formatAppDate(selectedDate, locale) ?? selectedDate;
+    const baseTitle = {
+      event: `${t("events.entry.event")} · ${todayLabel}`,
+      reminder: `${t("events.entry.reminder")} · ${todayLabel}`,
+      birthday: `${t("events.entry.birthday")} · ${todayLabel}`,
+      homework: `${t("events.entry.homework")} · ${todayLabel}`,
+      personal: `${t("events.entry.personal")} · ${todayLabel}`,
+      shared: `${t("events.entry.shared")} · ${todayLabel}`,
+    }[kind];
+
+    if (kind === "homework") {
+      if (!profile?.household_id) {
+        setFormError(mapSyncMessage("HOUSEHOLD_REQUIRED"));
+        return;
+      }
+
+      const assigneeId = members[0]?.id ?? "";
+      const assigneeName = members[0]?.display_name ?? t("events.todo.unassigned");
+      const client = getBrowserClient();
+
+      if (!client) {
+        const nextTasks = sortByDate([
+          ...tasks,
+          {
+            id: crypto.randomUUID(),
+            title: baseTitle,
+            assigneeId,
+            assigneeName,
+            dueDate: selectedDate,
+            done: false,
+          },
+        ]);
+        setTasks(nextTasks);
+        writePlannerTasks(nextTasks);
+        return;
+      }
+
+      const response = await addPlannerTaskSynced({
+        householdId: profile.household_id,
+        userId: user?.id ?? null,
+        title: baseTitle,
+        assigneeId,
+        dueDate: selectedDate,
+      });
+      if (!response.ok) {
+        setFormError(mapSyncMessage(response.message));
+        return;
+      }
+      await reloadPlanner();
+      return;
+    }
+
+    const style: PlannerEvent["style"] =
+      kind === "personal" ? "personal" : kind === "shared" ? "shared" : "shared";
     const client = getBrowserClient();
+
     if (!client) {
       const nextEvents = sortByDate([
         ...events,
         {
           id: crypto.randomUUID(),
-          title: eventTitle.trim(),
-          date: eventDate,
-          style: eventStyle,
+          title: baseTitle,
+          date: selectedDate,
+          style,
         },
       ]);
       setEvents(nextEvents);
       writePlannerEvents(nextEvents);
-      setEventTitle("");
-      setEventStyle("shared");
-      setEventDate(selectedDate);
       return;
     }
 
-    const res = await addPlannerEventSynced({
+    const response = await addPlannerEventSynced({
       householdId: profile?.household_id ?? null,
       userId: user?.id ?? null,
-      title: eventTitle,
-      date: eventDate,
-      style: eventStyle,
+      title: baseTitle,
+      date: selectedDate,
+      style,
     });
-    if (!res.ok) {
-      setFormError(mapSyncMessage(res.message));
+
+    if (!response.ok) {
+      setFormError(mapSyncMessage(response.message));
       return;
     }
-    await reloadPlannerFromRemote();
-    setEventTitle("");
-    setEventStyle("shared");
-    setEventDate(selectedDate);
+
+    await reloadPlanner();
   }
 
-  async function addTask() {
+  async function handleToggleTask(taskId: string, done: boolean) {
     setFormError(null);
-    if (!taskTitle.trim() || !taskDueDate) return;
-    if (!profile?.household_id) {
-      setFormError(mapSyncMessage("HOUSEHOLD_REQUIRED"));
-      return;
-    }
-    if (members.length === 0) {
-      setFormError(t("events.todo.needHousehold"));
-      return;
-    }
-
-    const assignee = members.find((member) => member.id === taskAssigneeId);
-    const assigneeId = taskAssigneeId || members[0]?.id || "";
-
     const client = getBrowserClient();
-    if (!client) {
-      const nextTasks = sortByDate([
-        ...tasks,
-        {
-          id: crypto.randomUUID(),
-          title: taskTitle.trim(),
-          assigneeId,
-          assigneeName: assignee?.display_name ?? t("events.todo.unassigned"),
-          dueDate: taskDueDate,
-          done: false,
-        },
-      ]);
+
+    if (!client || !profile?.household_id) {
+      const nextTasks = sortByDate(tasks.map((item) => (item.id === taskId ? { ...item, done } : item)));
       setTasks(nextTasks);
       writePlannerTasks(nextTasks);
-      setTaskTitle("");
-      setTaskDueDate(selectedDate);
       return;
     }
 
-    const res = await addPlannerTaskSynced({
+    const response = await togglePlannerTaskSynced({
       householdId: profile.household_id,
-      userId: user?.id ?? null,
-      title: taskTitle,
-      assigneeId,
-      dueDate: taskDueDate,
-    });
-    if (!res.ok) {
-      setFormError(mapSyncMessage(res.message));
-      return;
-    }
-    await reloadPlannerFromRemote();
-    setTaskTitle("");
-    setTaskDueDate(selectedDate);
-  }
-
-  async function toggleTask(taskId: string) {
-    setFormError(null);
-    const prevTasks = tasks;
-    const nextTasks = tasks.map((item) =>
-      item.id === taskId ? { ...item, done: !item.done } : item,
-    );
-    setTasks(nextTasks);
-    writePlannerTasks(nextTasks);
-    const current = nextTasks.find((item) => item.id === taskId);
-    if (!current) return;
-
-    const client = getBrowserClient();
-    if (!client) return;
-
-    const res = await togglePlannerTaskSynced({
-      householdId: profile?.household_id ?? null,
       taskId,
-      done: current.done,
+      done,
     });
-    if (!res.ok) {
-      setTasks(prevTasks);
-      writePlannerTasks(prevTasks);
-      setFormError(mapSyncMessage(res.message));
+
+    if (!response.ok) {
+      setFormError(mapSyncMessage(response.message));
       return;
     }
-    await reloadPlannerFromRemote();
+
+    await reloadPlanner();
   }
 
-  async function removeEvent(eventId: string) {
+  async function handleDeleteEvent(eventId: string) {
     setFormError(null);
-    const event = events.find((e) => e.id === eventId);
-    if (!event) {
-      setFormError(mapSyncMessage("EVENT_DELETE_NOT_FOUND"));
-      return;
-    }
     const client = getBrowserClient();
+
     if (!client) {
-      const next = events.filter((e) => e.id !== eventId);
-      setEvents(next);
-      writePlannerEvents(next);
+      const nextEvents = sortByDate(events.filter((item) => item.id !== eventId));
+      setEvents(nextEvents);
+      writePlannerEvents(nextEvents);
       return;
     }
-    const res = await deletePlannerEventSynced({
+
+    const event = events.find((item) => item.id === eventId);
+    if (!event) return;
+
+    const response = await deletePlannerEventSynced({
       eventId,
       style: event.style,
       householdId: profile?.household_id ?? null,
       userId: user?.id ?? null,
     });
-    if (!res.ok) {
-      setFormError(mapSyncMessage(res.message));
+
+    if (!response.ok) {
+      setFormError(mapSyncMessage(response.message));
       return;
     }
-    await reloadPlannerFromRemote();
+
+    await reloadPlanner();
   }
 
-  async function removeTask(taskId: string) {
+  async function handleDeleteTask(taskId: string) {
     setFormError(null);
-    const hid = profile?.household_id ?? null;
     const client = getBrowserClient();
-    if (!client) {
-      const next = tasks.filter((x) => x.id !== taskId);
-      setTasks(next);
-      writePlannerTasks(next);
+
+    if (!client || !profile?.household_id) {
+      const nextTasks = sortByDate(tasks.filter((item) => item.id !== taskId));
+      setTasks(nextTasks);
+      writePlannerTasks(nextTasks);
       return;
     }
-    if (!hid) {
-      setFormError(mapSyncMessage("HOUSEHOLD_REQUIRED"));
+
+    const response = await deletePlannerTaskSynced({
+      householdId: profile.household_id,
+      taskId,
+    });
+
+    if (!response.ok) {
+      setFormError(mapSyncMessage(response.message));
       return;
     }
-    const res = await deletePlannerTaskSynced({ householdId: hid, taskId });
-    if (!res.ok) {
-      setFormError(mapSyncMessage(res.message));
-      return;
-    }
-    await reloadPlannerFromRemote();
+
+    await reloadPlanner();
   }
+
+  function onOpenUpcoming(eventId: string) {
+    const found = events.find((item) => item.id === eventId);
+    if (!found) return;
+    setSelectedDate(found.date);
+    const day = new Date(`${found.date}T00:00:00`);
+    if (!Number.isNaN(day.getTime())) {
+      setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+    }
+  }
+
+  function onEditUpcoming(eventId: string) {
+    const found = events.find((item) => item.id === eventId);
+    if (!found) return;
+    setSelectedDate(found.date);
+    const day = new Date(`${found.date}T00:00:00`);
+    if (!Number.isNaN(day.getTime())) {
+      setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+    }
+    setFormError(t("events.quickAddEditOpened"));
+    setIsAddMenuOpen(true);
+  }
+
+  const selectedDateLabel = formatAppDate(selectedDate, locale) ?? selectedDate;
 
   return (
     <ModuleShell title={t("tile.calendarEvents")} moduleId="calendar">
-     <EventsThemeLayer>
-      <HiddenSeasonalCollectible spotId="events" />
-      {formError ? (
-        <GlassPanel className="border border-red-500/30 bg-red-500/10">
-          <p className="text-sm font-medium text-red-500">{formError}</p>
-          <button
-            type="button"
-            onClick={() => setFormError(null)}
-            className="mt-2 text-xs font-bold text-red-400 hover:text-red-500 underline transition-colors"
-          >
-            {locale === "lv" ? "Aizvērt" : "Dismiss"}
-          </button>
-        </GlassPanel>
-      ) : null}
+      <EventsThemeLayer>
+        <HiddenSeasonalCollectible spotId="events" />
 
-      <GlassPanel className="space-y-4">
-        <SectionHeading
-          eyebrow={t("tile.events")}
-          title={t("events.overview")}
-          detail={nextEvent ? formatAppDate(nextEvent.date, locale) ?? "" : ""}
-        />
-        <p className="text-sm leading-relaxed text-foreground/70">
-          {t("module.events.blurb")}
-        </p>
-        
-        {nextEvent ? (
-          <div className="rounded-theme border border-border bg-gradient-to-b from-background/50 to-transparent p-5 shadow-sm transition-all hover:border-primary/50">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-primary">
-                  {t("events.next")}
-                </p>
-                <p className="mt-2 text-xl font-bold text-foreground">
-                  {nextEvent.title}
-                </p>
-                <p className="mt-1 text-sm font-medium text-foreground/60">
-                  {formatAppDate(nextEvent.date, locale)}
-                </p>
-              </div>
-              <StatusPill tone={nextEvent.style === "shared" ? "good" : "neutral"}>
-                {nextEvent.style === "shared" ? t("events.shared") : t("events.personal")}
-              </StatusPill>
-            </div>
-            <p className="mt-4 text-sm font-medium text-foreground/70">
-              {t("events.nextHint")}
+        {formError ? (
+          <GlassPanel className="space-y-2">
+            <p className="text-sm" style={{ color: "var(--color-foreground)" }}>
+              {formError}
             </p>
-          </div>
+          </GlassPanel>
         ) : null}
-        
-        <div className="grid grid-cols-4 gap-3">
-          <MetricCard label={t("events.total")} value={events.length} />
-          <MetricCard label={t("events.shared")} value={sharedEvents.length} />
-          <MetricCard label={t("events.personal")} value={personalEvents.length} />
-          <MetricCard label={t("events.todo.open")} value={openTasks.length} />
-        </div>
-      </GlassPanel>
 
-      <GlassPanel className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <SectionHeading title={t("events.calendar")} detail={formatAppDate(selectedDate, locale) ?? ""} />
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => goToToday()}
-              className="rounded-theme border border-border bg-background/50 px-3 py-2 text-sm font-bold text-foreground hover:bg-foreground/5 transition-colors"
-            >
-              {t("events.today")}
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))
-              }
-              className="rounded-theme border border-border bg-background/50 px-3 py-2 text-sm font-bold hover:bg-foreground/5 transition-colors"
-            >
-              ←
-            </button>
-            <p className="min-w-[100px] text-center text-sm font-bold capitalize text-foreground">
-              {monthLabel}
-            </p>
-            <button
-              type="button"
-              onClick={() =>
-                setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))
-              }
-              className="rounded-theme border border-border bg-background/50 px-3 py-2 text-sm font-bold hover:bg-foreground/5 transition-colors"
-            >
-              →
-            </button>
-          </div>
-        </div>
-        <p className="text-sm text-foreground/70">{t("events.calendarHint")}</p>
-        
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          {/* Kalendāra Režģis */}
-          <div className="grid grid-cols-7 gap-2">
-            {WEEKDAY_LABELS[locale].map((label) => (
-              <p
-                key={label}
-                className="text-center text-[0.7rem] font-bold uppercase tracking-wider text-foreground/50"
-              >
-                {label}
-              </p>
-            ))}
-            {calendarDays.map((day, index) => {
-              if (!day) {
-                return <div key={`blank-${index}`} className="aspect-square rounded-theme border border-transparent" />;
-              }
-
-              const dayEvents = events.filter((item) => isSameDay(day, item.date));
-              const dayTasks = tasks.filter((item) => isSameDay(day, item.dueDate));
-              const dayIso = isoForDate(day);
-              const isSelected = dayIso === selectedDate;
-              const isToday = dayIso === isoForDate(new Date());
-
-              return (
-                <button
-                  key={day.toISOString()}
-                  type="button"
-                  onClick={() => setSelectedDate(dayIso)}
-                  className={[
-                    "aspect-square rounded-theme border p-2 text-left transition-all duration-200",
-                    isSelected
-                      ? "border-primary bg-primary/10 shadow-sm scale-[1.02] ring-1 ring-primary"
-                      : "border-border bg-background/40 hover:bg-background/80 hover:border-primary/30",
-                  ].join(" ")}
-                >
-                  <div className="flex h-full flex-col">
-                    <span
-                      className={[
-                        "text-sm font-bold",
-                        isToday ? "text-primary bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center -ml-1 -mt-1" : "text-foreground",
-                      ].join(" ")}
-                    >
-                      {day.getDate()}
-                    </span>
-                    <div className="mt-auto flex flex-wrap gap-1">
-                      {dayEvents.slice(0, 2).map((item) => (
-                        <span
-                          key={item.id}
-                          className="h-2 w-2 rounded-full bg-primary shadow-[0_0_4px_var(--color-primary)]"
-                          title={item.title}
-                        />
-                      ))}
-                      {dayTasks.slice(0, 2).map((item) => (
-                        <span
-                          key={item.id}
-                          className={[
-                            "h-2 w-2 rounded-full",
-                            item.done ? "bg-foreground/30" : "bg-primary/60",
-                          ].join(" ")}
-                          title={item.title}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Izvēlētās dienas detaļas */}
-          <div className="rounded-theme border border-border bg-background/30 p-4">
-            <SectionHeading title={t("events.selectedDay")} detail={formatAppDate(selectedDate, locale) ?? ""} />
-            <div className="mt-4 space-y-4">
-              
-              <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-foreground/50 border-b border-border pb-1">
-                  {t("events.dayEvents")}
-                </p>
-                {selectedDayEvents.length === 0 ? (
-                  <p className="text-sm text-foreground/60 italic py-2">{t("events.dayEmpty")}</p>
-                ) : (
-                  selectedDayEvents.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-theme border border-border bg-background/60 px-3 py-3 transition-colors hover:border-primary/50"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="font-semibold text-sm text-foreground">{item.title}</p>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
-                            {item.style === "shared" ? t("events.shared") : t("events.personal")}
-                          </StatusPill>
-                          <button
-                            type="button"
-                            onClick={() => void removeEvent(item.id)}
-                            className="rounded-md px-2 py-1 text-xs font-medium text-foreground/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-foreground/50 border-b border-border pb-1">
-                  {t("events.dayTasks")}
-                </p>
-                {selectedDayTasks.length === 0 ? (
-                  <p className="text-sm text-foreground/60 italic py-2">{t("events.dayEmpty")}</p>
-                ) : (
-                  selectedDayTasks.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-theme border border-border bg-background/60 px-3 py-3 transition-colors hover:border-primary/50"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p
-                          className={[
-                            "font-semibold text-sm text-foreground transition-all",
-                            item.done ? "line-through opacity-50" : "",
-                          ].join(" ")}
-                        >
-                          {item.title}
-                        </p>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <StatusPill tone={item.done ? "neutral" : "good"}>
-                            {item.assigneeName}
-                          </StatusPill>
-                          <button
-                            type="button"
-                            onClick={() => void removeTask(item.id)}
-                            className="rounded-md px-2 py-1 text-xs font-medium text-foreground/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </GlassPanel>
-
-      {/* Tuvākie notikumi & pievienošana */}
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("events.upcoming")} />
-        <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-3">
-            {events.length === 0 ? (
-              <p className="text-sm text-foreground/60 italic">{t("events.empty")}</p>
-            ) : (
-              events.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex w-full items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-4 py-3 text-left transition-all hover:border-primary/40 hover:bg-background/60 group"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDate(item.date)}
-                    className="min-w-0 flex-1 text-left"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
-                        {item.title}
-                      </p>
-                      <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
-                        {item.style === "shared" ? t("events.shared") : t("events.personal")}
-                      </StatusPill>
-                    </div>
-                    <p className="mt-1 text-xs font-medium text-foreground/60">
-                      {formatAppDate(item.date, locale)}
-                    </p>
-                  </button>
-                  <div className="flex shrink-0 flex-col items-end gap-2">
-                    <StatusPill tone={item.style === "shared" ? "good" : "neutral"}>
-                      {t("events.calendarTag")}
-                    </StatusPill>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void removeEvent(item.id);
-                      }}
-                      className="text-xs font-medium text-foreground/50 hover:text-red-500 transition-colors"
-                    >
-                      {t("events.delete")}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          
-          <div className="space-y-3 rounded-theme border border-border bg-background/30 p-4">
-            <p className="text-sm font-bold text-foreground">
-              {t("events.add")}
-            </p>
-            <input
-              type="text"
-              value={eventTitle}
-              onChange={(e) => setEventTitle(e.target.value)}
-              placeholder={t("events.form.title")}
-              className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-            />
-            <div>
-              <input
-                type="date"
-                lang={locale === "lv" ? "lv-LV" : "en-US"}
-                value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-                className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              />
-              <p className="mt-1 text-xs text-foreground/60 px-1">{t("events.form.date")}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => setEventStyle("shared")}
-                className={[
-                  "rounded-theme border px-3 py-2 text-sm font-bold transition-all",
-                  eventStyle === "shared"
-                    ? "border-primary bg-primary/10 text-primary shadow-sm"
-                    : "border-border text-foreground/60 hover:bg-background/50",
-                ].join(" ")}
-              >
-                {t("events.shared")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEventStyle("personal")}
-                className={[
-                  "rounded-theme border px-3 py-2 text-sm font-bold transition-all",
-                  eventStyle === "personal"
-                    ? "border-primary bg-primary/10 text-primary shadow-sm"
-                    : "border-border text-foreground/60 hover:bg-background/50",
-                ].join(" ")}
-              >
-                {t("events.personal")}
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => void addEvent()}
-              className="mt-2 w-full rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-              {t("events.form.save")}
-            </button>
-          </div>
-        </div>
-      </GlassPanel>
-
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("events.todo.title")} detail={openTasks.length.toString()} />
-        {profile?.household_id && members.length === 0 ? (
-          <p className="text-sm font-medium text-foreground/70 bg-background/50 p-3 rounded-theme border border-border">
-            {t("events.todo.needHousehold")}
+        <GlassPanel className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--color-accent)" }}>
+            {t("events.hero")}
           </p>
-        ) : null}
-        
-        <div className="grid gap-4 sm:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-3">
-            {tasks.length === 0 ? (
-              <p className="text-sm text-foreground/60 italic">{t("events.todo.empty")}</p>
-            ) : (
-              tasks.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-start gap-3 rounded-theme border border-border bg-background/40 px-4 py-3 transition-colors hover:border-primary/40"
-                >
-                  <input
-                    type="checkbox"
-                    checked={item.done}
-                    onChange={() => void toggleTask(item.id)}
-                    className="mt-1 h-4 w-4 cursor-pointer accent-primary"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p
-                        className={[
-                          "font-semibold text-sm text-foreground transition-all",
-                          item.done ? "line-through opacity-50" : "",
-                        ].join(" ")}
-                      >
-                        {item.title}
-                      </p>
-                      <StatusPill tone={item.done ? "neutral" : "good"}>
-                        {item.assigneeName}
-                      </StatusPill>
-                    </div>
-                    <p className="mt-1 text-xs font-medium text-foreground/60">
-                      {formatAppDate(item.dueDate, locale)}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void removeTask(item.id)}
-                    className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-foreground/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          
-          <div className="space-y-3 rounded-theme border border-border bg-background/30 p-4">
-            <p className="text-sm font-bold text-foreground">
-              {t("events.todo.add")}
-            </p>
-            <input
-              type="text"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
-              placeholder={t("events.todo.form.title")}
-              className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+          <UpcomingEventCard
+            event={upcomingDetails}
+            onOpen={onOpenUpcoming}
+            onEdit={onEditUpcoming}
+            onCreate={() => setIsAddMenuOpen(true)}
+          />
+        </GlassPanel>
+
+        <GlassPanel className="space-y-4">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <CalendarGrid
+              locale={locale}
+              calendarMonth={calendarMonth}
+              selectedDate={selectedDate}
+              todayIso={isoForDate(new Date())}
+              indicatorsByDate={indicatorsByDate}
+              onSelectDate={(iso) => {
+                setSelectedDate(iso);
+                const day = new Date(`${iso}T00:00:00`);
+                if (!Number.isNaN(day.getTime())) {
+                  setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+                }
+              }}
+              onShiftMonth={(offset) =>
+                setCalendarMonth(
+                  new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + offset, 1),
+                )
+              }
+              onGoToToday={() => {
+                const now = new Date();
+                setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+                setSelectedDate(isoForDate(now));
+              }}
+              monthDays={monthDays}
             />
-            <div>
-              <select
-                value={taskAssigneeId}
-                onChange={(e) => setTaskAssigneeId(e.target.value)}
-                className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              >
-                {members.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.display_name ?? t("events.todo.unassigned")}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-foreground/60 px-1">{t("events.todo.form.assignee")}</p>
-            </div>
-            <div>
-              <input
-                type="date"
-                lang={locale === "lv" ? "lv-LV" : "en-US"}
-                value={taskDueDate}
-                onChange={(e) => setTaskDueDate(e.target.value)}
-                className="w-full rounded-theme border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              />
-              <p className="mt-1 text-xs text-foreground/60 px-1">{t("events.todo.form.date")}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void addTask()}
-              disabled={!profile?.household_id || members.length === 0}
-              className={[
-                "mt-2 w-full rounded-theme px-4 py-3 text-sm font-bold shadow-sm transition-all",
-                !profile?.household_id || members.length === 0
-                  ? "cursor-not-allowed opacity-50 bg-border text-foreground/50"
-                  : "bg-primary text-primary-foreground hover:scale-[1.02] active:scale-[0.98]",
-              ].join(" ")}
-            >
-              {t("events.todo.form.save")}
-            </button>
-          </div>
-        </div>
-      </GlassPanel>
 
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("events.celebration")} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-theme border border-border bg-background/30 p-4 transition-colors hover:border-primary/30">
-            <p className="text-sm font-bold text-foreground">
-              {t("events.plan.sharedTitle")}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-foreground/70">
-              {t("events.plan.sharedBody")}
-            </p>
+            <DayEventsList
+              selectedDate={selectedDate}
+              selectedDateLabel={selectedDateLabel}
+              items={selectedDayItems}
+              onToggleTask={(taskId, done) => {
+                void handleToggleTask(taskId, done);
+              }}
+              onDeleteEvent={(eventId) => {
+                void handleDeleteEvent(eventId);
+              }}
+              onDeleteTask={(taskId) => {
+                void handleDeleteTask(taskId);
+              }}
+            />
           </div>
-          <div className="rounded-theme border border-border bg-background/30 p-4 transition-colors hover:border-primary/30">
-            <p className="text-sm font-bold text-foreground">
-              {t("events.plan.personalTitle")}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-foreground/70">
-              {t("events.plan.personalBody")}
-            </p>
-          </div>
-        </div>
-      </GlassPanel>
+        </GlassPanel>
 
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("events.feed")} detail={feedItems.length.toString()} />
-        <div className="space-y-3">
-          {feedItems.length === 0 ? (
-            <p className="text-sm text-foreground/60 italic">{t("finance.activityEmpty")}</p>
-          ) : (
-            feedItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex gap-3 rounded-theme border border-border bg-background/40 px-4 py-3 transition-all hover:border-primary/30"
-              >
-                <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary shadow-[0_0_5px_var(--color-primary)]" />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {item.line}
-                  </p>
-                  <p className="mt-1 text-xs text-foreground/60">
-                    {item.time}
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </GlassPanel>
-     </EventsThemeLayer>
+        <EventAddMenu
+          isOpen={isAddMenuOpen}
+          onClose={() => setIsAddMenuOpen(false)}
+          onSelect={(kind) => {
+            void handleQuickAdd(kind);
+          }}
+        />
+      </EventsThemeLayer>
     </ModuleShell>
   );
 }

@@ -6,6 +6,8 @@ import { useTheme } from "@/components/providers/theme-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
 import type { ThemeId } from "@/lib/theme-logic";
+import hiveStyles from "@/components/theme/hive.module.css";
+import { IconBee, IconHoneyJar, IconHex } from "@/components/theme/hive-icons";
 
 type BottomNavId = "home" | "calendar" | "kitchen" | "finance" | "pharmacy" | "reset";
 
@@ -75,7 +77,7 @@ export function ThemeBottomNav() {
           // 3. AKTĪVĀS POGAS TĒMAS ODZIŅA
           if (active) {
             if (themeId === "lucent") itemClass += "bg-primary/20 text-foreground shadow-inner scale-105";
-            else if (themeId === "hive") itemClass += "octagon bg-primary text-primary-foreground scale-110 shadow-md";
+            else if (themeId === "hive") itemClass += `${hiveStyles.hiveOctagon} bg-primary text-primary-foreground scale-110 shadow-md`;
             else if (themeId === "pulse") itemClass += "bg-primary text-primary-foreground border-2 border-black shadow-[2px_2px_0px_#000] -translate-y-1";
             else if (themeId === "forge") itemClass += "text-primary bg-black/50 shadow-inner scale-105";
             else if (themeId === "botanical") itemClass += "organic-shape bg-primary text-primary-foreground scale-110";
@@ -91,7 +93,21 @@ export function ThemeBottomNav() {
               className={itemClass}
             >
               <span className="text-xl leading-none mb-0.5" aria-hidden>
-                {THEME_NAV_ICONS[item.id][themeId]}
+                {themeId === 'hive' ? (
+                  ((): any => {
+                    switch (item.id) {
+                      case 'home': return <IconHex size={22} />;
+                      case 'calendar': return <IconBee size={20} />;
+                      case 'kitchen': return <IconHoneyJar size={20} />;
+                      case 'finance': return <IconHex size={20} />;
+                      case 'pharmacy': return <IconBee size={20} />;
+                      case 'reset': return <IconHex size={20} />;
+                      default: return THEME_NAV_ICONS[item.id][themeId];
+                    }
+                  })()
+                ) : (
+                  THEME_NAV_ICONS[item.id][themeId]
+                )}
               </span>
               <span className="max-w-full truncate px-1">{item.label}</span>
             </Link>

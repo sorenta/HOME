@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 import {
   DEFAULT_THEME,
   THEMES,
@@ -69,6 +70,7 @@ function applyThemeManifest(root: HTMLElement, m: ThemeManifestV2): void {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [themeId, setThemeIdState] = useState<ThemeId>(DEFAULT_THEME);
   const [activeSeason, setActiveSeason] = useState<SeasonalTheme | null>(null);
 
@@ -81,9 +83,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const seasonalLocked = activeSeason !== null;
+  const forcedAuthTheme: ThemeId = "lucent";
+  const effectiveThemeId: ThemeId = pathname.startsWith("/auth") ? forcedAuthTheme : themeId;
 
   useEffect(() => {
-    applyThemeManifest(document.documentElement, THEMES[themeId]);
+    applyThemeManifest(document.documentElement, THEMES[effectiveThemeId]);
     // Apply seasonal CSS hook on <html>
     if (activeSeason) {
       document.documentElement.dataset.season = activeSeason.id;
@@ -92,7 +96,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       delete document.documentElement.dataset.season;
       delete document.documentElement.dataset.seasonPhase;
     }
-  }, [themeId, activeSeason]);
+  }, [activeSeason, effectiveThemeId]);
 
   const setThemeId = useCallback((id: ThemeId) => {
     // During active holiday period, block theme changes
@@ -106,8 +110,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [activeSeason]);
 
   const value = useMemo(
-    () => ({ themeId, setThemeId, seasonalLocked, activeSeason }),
-    [themeId, setThemeId, seasonalLocked, activeSeason],
+    () => ({ themeId: effectiveThemeId, setThemeId, seasonalLocked, activeSeason }),
+    [effectiveThemeId, setThemeId, seasonalLocked, activeSeason],
   );
 
   return (

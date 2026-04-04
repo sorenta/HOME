@@ -33,6 +33,8 @@ create table if not exists public.reset_weigh_ins (
 create table if not exists public.reset_training_state (
   user_id uuid primary key references auth.users (id) on delete cascade,
   training_week_index smallint not null default 0,
+  wellness_onboarding_done boolean not null default false,
+  wellness_onboarding_profile jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 

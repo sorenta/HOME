@@ -1,48 +1,69 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
 import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
-import { MetricCard } from "@/components/ui/metric-card";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { FinanceThemeLayer } from "@/components/finance/finance-theme-layer";
-import { FinanceAiPanel } from "@/components/finance/finance-ai-panel";
-import { OdometerValue } from "@/components/finance/odometer-value";
-import { useTheme } from "@/components/providers/theme-provider";
+import { FinanceQuickActions } from "@/components/finance/FinanceQuickActions";
+import { PlannedBillsPreview } from "@/components/finance/PlannedBillsPreview";
+import { UrgentBillsCard } from "@/components/finance/UrgentBillsCard";
+import { WalletHero } from "@/components/finance/WalletHero";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useAuth } from "@/components/providers/auth-provider";
-import { formatAppDate } from "@/lib/date-format";
 import {
   addFinanceTransaction,
-  addFixedCost,
-  buildFinanceBuckets,
   fetchFinanceTransactions,
   fetchFixedCosts,
   fixedCostPaidThisMonth,
   formatEuro,
   summarizeFinance,
-  type FinanceTransactionRecord,
   type FixedCostRecord,
+  type FinanceTransactionRecord,
 } from "@/lib/finance";
+
+type BillPreview = {
+  id: string;
+  label: string;
+  amount: number;
+  amountLabel: string;
+  dueInDays: number;
+  dueLabel: string;
+  ownerLabel: string | null;
+};
+
+function daysUntilDue(dueDay: number | null) {
+  if (!dueDay) return null;
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const clampedDay = Math.min(Math.max(dueDay, 1), daysInMonth);
+
+  let dueDate = new Date(today.getFullYear(), today.getMonth(), clampedDay);
+  if (dueDate < today) {
+    dueDate = new Date(today.getFullYear(), today.getMonth() + 1, clampedDay);
+  }
+
+  const diff = dueDate.getTime() - today.getTime();
+  return Math.round(diff / 86400000);
+}
+
+function dueLabel(days: number, locale: "lv" | "en") {
+  if (days <= 0) return locale === "lv" ? "sodien" : "today";
+  if (days === 1) return locale === "lv" ? "rit" : "tomorrow";
+  return locale === "lv" ? `pec ${days} dienam` : `in ${days} days`;
+}
 
 export default function FinancePage() {
   const { t, locale } = useI18n();
   const { profile } = useAuth();
-  const { themeId } = useTheme();
+  const router = useRouter();
   const [fixedCosts, setFixedCosts] = useState<FixedCostRecord[]>([]);
   const [transactions, setTransactions] = useState<FinanceTransactionRecord[]>([]);
-  const [billTitle, setBillTitle] = useState("");
-  const [billAmount, setBillAmount] = useState("");
-  const [billDueDay, setBillDueDay] = useState("");
-  const [billCategory, setBillCategory] = useState("");
-  const [txnTitle, setTxnTitle] = useState("");
-  const [txnAmount, setTxnAmount] = useState("");
-  const [txnDate, setTxnDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [txnDirection, setTxnDirection] = useState<"income" | "expense">("expense");
-  const [txnFixedCostId, setTxnFixedCostId] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [payingBillId, setPayingBillId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,16 +90,58 @@ export default function FinancePage() {
   }, [profile?.household_id]);
 
   const summary = useMemo(() => summarizeFinance(transactions), [transactions]);
-  const plannedSpend = useMemo(
-    () => fixedCosts.reduce((total, item) => total + item.amount, 0),
-    [fixedCosts],
+  const householdInitials = useMemo(() => {
+    const profileInitial =
+      profile?.display_name?.trim().slice(0, 1).toUpperCase() ??
+      (locale === "lv" ? "M" : "H");
+    const pairInitial = locale === "lv" ? "K" : "W";
+    return [profileInitial, pairInitial];
+  }, [locale, profile?.display_name]);
+
+  const billPreview = useMemo(() => {
+    return fixedCosts
+      .filter((item) => !fixedCostPaidThisMonth(item.id, transactions))
+      .map((item) => {
+        const nextDueIn = daysUntilDue(item.due_day);
+        return {
+          id: item.id,
+          label: item.label,
+          amount: item.amount,
+          amountLabel: formatEuro(item.amount, locale),
+          dueInDays: nextDueIn ?? 99,
+          dueLabel:
+            nextDueIn === null
+              ? locale === "lv"
+                ? "bez termina"
+                : "no due date"
+              : dueLabel(nextDueIn, locale),
+          ownerLabel: item.category,
+        } satisfies BillPreview;
+      })
+      .sort((a, b) => a.dueInDays - b.dueInDays);
+  }, [fixedCosts, locale, transactions]);
+
+  const urgentBills = useMemo(
+    () => billPreview.filter((item) => item.dueInDays <= 5).slice(0, 4),
+    [billPreview],
   );
-  const buckets = useMemo(() => buildFinanceBuckets(transactions, locale), [transactions, locale]);
-  const topBucket = buckets[0]?.label ?? (locale === "lv" ? "mājas ikdiena" : "home routines");
-  const insight = t("finance.autoInsight", {
-    top: topBucket,
-    planned: formatEuro(plannedSpend, locale),
-  });
+
+  const plannedBills = useMemo(
+    () => billPreview.filter((item) => item.dueInDays > 5).slice(0, 4),
+    [billPreview],
+  );
+
+  const incomeVsExpense = useMemo(() => {
+    const totalFlow = summary.income + summary.expense;
+    if (totalFlow <= 0) {
+      return { incomeShare: 50, expenseShare: 50 };
+    }
+    const incomeShare = Math.max(22, Math.round((summary.income / totalFlow) * 100));
+    return {
+      incomeShare,
+      expenseShare: Math.max(8, 100 - incomeShare),
+    };
+  }, [summary.expense, summary.income]);
 
   async function reloadFinance() {
     if (!profile?.household_id) return;
@@ -90,310 +153,130 @@ export default function FinancePage() {
     setTransactions(txns);
   }
 
-  async function handleAddBill(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!profile?.household_id || !billTitle.trim() || !billAmount.trim()) return;
+  async function handleMarkPaid(billId: string) {
+    if (!profile?.household_id) return;
+    const target = fixedCosts.find((item) => item.id === billId);
+    if (!target) return;
 
-    setSaving(true);
-    setError(null);
-    try {
-      await addFixedCost({
-        householdId: profile.household_id,
-        label: billTitle,
-        amount: Number(billAmount),
-        dueDay: billDueDay ? Number(billDueDay) : null,
-        category: billCategory,
-      });
-      await reloadFinance();
-      setBillTitle("");
-      setBillAmount("");
-      setBillDueDay("");
-      setBillCategory("");
-    } catch (nextError) {
-      console.error(nextError);
-      setError(t("finance.form.error"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleAddTransaction(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!profile?.household_id || !txnTitle.trim() || !txnAmount.trim()) return;
-
-    setSaving(true);
+    setPayingBillId(billId);
     setError(null);
     try {
       await addFinanceTransaction({
         householdId: profile.household_id,
-        fixedCostId: txnFixedCostId || null,
-        direction: txnDirection,
-        amount: Number(txnAmount),
-        label: txnTitle,
-        happenedAt: `${txnDate}T12:00:00.000Z`,
+        fixedCostId: target.id,
+        direction: "expense",
+        amount: target.amount,
+        label: target.label,
       });
       await reloadFinance();
-      setTxnTitle("");
-      setTxnAmount("");
-      setTxnFixedCostId("");
-      setTxnDirection("expense");
     } catch (nextError) {
       console.error(nextError);
-      setError(t("finance.form.error"));
+      setError(locale === "lv" ? "Neizdevas atzimet maksajumu." : "Could not mark payment.");
     } finally {
-      setSaving(false);
+      setPayingBillId(null);
     }
   }
 
-  // Theme-specific card accent class
-  const billCardTheme =
-    themeId === "forge"
-      ? "border-l-2 border-l-primary/60"
-      : themeId === "botanical"
-        ? "rounded-[1.5rem]"
-        : themeId === "pulse"
-          ? "border-2 border-black shadow-[3px_3px_0px_#000]"
-          : "";
+  const primaryUrgentBill = urgentBills[0]?.id ?? null;
 
   return (
     <ModuleShell title={t("tile.finance")} moduleId="finance">
-     <FinanceThemeLayer>
-      <HiddenSeasonalCollectible spotId="finance" />
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("finance.overview")} />
-        <p className="text-sm leading-relaxed text-foreground/70">
-          {t("finance.overviewHint")}
-        </p>
-        <div className="grid grid-cols-3 gap-3">
-          {themeId === "forge" ? (
-            <>
-              <MetricCard label={t("finance.wallet")}>
-                <OdometerValue value={summary.balance} format={(n) => formatEuro(n, locale)} className="text-2xl font-semibold text-primary" />
-              </MetricCard>
-              <MetricCard label={t("finance.form.income")}>
-                <OdometerValue value={summary.income} format={(n) => formatEuro(n, locale)} className="text-2xl font-semibold" />
-              </MetricCard>
-              <MetricCard label={t("finance.cashflow")}>
-                <OdometerValue value={summary.expense} format={(n) => formatEuro(n, locale)} className="text-2xl font-semibold" />
-              </MetricCard>
-            </>
-          ) : (
-            <>
-              <MetricCard label={t("finance.wallet")} value={formatEuro(summary.balance, locale)} />
-              <MetricCard label={t("finance.form.income")} value={formatEuro(summary.income, locale)} />
-              <MetricCard
-                label={t("finance.cashflow")}
-                value={formatEuro(summary.expense, locale)}
-                hint={formatEuro(plannedSpend, locale)}
-              />
-            </>
-          )}
-        </div>
-      </GlassPanel>
+      <FinanceThemeLayer>
+        <HiddenSeasonalCollectible spotId="finance" />
 
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("finance.buckets")} />
-        <p className="text-xs text-foreground/70">{t("finance.bucketsHint")}</p>
-        {buckets.length === 0 ? (
-          <p className="text-sm text-foreground/60 italic">{t("finance.empty")}</p>
-        ) : (
-          <div className="space-y-4">
-            {buckets.map((bucket) => (
-              <div key={bucket.id}>
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className="text-sm font-medium text-foreground">{bucket.label}</p>
-                  <p className="text-sm font-bold text-primary">
-                    {formatEuro(bucket.total, locale)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </GlassPanel>
+        <section className="space-y-4">
+          <WalletHero
+            title={locale === "lv" ? "Musu macins" : "Household wallet"}
+            subtitle={
+              locale === "lv"
+                ? "Mierigs kopskats par majas naudas ritmu"
+                : "A calm, shared view of your household money flow"
+            }
+            total={formatEuro(summary.balance, locale)}
+            incomeShare={incomeVsExpense.incomeShare}
+            expenseShare={incomeVsExpense.expenseShare}
+            initials={householdInitials}
+          />
 
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("finance.bills")} />
-        
-        <form onSubmit={handleAddBill} className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
-          <input
-            type="text"
-            value={billTitle}
-            onChange={(e) => setBillTitle(e.target.value)}
-            placeholder={t("finance.form.billTitle")}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+          <FinanceQuickActions
+            onAddExpense={() => router.push("/finance?action=add-expense")}
+            onAddPayment={() => router.push("/finance?action=add-payment")}
+            onMarkPaid={() => {
+              if (primaryUrgentBill) {
+                void handleMarkPaid(primaryUrgentBill);
+                return;
+              }
+              router.push("/finance?action=mark-paid");
+            }}
+            onEdit={() => router.push("/finance?action=edit")}
           />
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={billAmount}
-            onChange={(e) => setBillAmount(e.target.value)}
-            placeholder={t("finance.form.amount")}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          />
-          <input
-            type="number"
-            min="1"
-            max="31"
-            value={billDueDay}
-            onChange={(e) => setBillDueDay(e.target.value)}
-            placeholder={t("finance.form.dueDay")}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          />
-          <input
-            type="text"
-            value={billCategory}
-            onChange={(e) => setBillCategory(e.target.value)}
-            placeholder={t("finance.form.category")}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          />
-          <div className="sm:col-span-2">
-            <button
-              type="submit"
-              disabled={saving || !profile?.household_id}
-              className="w-full rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
-            >
-              {t("finance.form.addBill")}
-            </button>
-          </div>
-        </form>
+        </section>
 
-        <div className="space-y-2">
-          {fixedCosts.length === 0 ? (
-            <p className="text-sm text-foreground/60 italic">{t("finance.empty")}</p>
-          ) : (
-            fixedCosts.map((bill) => {
-              const paid = fixedCostPaidThisMonth(bill.id, transactions);
-              return (
-                <div
-                  key={bill.id}
-                  className={`flex items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50 ${billCardTheme}`}
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm text-foreground">{bill.label}</p>
-                    <p className="mt-0.5 text-xs text-foreground/60 font-medium">
-                      {formatEuro(bill.amount, locale)}
-                      {bill.due_day ? ` · ${bill.due_day}.` : ""}
-                      {bill.category ? ` · ${bill.category}` : ""}
-                    </p>
-                  </div>
-                  <StatusPill tone={paid ? "good" : "warn"}>
-                    {paid ? t("finance.billPaid") : t("finance.billPending")}
-                  </StatusPill>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </GlassPanel>
+        <UrgentBillsCard
+          title={locale === "lv" ? "Tuvakie maksajumi" : "Upcoming bills"}
+          subtitle={
+            locale === "lv"
+              ? "Pavelc pa labi, lai atzimetu ka apmaksatu"
+              : "Swipe right to mark as paid"
+          }
+          emptyLabel={
+            locale === "lv"
+              ? "Visi tuvakie rekinI ir apmaksati."
+              : "All near-term bills are paid."
+          }
+          items={urgentBills}
+          onSwipePay={(billId) => {
+            void handleMarkPaid(billId);
+          }}
+          payingBillId={payingBillId}
+        />
 
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("finance.activity")} />
-        
-        <form onSubmit={handleAddTransaction} className="grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
-          <input
-            type="text"
-            value={txnTitle}
-            onChange={(e) => setTxnTitle(e.target.value)}
-            placeholder={t("finance.form.transactionTitle")}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          />
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={txnAmount}
-            onChange={(e) => setTxnAmount(e.target.value)}
-            placeholder={t("finance.form.amount")}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          />
-          <select
-            value={txnDirection}
-            onChange={(e) => setTxnDirection(e.target.value as "income" | "expense")}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+        <PlannedBillsPreview
+          title={locale === "lv" ? "Planotie maksajumi" : "Planned bills"}
+          subtitle={
+            locale === "lv"
+              ? "Kas vel gaidams saja menesi"
+              : "A quick look at later monthly payments"
+          }
+          emptyLabel={
+            locale === "lv"
+              ? "Sobrid nav citu planotu maksajumu."
+              : "No additional planned payments right now."
+          }
+          items={plannedBills}
+        />
+
+        <GlassPanel
+          className="space-y-3"
+          style={{
+            borderRadius: "var(--radius-card)",
+            background: "color-mix(in srgb, var(--color-surface) 90%, transparent)",
+          }}
+        >
+          <p className="text-xs uppercase tracking-[0.12em]" style={{ color: "var(--color-accent)" }}>
+            {locale === "lv" ? "Pilnais finansu parskats" : "Full finance overview"}
+          </p>
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            {locale === "lv"
+              ? "Atver pilnu vesturi, kategorijas un detalizetu redigesanu atseviska skatijuma."
+              : "Open full history, categories, and detailed editing in a dedicated view."}
+          </p>
+
+          <Link
+            href="/finance"
+            className="inline-flex w-full items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold"
+            style={{
+              borderColor: "color-mix(in srgb, var(--color-border) 64%, transparent)",
+              background: "color-mix(in srgb, var(--color-surface-2) 84%, transparent)",
+              color: "var(--color-text-primary)",
+            }}
           >
-            <option value="expense">{t("finance.form.expense")}</option>
-            <option value="income">{t("finance.form.income")}</option>
-          </select>
-          <input
-            type="date"
-            lang={locale === "lv" ? "lv-LV" : "en-US"}
-            value={txnDate}
-            onChange={(e) => setTxnDate(e.target.value)}
-            className="w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          />
-          <select
-            value={txnFixedCostId}
-            onChange={(e) => setTxnFixedCostId(e.target.value)}
-            className="sm:col-span-2 w-full rounded-theme border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-          >
-            <option value="">{t("finance.form.none")}</option>
-            {fixedCosts.map((bill) => (
-              <option key={bill.id} value={bill.id}>
-                {bill.label}
-              </option>
-            ))}
-          </select>
-          <div className="sm:col-span-2">
-            <button
-              type="submit"
-              disabled={saving || !profile?.household_id}
-              className="w-full rounded-theme bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
-            >
-              {t("finance.form.addTransaction")}
-            </button>
-          </div>
-        </form>
+            {locale === "lv" ? "Skatit visu vesturi un parskatus" : "View full history and reports"}
+          </Link>
+        </GlassPanel>
 
         {error ? <p className="text-sm font-medium text-red-500">{error}</p> : null}
-
-        <div className="space-y-2">
-          {transactions.length === 0 ? (
-            <p className="text-sm text-foreground/60 italic">{t("finance.activityEmpty")}</p>
-          ) : (
-            transactions.slice(0, 6).map((item) => (
-              <div
-                key={item.id}
-                className={`rounded-theme border border-border bg-background/40 px-3 py-3 transition-all hover:border-primary/50 ${billCardTheme}`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-foreground">
-                    {item.label}
-                  </p>
-                  <StatusPill tone={item.direction === "income" ? "good" : "warn"}>
-                    {item.direction === "income" ? "+" : "-"}
-                    {formatEuro(item.amount, locale)}
-                  </StatusPill>
-                </div>
-                <p className="mt-1 text-xs font-medium text-foreground/60">
-                  {formatAppDate(item.happened_at, locale)}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
-      </GlassPanel>
-
-      <GlassPanel className="space-y-3">
-        <SectionHeading title={t("finance.insight")} />
-        <p className="text-sm leading-relaxed text-foreground">
-          {insight}
-        </p>
-        <p className="text-xs leading-relaxed text-foreground/70">
-          {t("finance.partnerHint")}
-        </p>
-      </GlassPanel>
-
-      {profile?.household_id && (
-        <FinanceAiPanel
-          householdId={profile.household_id}
-          transactions={transactions}
-          fixedCosts={fixedCosts}
-          balance={summary.balance}
-        />
-      )}
-     </FinanceThemeLayer>
+      </FinanceThemeLayer>
     </ModuleShell>
   );
 }

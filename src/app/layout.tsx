@@ -77,15 +77,15 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "H:0",
+  title: "H:O",
   description:
-    "H:0 household flow for kitchen, finance, calendar, pharmacy, and RESET.",
-  applicationName: "H:0",
+    "H:O household flow for kitchen, finance, calendar, pharmacy, and RESET.",
+  applicationName: "H:O",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "H:0",
+    title: "H:O",
   },
   icons: {
     icon: "/icon",

@@ -1,394 +1,185 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { StatusPill } from "@/components/ui/status-pill";
-import { GlassPanel } from "@/components/ui/glass-panel";
-import { ResetMoodPanel } from "@/components/reset/reset-mood-panel";
-import { ResetDailySignalsForm } from "@/components/reset/reset-daily-signals-form";
-import { ResetBodyTracking } from "@/components/reset/reset-body-tracking";
-import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
-import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
-import { ResetWellnessOnboarding } from "@/components/reset/reset-wellness-onboarding";
-import { ResetHealthSourcesPanel } from "@/components/reset/reset-health-sources-panel";
+import { ResetDashboard } from "@/components/reset/reset-dashboard";
+import { ResetOnboardingWizard } from "@/components/reset/reset-onboarding-wizard";
+import { ResetThemeLayer } from "@/components/reset/reset-theme-layer";
 import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
-import { hapticTap } from "@/lib/haptic";
 import {
-  appendCheckInLocal,
-  canCheckInToday,
-  getTodayCheckInCount,
-  MAX_RESET_CHECKINS_PER_DAY,
-  setTodayCheckInCountFromServer,
-} from "@/lib/reset-checkin";
-import {
-  fetchTodayCheckInCount,
-  scoreToMood,
-  submitResetCheckInToSupabase,
-} from "@/lib/reset-checkin-sync";
-import {
-  fetchTodaySignals,
-  localDateIso,
-  signalsScoreDelta,
-  type ResetDailySignalsRow,
-} from "@/lib/reset-daily-signals";
+  defaultWellnessState,
+  type ResetOnboardingProfile,
+  type ResetWellnessV1,
+} from "@/lib/reset-wellness";
 import {
   loadWellnessStateSynced,
   persistWellnessStateSynced,
 } from "@/lib/reset-wellness-sync";
-import { useAuth } from "@/components/providers/auth-provider";
-import { ResetThemeLayer } from "@/components/reset/reset-theme-layer";
-import { ResetAiPanel } from "@/components/reset/reset-ai-panel";
-import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
-import {
-  bodyGoals,
-  defaultWellnessState,
-  hasTrainingRelevantBodyGoal,
-  loadWellnessState,
-  quitGoals,
-  type ResetWellnessV1,
-  type WellnessGoal,
-} from "@/lib/reset-wellness";
-import { getBrowserClient } from "@/lib/supabase/client";
 
 export default function ResetPage() {
-  const { t } = useI18n();
-  const { user, profile, refreshProfile } = useAuth();
-  const [checkInCount, setCheckInCount] = useState(0);
+  const { t, locale } = useI18n();
+  const { user } = useAuth();
   const [wellness, setWellness] = useState<ResetWellnessV1>(defaultWellnessState);
   const [hydrated, setHydrated] = useState(false);
-  const [showGoalEditor, setShowGoalEditor] = useState(false);
-  const [members, setMembers] = useState<HouseholdMember[]>([]);
-  const [todaySignals, setTodaySignals] = useState<ResetDailySignalsRow | null>(null);
-  const [signalsVersion, setSignalsVersion] = useState(0);
-  const [checkInMessage, setCheckInMessage] = useState<"limit" | "rpc" | null>(null);
-  const [empathyRecipientIds, setEmpathyRecipientIds] = useState<string[] | null>(null);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    const frame = requestAnimationFrame(() => {
-      setCheckInCount(getTodayCheckInCount());
-      setWellness(loadWellnessState());
-      setHydrated(true);
-    });
 
-    void loadWellnessStateSynced(user?.id ?? null).then((next) => {
-      if (alive) setWellness(next);
+    void loadWellnessStateSynced(user?.id ?? null).then((state) => {
+      if (!alive) return;
+      setWellness(state);
+      setHydrated(true);
     });
 
     return () => {
       alive = false;
-      cancelAnimationFrame(frame);
     };
   }, [user?.id]);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    const day = localDateIso();
-    void fetchTodayCheckInCount({ userId: user.id, loggedOnLocal: day }).then((n) => {
-      setTodayCheckInCountFromServer(n);
-      setCheckInCount(getTodayCheckInCount());
-    });
-  }, [user?.id]);
-
-  useEffect(() => {
-    let alive = true;
-    void fetchMyHouseholdMembers().then((next) => {
-      if (alive) setMembers(next);
-    });
-    return () => { alive = false; };
-  }, [profile?.household_id]);
-
-  useEffect(() => {
-    if (!user?.id) {
-      setEmpathyRecipientIds(null);
-      return;
-    }
-    const supabase = getBrowserClient();
-    if (!supabase) return;
-    let alive = true;
-    void supabase
-      .from("notification_preferences")
-      .select("reset_empathy_recipient_ids")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (!alive) return;
-        if (error || !data) {
-          setEmpathyRecipientIds([]);
-          return;
-        }
-        const raw = (data as { reset_empathy_recipient_ids?: string[] | null })
-          .reset_empathy_recipient_ids;
-        setEmpathyRecipientIds(Array.isArray(raw) ? raw : []);
-      });
-    return () => { alive = false; };
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!user?.id) {
-      setTodaySignals(null);
-      return;
-    }
-    let alive = true;
-    const day = localDateIso();
-    void fetchTodaySignals(user.id, day).then((row) => {
-      if (alive) setTodaySignals(row);
-    });
-    return () => { alive = false; };
-  }, [user?.id, signalsVersion]);
-
-  const persistWellness = useCallback((next: ResetWellnessV1) => {
-    setWellness(next);
-    void persistWellnessStateSynced(user?.id ?? null, next);
-  }, [user?.id]);
-
-  const onSurveyComplete = useCallback(
-    (goals: WellnessGoal[]) => {
-      setWellness((prev) => {
-        const next = { ...prev, goals, onboardingDone: true };
-        void persistWellnessStateSynced(user?.id ?? null, next);
-        return next;
-      });
-      setShowGoalEditor(false);
+  const persistWellness = useCallback(
+    (next: ResetWellnessV1) => {
+      setWellness(next);
+      void persistWellnessStateSynced(user?.id ?? null, next);
     },
     [user?.id],
   );
 
-  const onSurveySkip = useCallback(() => {
-    setWellness((prev) => {
-      const next = { ...prev, onboardingDone: true };
-      void persistWellnessStateSynced(user?.id ?? null, next);
-      return next;
-    });
-    setShowGoalEditor(false);
-  }, [user?.id]);
+  const showOnboarding = hydrated && (!wellness.onboardingDone || showQuestionnaire);
 
-  const quits = useMemo(() => quitGoals(wellness.goals), [wellness.goals]);
-  const bodies = useMemo(() => bodyGoals(wellness.goals), [wellness.goals]);
-  const trainingModes = useMemo(() => {
-    const modes = bodies
-      .filter((b) => b.mode === "bulk" || b.mode === "lean")
-      .map((b) => b.mode);
-    return [...new Set(modes)];
-  }, [bodies]);
+  useEffect(() => {
+    if (!hydrated) return;
 
-  const baseWellnessScore = useMemo(() => {
-    let score = wellness.onboardingDone ? 20 : 0;
-    score += quits.length * 15;
-    score += bodies.length * 15;
-    score += Math.min(20, wellness.measurements.length * 4);
-    score += Math.min(20, wellness.weighIns.length * 5);
-    return score;
-  }, [bodies.length, quits.length, wellness.measurements.length, wellness.onboardingDone, wellness.weighIns.length]);
-
-  const checkInBonus = Math.min(15, checkInCount * 5);
-
-  const resetScoreValue = useMemo(
-    () => Math.min(100, Math.max(0, baseWellnessScore + checkInBonus + signalsScoreDelta(todaySignals))),
-    [baseWellnessScore, checkInBonus, todaySignals],
-  );
-
-  const partnerMood = useMemo(() => {
-    if (resetScoreValue >= 75) return t("reset.mood.high");
-    if (resetScoreValue >= 40) return t("reset.mood.steady");
-    return t("reset.mood.low");
-  }, [resetScoreValue, t]);
-
-  const scoreAfterCheckIn = useMemo(() => {
-    const d = signalsScoreDelta(todaySignals);
-    if (!canCheckInToday()) return Math.min(100, baseWellnessScore + checkInBonus + d);
-    const nextBonus = Math.min(15, (checkInCount + 1) * 5);
-    return Math.min(100, baseWellnessScore + nextBonus + d);
-  }, [baseWellnessScore, checkInCount, todaySignals]);
-
-  const liveMetrics = useMemo((): Array<{
-    label: string;
-    value: string;
-    tone: "neutral" | "good" | "warn" | "critical";
-  }> => [
-    { label: t("reset.metric.goals"), value: String(wellness.goals.length), tone: "good" },
-    { label: t("reset.metric.quit"), value: String(quits.length), tone: quits.length > 0 ? "good" : "warn" },
-    { label: t("reset.metric.body"), value: String(wellness.measurements.length + wellness.weighIns.length), tone: wellness.measurements.length + wellness.weighIns.length > 0 ? "good" : "warn" },
-    { label: t("reset.metric.training"), value: String(trainingModes.length), tone: trainingModes.length > 0 ? "good" : "warn" },
-  ], [quits.length, t, trainingModes.length, wellness.goals.length, wellness.measurements.length, wellness.weighIns.length]);
-
-  async function onCheckIn() {
-    if (!canCheckInToday()) return;
-    hapticTap();
-    setCheckInMessage(null);
-    const mood = scoreToMood(scoreAfterCheckIn);
-    if (user?.id) {
-      const res = await submitResetCheckInToSupabase({
-        householdId: profile?.household_id ?? null,
-        score: scoreAfterCheckIn,
-        mood,
-        loggedOnLocal: localDateIso(),
-      });
-      if (!res.ok) {
-        if (res.code === "LIMIT") setCheckInMessage("limit");
-        else if (res.code === "RPC_UNAVAILABLE") setCheckInMessage("rpc");
-        return;
-      }
-      appendCheckInLocal();
-      setCheckInCount(getTodayCheckInCount());
-      await refreshProfile();
-      return;
+    let nextShowIntro = false;
+    if (!wellness.onboardingDone && typeof window !== "undefined") {
+      const seenKey = `majapps-reset-intro-seen-${user?.id ?? "anon"}`;
+      const seen = window.localStorage.getItem(seenKey) === "true";
+      nextShowIntro = !seen;
     }
-    appendCheckInLocal();
-    setCheckInCount(getTodayCheckInCount());
+
+    const frame = window.requestAnimationFrame(() => {
+      setShowIntro(nextShowIntro);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [hydrated, user?.id, wellness.onboardingDone]);
+
+  function handleOnboardingComplete(answers: ResetOnboardingProfile) {
+    const next: ResetWellnessV1 = {
+      ...wellness,
+      onboardingDone: true,
+      onboardingProfile: answers,
+      trackMetrics: answers.trackMetrics,
+      quitPlan: answers.quitPlan,
+    };
+    setShowQuestionnaire(false);
+    persistWellness(next);
   }
-
-  const privacyMembers = useMemo(() => {
-    const base = members.length > 0 ? members : user ? [{ id: user.id, display_name: profile?.display_name ?? user.email?.split("@")[0] ?? null, role_label: profile?.role_label ?? null, is_me: true } satisfies HouseholdMember] : [];
-    if (empathyRecipientIds != null && empathyRecipientIds.length > 0) return base.filter((m) => empathyRecipientIds.includes(m.id));
-    return base;
-  }, [empathyRecipientIds, members, profile?.display_name, profile?.role_label, user]);
-
-  const showOnboarding = hydrated && (!wellness.onboardingDone || showGoalEditor);
 
   return (
     <ModuleShell title={t("tile.reset")} moduleId="reset">
-     <ResetThemeLayer>
-      <HiddenSeasonalCollectible spotId="reset" />
-      {showOnboarding && (
-        <ResetWellnessOnboarding
-          onComplete={(goals) => onSurveyComplete(goals)}
-          onSkip={onSurveySkip}
-        />
-      )}
+      <ResetThemeLayer>
+        <HiddenSeasonalCollectible spotId="reset" />
+        {showIntro ? (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[color:color-mix(in_srgb,var(--color-background)_62%,black)] p-4 backdrop-blur-md sm:p-6">
+            <GlassPanel className="w-full max-w-2xl space-y-5 border border-[color:var(--color-surface-border)] bg-[color:color-mix(in_srgb,var(--color-card)_92%,white_8%)] p-5 sm:p-7">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-text-secondary)]">
+                  {locale === "lv" ? "RESET sākuma skaidrojums" : "RESET quick intro"}
+                </p>
+                <h2 className="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
+                  {locale === "lv" ? "Sāksim ar īsu anketu" : "Let us start with a short questionnaire"}
+                </h2>
+                <p className="max-w-xl text-sm leading-relaxed text-[color:var(--color-text-secondary)] sm:text-base">
+                  {locale === "lv"
+                    ? "Atbildi uz 5 jautājumiem, lai RESET sadaļa pielāgotos tieši tev: mērķiem, ritmam un ikdienas paradumiem."
+                    : "Answer 5 questions so RESET can adapt to your goals, daily rhythm, and habits."}
+                </p>
+              </div>
 
-      {hydrated && wellness.onboardingDone && (
-        <GlassPanel className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <SectionHeading title={t("reset.wellness.summaryTitle")} />
-            <button
-              onClick={() => { hapticTap(); setShowGoalEditor(true); }}
-              className="rounded-theme border border-border bg-background/50 px-4 py-2 text-xs font-bold text-foreground hover:bg-primary/5 transition-all"
-            >
-              {t("reset.wellness.editGoals")}
-            </button>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-[var(--radius-card)] border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">1</p>
+                  <p className="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                    {locale === "lv" ? "Skaidrs sākums" : "Clear start"}
+                  </p>
+                  <p className="mt-1 text-xs text-[color:var(--color-text-secondary)]">
+                    {locale === "lv" ? "~1 minūtes anketa" : "~1 minute questionnaire"}
+                  </p>
+                </div>
+                <div className="rounded-[var(--radius-card)] border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">2</p>
+                  <p className="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                    {locale === "lv" ? "Personisks ritms" : "Personal rhythm"}
+                  </p>
+                  <p className="mt-1 text-xs text-[color:var(--color-text-secondary)]">
+                    {locale === "lv" ? "Mērķi un paradumi tavā tempā" : "Goals and habits in your pace"}
+                  </p>
+                </div>
+                <div className="rounded-[var(--radius-card)] border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">3</p>
+                  <p className="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                    {locale === "lv" ? "Pielāgots dashboard" : "Tailored dashboard"}
+                  </p>
+                  <p className="mt-1 text-xs text-[color:var(--color-text-secondary)]">
+                    {locale === "lv" ? "Ieteikumi tieši pēc tavām atbildēm" : "Suggestions based on your answers"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-[var(--radius-card)] border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-3">
+                <p className="text-sm text-[color:var(--color-text-secondary)]">
+                  {locale === "lv"
+                    ? "Atbildes varēsi mainīt jebkurā brīdī RESET sadaļā."
+                    : "You can update your answers anytime in RESET."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    const seenKey = `majapps-reset-intro-seen-${user?.id ?? "anon"}`;
+                    window.localStorage.setItem(seenKey, "true");
+                  }
+                  setShowIntro(false);
+                }}
+                className="inline-flex w-full justify-center rounded-full border border-[color:var(--color-accent)] bg-[color:var(--color-surface-2)] px-5 py-3 text-sm font-semibold text-[color:var(--color-text-primary)]"
+              >
+                {locale === "lv" ? "Turpināt uz anketu" : "Continue to questionnaire"}
+              </button>
+            </GlassPanel>
           </div>
-          {wellness.goals.length === 0 ? (
-            <p className="text-sm text-foreground/60 italic">{t("reset.wellness.noGoalsHint")}</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {wellness.goals.map((g) => (
-                <StatusPill key={g.id} tone="neutral">
-                  {g.kind === "quit"
-                    ? (g.subkind === "custom" && g.customLabel ? g.customLabel : t(`reset.wellness.quit.${g.subkind}`))
-                    : t(`reset.wellness.body.${g.mode}`)}
-                </StatusPill>
-              ))}
-            </div>
-          )}
-        </GlassPanel>
-      )}
+        ) : null}
 
-      {hydrated && quits.length > 0 && <ResetQuitStreak goals={quits} />}
-      {hydrated && bodies.length > 0 && <ResetBodyTracking state={wellness} onUpdate={persistWellness} />}
-      
-      {hydrated && hasTrainingRelevantBodyGoal(wellness.goals) && trainingModes.map((mode) => (
-        <ResetTrainingPlan key={mode} mode={mode} state={wellness} onUpdate={persistWellness} />
-      ))}
+        {!hydrated ? null : showOnboarding ? (
+          <div className="space-y-3">
+            {wellness.onboardingDone ? (
+              <button
+                type="button"
+                onClick={() => setShowQuestionnaire(false)}
+                className="inline-flex rounded-full border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] px-4 py-2 text-sm text-[color:var(--color-text-secondary)]"
+              >
+                {locale === "lv" ? "Atpakaļ uz RESET pārskatu" : "Back to RESET overview"}
+              </button>
+            ) : null}
 
-      {hydrated && wellness.onboardingDone && <ResetHealthSourcesPanel />}
-
-      {hydrated && wellness.onboardingDone && (
-        <ResetDailySignalsForm
-          userId={user?.id ?? null}
-          onSaved={() => setSignalsVersion((v) => v + 1)}
-        />
-      )}
-
-      <GlassPanel className="space-y-4">
-        <p className="text-sm leading-relaxed text-foreground/80">
-          {t("module.reset.blurb")}
-        </p>
-        <ResetMoodPanel
-          scorePercent={resetScoreValue}
-          scoreLabel={t("reset.score")}
-          partnerLabel={t("reset.partnerMood")}
-          partnerValue={partnerMood}
-          partnerHint={t("reset.partnerMoodHint")}
-        />
-      </GlassPanel>
-
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("reset.metrics")} />
-        <div className="grid gap-2">
-          {liveMetrics.map((metric) => (
-            <div
-              key={metric.label}
-              className="flex items-center justify-between gap-3 rounded-theme border border-border bg-background/40 px-4 py-3"
-            >
-              <p className="text-sm font-bold text-foreground">{metric.label}</p>
-              <StatusPill tone={metric.tone}>{metric.value}</StatusPill>
-            </div>
-          ))}
-        </div>
-      </GlassPanel>
-
-      <GlassPanel className="space-y-4">
-        <SectionHeading title={t("reset.privacy")} />
-        <p className="text-sm leading-relaxed text-foreground/70">
-          {t("reset.privacyBody")}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {privacyMembers.map((member) => (
-            <StatusPill key={member.id} tone="neutral">
-              {member.display_name ?? t("household.membersList.member")} — {t("reset.seesMoodOnly")}
-            </StatusPill>
-          ))}
-        </div>
-      </GlassPanel>
-
-      {hydrated && wellness.onboardingDone && profile?.household_id && (
-        <ResetAiPanel
-          householdId={profile.household_id}
-          mood={scoreToMood(resetScoreValue)}
-          moodScore={resetScoreValue}
-          signals={todaySignals ? Object.entries(todaySignals).filter(([k]) => !['id','user_id','logged_on','created_at','updated_at'].includes(k)).map(([k, v]) => ({ label: k, value: Number(v) || 0 })) : undefined}
-          quitDays={quits.length > 0 ? quits[0].startedAt ? Math.floor((Date.now() - new Date(quits[0].startedAt).getTime()) / 86400000) : null : null}
-          goals={wellness.goals.map(g => g.kind === 'quit' ? (g.customLabel ?? g.subkind) : g.mode)}
-        />
-      )}
-
-      <GlassPanel className="space-y-5">
-        <div className="space-y-2">
-          <SectionHeading title={t("reset.recommendation")} />
-          <p className="text-sm leading-relaxed text-foreground">{t("reset.aiBody")}</p>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">
-            {t("reset.checkin.limitHint", { max: String(MAX_RESET_CHECKINS_PER_DAY) })}
-          </p>
-        </div>
-        
-        <button
-          onClick={() => void onCheckIn()}
-          disabled={!canCheckInToday()}
-          className={[
-            "w-full rounded-theme py-4 text-sm font-black tracking-tight transition-all shadow-md",
-            !canCheckInToday()
-              ? "bg-border text-foreground/40 cursor-not-allowed"
-              : "bg-primary text-primary-foreground hover:scale-[1.02] active:scale-[0.98]",
-          ].join(" ")}
-        >
-          {!canCheckInToday()
-            ? t("module.reset.doneDay", { n: String(MAX_RESET_CHECKINS_PER_DAY) })
-            : t("module.reset.checkinWithCount", {
-                current: String(checkInCount + 1),
-                max: String(MAX_RESET_CHECKINS_PER_DAY),
-              })}
-        </button>
-        
-        {checkInMessage && (
-          <p className="text-xs font-bold text-center text-red-500">
-            {checkInMessage === "limit" ? t("reset.checkin.limitReached") : t("reset.checkin.rpcUnavailable")}
-          </p>
+            <ResetOnboardingWizard
+              initial={wellness.onboardingProfile}
+              onComplete={handleOnboardingComplete}
+            />
+          </div>
+        ) : (
+          <ResetDashboard
+            wellness={wellness}
+            onOpenQuestionnaire={() => setShowQuestionnaire(true)}
+          />
         )}
-      </GlassPanel>
-     </ResetThemeLayer>
+      </ResetThemeLayer>
     </ModuleShell>
   );
 }

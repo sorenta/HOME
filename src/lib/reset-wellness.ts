@@ -47,9 +47,29 @@ export type WeighInEntry = {
   kg: number;
 };
 
+export type ResetTrackMetric = "weight" | "steps" | "mood" | "sleep";
+
+export type ResetQuitPlan = {
+  habit: "smoking" | "sweets" | "snacking" | "other";
+  startedOn: string;
+  approach: "quit" | "reduce";
+};
+
+export type ResetOnboardingProfile = {
+  primaryGoal: "weight" | "wellbeing" | "sleep" | "stress";
+  profileType: "desk" | "active" | "mixed";
+  baselineMood: "low" | "steady" | "high";
+  trackMetrics: ResetTrackMetric[];
+  checkInFrequency: "daily" | "weekdays" | "three_per_week";
+  quitPlan: ResetQuitPlan | null;
+};
+
 export type ResetWellnessV1 = {
   version: 1;
   onboardingDone: boolean;
+  onboardingProfile: ResetOnboardingProfile;
+  trackMetrics: ResetTrackMetric[];
+  quitPlan: ResetQuitPlan | null;
   goals: WellnessGoal[];
   measurements: MeasurementEntry[];
   weighIns: WeighInEntry[];
@@ -57,10 +77,25 @@ export type ResetWellnessV1 = {
   trainingWeekIndex: number;
 };
 
+export function defaultResetOnboardingProfile(): ResetOnboardingProfile {
+  return {
+    primaryGoal: "wellbeing",
+    profileType: "mixed",
+    baselineMood: "steady",
+    trackMetrics: ["mood"],
+    checkInFrequency: "daily",
+    quitPlan: null,
+  };
+}
+
 export function defaultWellnessState(): ResetWellnessV1 {
+  const onboardingProfile = defaultResetOnboardingProfile();
   return {
     version: 1,
     onboardingDone: false,
+    onboardingProfile,
+    trackMetrics: onboardingProfile.trackMetrics,
+    quitPlan: onboardingProfile.quitPlan,
     goals: [],
     measurements: [],
     weighIns: [],
@@ -73,9 +108,26 @@ function safeParse(raw: string | null): ResetWellnessV1 | null {
   try {
     const data = JSON.parse(raw) as Partial<ResetWellnessV1>;
     if (data.version !== 1 || !Array.isArray(data.goals)) return null;
+    const defaults = defaultResetOnboardingProfile();
+    const onboardingProfile = {
+      primaryGoal: data.onboardingProfile?.primaryGoal ?? defaults.primaryGoal,
+      profileType: data.onboardingProfile?.profileType ?? defaults.profileType,
+      baselineMood: data.onboardingProfile?.baselineMood ?? defaults.baselineMood,
+      trackMetrics: Array.isArray(data.onboardingProfile?.trackMetrics)
+        ? data.onboardingProfile.trackMetrics
+        : Array.isArray(data.trackMetrics)
+          ? data.trackMetrics
+          : defaults.trackMetrics,
+      checkInFrequency: data.onboardingProfile?.checkInFrequency ?? defaults.checkInFrequency,
+      quitPlan: data.onboardingProfile?.quitPlan ?? data.quitPlan ?? defaults.quitPlan,
+    } satisfies ResetOnboardingProfile;
+
     return {
       version: 1,
       onboardingDone: Boolean(data.onboardingDone),
+      onboardingProfile,
+      trackMetrics: onboardingProfile.trackMetrics,
+      quitPlan: onboardingProfile.quitPlan,
       goals: data.goals as WellnessGoal[],
       measurements: Array.isArray(data.measurements) ? data.measurements : [],
       weighIns: Array.isArray(data.weighIns) ? data.weighIns : [],

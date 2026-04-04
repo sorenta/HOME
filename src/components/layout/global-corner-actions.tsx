@@ -14,7 +14,6 @@ export function GlobalCornerActions() {
   }
 
   const items = [
-    { href: "/profile", label: t("nav.profile"), side: "left-4", icon: "☺" },
     { href: "/settings", label: t("nav.settings"), side: "right-4", icon: "⚙" },
   ];
 

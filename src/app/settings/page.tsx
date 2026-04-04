@@ -1,10 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { HouseholdOnboarding } from "@/components/household/household-onboarding";
-import { HouseholdSummary } from "@/components/household/household-summary";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ModuleShell } from "@/components/layout/module-shell";
 import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
@@ -26,16 +22,14 @@ import { THEMES, type ThemeId } from "@/lib/theme-logic";
 import { hapticTap } from "@/lib/haptic";
 import {
   type AiProvider,
-  getKeyLastFour,
   getProviderKeyFromStorage,
   maskKey,
   removeProviderKeyFromStorage,
   setProviderKeyInStorage,
   validateProviderKey,
 } from "@/lib/ai/keys";
-import { createClient, getBrowserClient } from "@/lib/supabase/client";
-import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
-import { clearStoredConsent } from "@/lib/legal/consent-storage";
+import { getBrowserClient } from "@/lib/supabase/client";
+import { ProfileSettingsSection } from "@/components/profile/profile-settings-section";
 
 const SETTINGS_KEY = "majapps-local-settings";
 
@@ -43,6 +37,13 @@ type LocalSettings = {
   pushFinance: boolean;
   pushPharmacy: boolean;
   showResetMood: boolean;
+};
+
+type ProviderState = {
+  value: string;
+  savedValue: string;
+  status: "idle" | "testing" | "error";
+  error: string | null;
 };
 
 function readLocalSettings(): LocalSettings {
@@ -55,23 +56,19 @@ function readLocalSettings(): LocalSettings {
 }
 
 export default function SettingsPage() {
-  const router = useRouter();
   const { t, locale, setLocale } = useI18n();
   const { themeId, setThemeId } = useTheme();
   const { user, profile, refreshProfile, signOut } = useAuth();
   
-  const [byok, setByok] = useState<Record<AiProvider, any>>({
+  const [byok, setByok] = useState<Record<AiProvider, ProviderState>>({
     gemini: { value: "", savedValue: "", status: "idle", error: null },
     openai: { value: "", savedValue: "", status: "idle", error: null },
   });
   
   const [settings, setSettings] = useState<LocalSettings>(readLocalSettings());
   const [empathyRecipientIds, setEmpathyRecipientIds] = useState<string[]>([]);
-  const [members, setMembers] = useState<HouseholdMember[]>([]);
-  const supabaseReady = createClient() !== null;
 
   useEffect(() => {
-    void fetchMyHouseholdMembers().then(setMembers);
     setByok({
       gemini: { value: getProviderKeyFromStorage("gemini") ?? "", savedValue: getProviderKeyFromStorage("gemini") ?? "", status: "idle", error: null },
       openai: { value: getProviderKeyFromStorage("openai") ?? "", savedValue: getProviderKeyFromStorage("openai") ?? "", status: "idle", error: null },
@@ -106,24 +103,6 @@ export default function SettingsPage() {
     }
   }
 
-  const toggleEmpathyRecipient = async (id: string) => {
-    hapticTap();
-    const next = empathyRecipientIds.includes(id) 
-      ? empathyRecipientIds.filter(x => x !== id) 
-      : [...empathyRecipientIds, id];
-    setEmpathyRecipientIds(next);
-    if (user) {
-      const supabase = getBrowserClient();
-      if (supabase) {
-        await supabase.from("notification_preferences").upsert({
-          user_id: user.id,
-          reset_empathy_recipient_ids: next,
-          updated_at: new Date().toISOString(),
-        });
-      }
-    }
-  };
-
   const verifyAndSaveProvider = async (provider: AiProvider) => {
     hapticTap();
     const value = byok[provider].value.trim();
@@ -138,7 +117,7 @@ export default function SettingsPage() {
       if (!response.ok) throw new Error("Verification failed");
       setProviderKeyInStorage(provider, value);
       setByok(prev => ({ ...prev, [provider]: { ...prev[provider], savedValue: value, status: "idle", error: null } }));
-    } catch (e) {
+    } catch {
       setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "error", error: "Invalid Key" } }));
     }
   };
@@ -194,8 +173,8 @@ export default function SettingsPage() {
             <ForgeBandRule />
             <ForgeSubLabel>{t("settings.language")}</ForgeSubLabel>
             <div className="flex gap-1 px-3 pb-3">
-              {["lv", "en"].map(l => (
-                <button key={l} onClick={() => setLocale(l as any)} className={`flex-1 py-2 text-xs font-bold border ${locale === l ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground/40'}`}>
+              {(["lv", "en"] as const).map(l => (
+                <button key={l} onClick={() => setLocale(l)} className={`flex-1 py-2 text-xs font-bold border ${locale === l ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground/40'}`}>
                   {l === "lv" ? "LATVIAN" : "ENGLISH"}
                 </button>
               ))}
@@ -216,6 +195,8 @@ export default function SettingsPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          <ProfileSettingsSection />
+
           <GlassPanel className="space-y-4">
             <SectionHeading title={t("settings.theme")} />
             <div className="grid grid-cols-1 gap-2">

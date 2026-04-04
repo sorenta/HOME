@@ -18,8 +18,8 @@ export default function Icon() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#000000", // Melns fons ir universāls visām tēmām
-          borderRadius: "128px", // Maigi noapaļoti stūri
+          background: "#8f959d",
+          borderRadius: "128px",
         }}
       >
         <div
@@ -27,17 +27,16 @@ export default function Icon() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: "80%",
-            height: "80%",
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #fbbf24 0%, #d97706 100%)", // Dzintara gradients (mājas siltums)
+            width: "100%",
+            height: "100%",
             color: "#ffffff",
-            fontSize: 240,
+            fontSize: 170,
             fontWeight: 900,
-            boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
+            letterSpacing: "-0.04em",
+            fontFamily: "Inter, Arial, sans-serif",
           }}
         >
-          M
+          H:O
         </div>
       </div>
     ),

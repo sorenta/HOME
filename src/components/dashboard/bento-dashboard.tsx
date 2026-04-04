@@ -1,465 +1,382 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HouseholdOnboarding } from "@/components/household/household-onboarding";
-import { HouseholdSummary } from "@/components/household/household-summary";
+import { AppMark } from "@/components/branding/app-mark";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useI18n } from "@/lib/i18n/i18n-context";
+import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 import {
   buildHouseholdActivityFeed,
   fetchHouseholdActivityFeed,
   subscribeHouseholdActivity,
   type ActivityFeedRow,
 } from "@/lib/household-activity";
-import {
-  fetchMyHouseholdMembers,
-  fetchMyHouseholdSummary,
-  type Household,
-  type HouseholdMember,
-} from "@/lib/household";
-import { MetricCard } from "@/components/ui/metric-card";
-import { StatusPill } from "@/components/ui/status-pill";
-import { useI18n } from "@/lib/i18n/i18n-context";
-import { useTheme } from "@/components/providers/theme-provider";
-import {
-  getAdaptiveModuleOrder,
-  type ModuleId,
-} from "@/lib/bento-usage";
-import { hasResetCheckInToday } from "@/lib/reset-checkin";
-import { getGeminiKeyFromStorage, getOpenAIKeyFromStorage } from "@/lib/ai/keys";
+import { fetchKitchenInventory, fetchShoppingItems, type KitchenInventoryRecord, type ShoppingRecord } from "@/lib/kitchen";
 import { fetchOpenHouseholdTaskCount } from "@/lib/events-sync";
-import { BentoTile, type BentoTileTier } from "./bento-tile";
-import { AppMark } from "@/components/branding/app-mark";
-import { DashboardHomeLayout } from "@/components/dashboard/dashboard-home-layout";
-import { HouseholdWaterWidget } from "./household-water-widget";
-import { TimeOfDayNoticeCard } from "./time-of-day-notice-card";
-import { PeakHolidayCard } from "./peak-holiday-card";
-import { SeasonalHomeBanner } from "./seasonal-home-banner";
-import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
-import { useSeasonal } from "@/components/providers/seasonal-provider";
-import { ThemeId } from "@/lib/theme-logic";
+import { hasResetCheckInToday } from "@/lib/reset-checkin";
 
 export { ThemeBottomNav as AppBottomNav } from "@/components/navigation/theme-bottom-nav";
 
-type GreetingPeriod = "morning" | "day" | "evening" | "night";
-
-const DEFAULT_ORDER: ModuleId[] = [
-  "calendar",
-  "kitchen",
-  "finance",
-  "reset",
-  "pharmacy",
-];
-
-const MODULE_META: Record<
-  ModuleId,
-  { href: string; titleKey: string; emoji: string; colSpan?: 1 | 2; tier: BentoTileTier }
-> = {
-  calendar: { href: "/events", titleKey: "tile.calendar", emoji: "📅", tier: "featured" },
-  finance: { href: "/finance", titleKey: "tile.finance", emoji: "💰", tier: "compact" },
-  reset: { href: "/reset", titleKey: "tile.reset", emoji: "🧘", tier: "compact" },
-  kitchen: {
-    href: "/kitchen",
-    titleKey: "tile.kitchen",
-    emoji: "🍳",
-    colSpan: 2,
-    tier: "featured",
-  },
-  pharmacy: { href: "/pharmacy", titleKey: "tile.pharmacy", emoji: "💊", tier: "compact" },
-  settings: { href: "/settings", titleKey: "tile.settings", emoji: "⚙️", tier: "compact" },
-};
-
-function memberInitials(name: string | null | undefined): string {
-  const trimmed = name?.trim();
-  if (!trimmed) return "?";
-  const parts = trimmed.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    const a = parts[0]?.[0];
-    const b = parts[1]?.[0];
-    if (a && b) return `${a}${b}`.toUpperCase();
-  }
-  return trimmed.slice(0, 2).toUpperCase();
-}
-
-function getGreetingPeriod(date: Date): GreetingPeriod {
-  const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return "morning";
-  if (hour >= 12 && hour < 17) return "day";
-  if (hour >= 17 && hour < 22) return "evening";
-  return "night";
-}
-
-// MAĢISKAIS PANEĻU STILOTĀJS (Piešķir tēmas identitāti lielajiem blokiem)
-function getThemePanelClass(themeId: ThemeId) {
-  const base = "bg-card text-card-foreground rounded-theme p-4 relative overflow-hidden transition-all duration-500 flex flex-col gap-3";
-  if (themeId === "lucent") return `${base} border border-border/50 backdrop-blur-md shadow-theme`;
-  if (themeId === "hive") return `${base} border-4 border-border shadow-sm`;
-  if (themeId === "pulse") return `${base} border-4 border-black shadow-[6px_6px_0px_#000]`;
-  if (themeId === "forge") return `${base} metal-gradient border-t-4 border-primary shadow-inner`;
-  if (themeId === "botanical") return `${base} border border-border shadow-[inset_0_0_20px_rgba(255,255,255,0.3)]`;
-  return `${base} border border-border`;
-}
-
-type DashboardCardProps = {
+type TriageItem = {
+  id: string;
   title: string;
-  badge?: string;
-  children: ReactNode;
-  className?: string;
+  detail: string;
+  href: string;
 };
 
-function DashboardCard({ title, badge, children, className }: DashboardCardProps) {
-  return (
-    <section
-      className={[
-        "rounded-[1.1rem] border border-border/60 bg-background/70 p-4 shadow-[0_10px_35px_-25px_rgba(10,34,16,0.45)] backdrop-blur-sm",
-        className ?? "",
-      ].join(" ")}
-    >
-      <header className="mb-3 flex items-center justify-between gap-2 border-b border-border/40 pb-2">
-        <h2 className="text-sm font-semibold tracking-wide text-foreground/90">{title}</h2>
-        {badge ? (
-          <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
-            {badge}
-          </span>
-        ) : null}
-      </header>
-      {children}
-    </section>
-  );
+function memberName(member: HouseholdMember | null | undefined, fallback: string): string {
+  if (!member) return fallback;
+  const name = member.display_name?.trim();
+  return name && name.length > 0 ? name : fallback;
 }
 
 export function BentoDashboard() {
   const { t, locale } = useI18n();
-  const { themeId } = useTheme();
   const { profile, user } = useAuth();
-  const { activeTheme: seasonalTheme } = useSeasonal();
-  const [order, setOrder] = useState<ModuleId[]>(DEFAULT_ORDER);
-  const [resetDoneToday, setResetDoneToday] = useState(true);
-  const [greetingPeriod, setGreetingPeriod] = useState<GreetingPeriod>("day");
-  const [household, setHousehold] = useState<Household | null>(null);
+
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [activityRows, setActivityRows] = useState<ActivityFeedRow[]>([]);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [aiReady, setAiReady] = useState(false);
+  const [shopping, setShopping] = useState<ShoppingRecord[]>([]);
+  const [inventory, setInventory] = useState<KitchenInventoryRecord[]>([]);
+  const [pendingTasks, setPendingTasks] = useState(0);
+  const [resetDoneToday] = useState(() => hasResetCheckInToday());
 
+  const householdId = profile?.household_id ?? null;
   const displayName =
     profile?.display_name ??
     (user?.user_metadata.display_name as string | undefined) ??
     user?.email?.split("@")[0] ??
     t("app.name");
-  const greeting = `${t(`dashboard.greeting.${greetingPeriod}`)}, ${displayName}`;
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      setOrder(getAdaptiveModuleOrder());
-      setResetDoneToday(hasResetCheckInToday());
-      setGreetingPeriod(getGreetingPeriod(new Date()));
-      setAiReady(Boolean(getGeminiKeyFromStorage() || getOpenAIKeyFromStorage()));
-    });
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-    const loadHousehold = async () => {
-      const [nextHousehold, nextMembers] = await Promise.all([
-        fetchMyHouseholdSummary(),
-        fetchMyHouseholdMembers(),
-      ]);
-      if (!alive) return;
-      setHousehold(nextHousehold);
-      setMembers(nextMembers);
-    };
-    void loadHousehold();
-    return () => { alive = false; };
-  }, [profile?.household_id]);
-
-  useEffect(() => {
-    let alive = true;
-    void fetchOpenHouseholdTaskCount(profile?.household_id ?? null).then((next) => {
-      if (alive) setPendingCount(next);
-    });
-    return () => { alive = false; };
-  }, [profile?.household_id]);
-
-  useEffect(() => {
-    const householdId = profile?.household_id;
     if (!householdId) return;
     let alive = true;
-    const loadActivity = async () => {
-      const rows = await fetchHouseholdActivityFeed(householdId);
+
+    void Promise.all([
+      fetchMyHouseholdMembers(),
+      fetchHouseholdActivityFeed(householdId),
+      fetchShoppingItems(householdId),
+      fetchKitchenInventory(householdId),
+      fetchOpenHouseholdTaskCount(householdId),
+    ]).then(([nextMembers, nextActivity, nextShopping, nextInventory, nextPending]) => {
       if (!alive) return;
-      setActivityRows(rows);
-    };
-    void loadActivity();
-    const unsubscribe = subscribeHouseholdActivity(householdId, () => {
-      void loadActivity();
+      setMembers(nextMembers);
+      setActivityRows(nextActivity);
+      setShopping(nextShopping);
+      setInventory(nextInventory);
+      setPendingTasks(nextPending);
     });
+
+    const unsubscribe = subscribeHouseholdActivity(householdId, () => {
+      void fetchHouseholdActivityFeed(householdId).then((rows) => {
+        if (alive) setActivityRows(rows);
+      });
+    });
+
     return () => {
       alive = false;
       unsubscribe?.();
     };
-  }, [profile?.household_id]);
+  }, [householdId]);
 
-  const tiles = useMemo(
+  const partner =
+    !user?.id
+      ? members[0] ?? null
+      : members.find((member) => member.id !== user.id) ?? members[0] ?? null;
+
+  const triageItems = useMemo<TriageItem[]>(() => {
+    const items: TriageItem[] = [];
+
+    if (!resetDoneToday) {
+      items.push({
+        id: "reset",
+        title: locale === "lv" ? "RESET check-in nav izdarits" : "RESET check-in is pending",
+        detail: locale === "lv" ? "Pabeidz sodienas check-in, lai noturetu ritmu." : "Complete today's check-in to keep your rhythm.",
+        href: "/reset",
+      });
+    }
+
+    if (pendingTasks > 0) {
+      items.push({
+        id: "tasks",
+        title:
+          locale === "lv"
+            ? `Neaizverti uzdevumi: ${pendingTasks}`
+            : `Open tasks: ${pendingTasks}`,
+        detail: locale === "lv" ? "Termini tuvojas nakamajas 3 dienas." : "Deadlines are near in the next 3 days.",
+        href: "/events",
+      });
+    }
+
+    const openShopping = shopping.filter((item) => item.status === "open").length;
+    if (openShopping > 0) {
+      items.push({
+        id: "shopping",
+        title:
+          locale === "lv"
+            ? `Pirkumu saraksta ieraksti: ${openShopping}`
+            : `Shopping list items: ${openShopping}`,
+        detail: locale === "lv" ? "Apskati grozu un atzime paveikto." : "Review your cart and mark done.",
+        href: "/kitchen",
+      });
+    }
+
+    const urgentInventory = inventory.filter((item) => item.status === "expiring" || item.status === "low_stock").length;
+    if (urgentInventory > 0) {
+      items.push({
+        id: "inventory",
+        title:
+          locale === "lv"
+            ? `Steidzami produkti: ${urgentInventory}`
+            : `Urgent inventory items: ${urgentInventory}`,
+        detail: locale === "lv" ? "Deriguma termins vai atlikums prasa uzmanibu." : "Expiry date or low stock needs attention.",
+        href: "/kitchen",
+      });
+    }
+
+    return items.slice(0, 3);
+  }, [inventory, locale, pendingTasks, resetDoneToday, shopping]);
+
+  const feedLines = useMemo(
     () =>
-      order.map((id) => {
-        const meta = MODULE_META[id];
-        const highlight = id === "reset" && !resetDoneToday ? true : undefined;
-        return (
-          <BentoTile
-            key={id}
-            themeId={themeId}
-            href={meta.href}
-            title={t(meta.titleKey)}
-            emoji={meta.emoji}
-            highlight={highlight}
-            colSpan={meta.colSpan ?? 1}
-            tier={meta.tier}
-            attention={highlight}
-          />
-        );
-      }),
-    [order, resetDoneToday, t, themeId],
+      householdId
+        ? buildHouseholdActivityFeed(
+            activityRows,
+            members,
+            locale,
+            t("household.membersList.member"),
+          ).slice(0, 3)
+        : [],
+    [activityRows, householdId, locale, members, t],
   );
 
-  const homeFeed = useMemo(
-    () => buildHouseholdActivityFeed(activityRows, members, locale, t("household.membersList.member")),
-    [activityRows, members, locale, t],
-  );
-  
-  const headerSubtitle = household?.name
-    ? `${household.name} • ${t("dashboard.subtitle")}`
-    : t("dashboard.subtitle");
-  const waterScopeId = household?.id ?? (user?.id ? `personal:${user.id}` : "personal:guest");
+  const openShoppingPreview = shopping.filter((item) => item.status === "open").slice(0, 5);
 
-  const panelThemeClasses = getThemePanelClass(themeId);
+  const challengeTitle = resetDoneToday
+    ? locale === "lv"
+      ? "Sodienas izaicinajums izpildits"
+      : "Today's challenge completed"
+    : locale === "lv"
+      ? "Sodienas izaicinajums: 10 min klusais bridis"
+      : "Today's challenge: 10 minutes of quiet time";
 
-  const metricsSlot = (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.05 }}
-      className="flex flex-col gap-3 relative z-10"
-    >
-      <div className="grid grid-cols-2 gap-3">
-        <MetricCard variant="compact" label={t("dashboard.members")} value={members.length || household?.member_count || 0} />
-        <MetricCard variant="compact" label={t("dashboard.pending")} value={pendingCount} />
-      </div>
-      <MetricCard variant="emphasis" label={t("dashboard.aiReady")} value={aiReady ? "ON" : "OFF"} />
-    </motion.div>
-  );
+  const challengeBody = resetDoneToday
+    ? locale === "lv"
+      ? "Lieliski! Vari pievienot vel vienu mazu uzvaru RESET sadaļā."
+      : "Great. You can add one more small win in RESET."
+    : locale === "lv"
+      ? "Atver RESET un piefikse savas sajutas, lai noslegtu dienu ar skaidru fokusu."
+      : "Open RESET and log your state to close the day with clear focus.";
 
-  const botanicalHouseholdPanelSlot = (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="grid gap-3 sm:grid-cols-2"
-    >
-      <DashboardCard title={t("household.members")} badge={t("app.realtime")}>
-        <ul className="flex flex-col gap-2">
-          {members.length === 0 ? (
-            <li className="text-sm italic text-foreground/50">{t("household.membersList.empty")}</li>
-          ) : (
-            members.slice(0, 4).map((member) => {
-              const label = member.display_name ?? t("household.membersList.member");
-              return (
-                <li key={member.id} className="flex items-center gap-3 rounded-xl border border-border/40 bg-background/50 p-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
-                    {memberInitials(label)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{label}</p>
-                    <p className="text-[11px] text-foreground/60">{member.role_label ?? t("household.membersList.member")}</p>
-                  </div>
-                </li>
-              );
-            })
-          )}
-        </ul>
-      </DashboardCard>
-      <DashboardCard title={t("dashboard.pending")} badge={t("app.smartAssistant")}>
-        <div className="flex flex-wrap gap-2">
-          <StatusPill tone={aiReady ? "good" : "neutral"}>{t("dashboard.aiReady")}</StatusPill>
-          {!resetDoneToday ? (
-            <StatusPill tone="critical">{t("dashboard.pendingReset")}</StatusPill>
-          ) : (
-            <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
-          )}
-          <StatusPill tone="neutral">{`${t("dashboard.members")}: ${members.length || household?.member_count || 0}`}</StatusPill>
-        </div>
-      </DashboardCard>
-    </motion.div>
-  );
-
-  const defaultHouseholdPanelSlot = (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="grid gap-3 sm:grid-cols-2"
-    >
-      <section className={`${panelThemeClasses} z-10`}>
-        <div className="flex items-center justify-between border-b border-border/50 pb-2">
-          <h2 className="text-base font-bold tracking-wide">{t("household.members")}</h2>
-          <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded-full">
-            {t("app.realtime")}
-          </span>
-        </div>
-        <ul className="flex flex-col gap-2 pt-2">
-          {members.length === 0 ? (
-            <li className="text-sm text-foreground/50 italic">{t("household.membersList.empty")}</li>
-          ) : (
-            members.slice(0, 4).map((member) => {
-              const label = member.display_name ?? t("household.membersList.member");
-              return (
-                <li key={member.id} className="flex items-center gap-3 bg-background/50 p-2.5 rounded-xl border border-border/30">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-xs">
-                    {memberInitials(label)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-sm truncate">{label}</p>
-                      {member.is_me && <span className="text-[10px] bg-foreground/10 px-2 py-0.5 rounded-md uppercase font-bold text-foreground/70">{t("household.membersList.you")}</span>}
-                    </div>
-                    <p className="text-xs text-foreground/60 mt-0.5">{member.role_label ?? t("household.membersList.member")}</p>
-                  </div>
-                </li>
-              );
-            })
-          )}
-        </ul>
-      </section>
-      <section className={`${panelThemeClasses} z-10`}>
-        <div className="flex items-center justify-between border-b border-border/50 pb-2">
-          <h2 className="text-base font-bold tracking-wide">{t("dashboard.pending")}</h2>
-          <span className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded-full">
-            {t("app.smartAssistant")}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-2 pt-3">
-          <StatusPill tone={aiReady ? "good" : "neutral"}>{t("dashboard.aiReady")}</StatusPill>
-          {!resetDoneToday ? (
-            <StatusPill tone="critical">{t("dashboard.pendingReset")}</StatusPill>
-          ) : (
-            <StatusPill tone="good">{t("dashboard.resetOk")}</StatusPill>
-          )}
-          <StatusPill tone="neutral">{`${t("dashboard.members")}: ${members.length || household?.member_count || 0}`}</StatusPill>
-        </div>
-      </section>
-    </motion.div>
-  );
-
-  const modulesSlot = (
-    <motion.div layout={themeId !== "lucent"} className="grid grid-cols-2 gap-3 relative z-10 my-2">
-      {tiles}
-    </motion.div>
-  );
-
-  const botanicalFeedSlot = (
-    <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.14 }}
-      className="grid gap-3 sm:grid-cols-2"
-    >
-      {homeFeed.length === 0 ? (
-        <DashboardCard title={t("dashboard.feed")}>
-          <p className="text-sm text-foreground/60">{t("household.membersList.empty")}</p>
-        </DashboardCard>
-      ) : (
-        homeFeed.slice(0, 4).map((item) => (
-          <DashboardCard key={item.id} title={item.time} badge={item.source === "db" ? t("dashboard.feedLive") : undefined}>
-            <p className="text-sm font-medium">{item.line}</p>
-          </DashboardCard>
-        ))
-      )}
-    </motion.section>
-  );
-
-  const defaultFeedSlot = (
-    <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.14 }}
-      className="grid gap-3 sm:grid-cols-2"
-    >
-      {homeFeed.length === 0 ? (
-        <section className={`${panelThemeClasses} z-10`}>
-          <p className="text-sm text-foreground/60">{t("household.membersList.empty")}</p>
-        </section>
-      ) : (
-        homeFeed.slice(0, 4).map((item) => (
-          <section key={item.id} className={`${panelThemeClasses} z-10`}>
-            <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
-              <p className="text-xs text-foreground/60 font-mono">{item.time}</p>
-              {item.source === "db" ? (
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  {t("dashboard.feedLive")}
-                </span>
-              ) : null}
-            </div>
-            <p className="text-sm font-medium pt-2">{item.line}</p>
-          </section>
-        ))
-      )}
-    </motion.section>
-  );
-
-  if (!profile?.household_id) {
+  if (!householdId) {
     return (
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden p-4 gap-4">
-        <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-4 p-4">
+        <HiddenSeasonalCollectible spotId="home" />
+        <GlassPanel className="space-y-2">
           <AppMark size="sm" />
-          <h1 className="text-3xl font-black mt-4 text-foreground tracking-tight">{greeting}</h1>
-          <p className="text-foreground/70 mt-2 max-w-sm text-sm">{t("household.subtitle")}</p>
-        </motion.header>
-        <TimeOfDayNoticeCard />
-        <HouseholdOnboarding />
+          <h1 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>
+            {locale === "lv" ? `Sveiks, ${displayName}` : `Hi, ${displayName}`}
+          </h1>
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            {locale === "lv"
+              ? "Lai redzetu personalizeto sakuma skatu, vispirms piesaisti majsaimniecibu."
+              : "Connect a household first to unlock the personalized home view."}
+          </p>
+        </GlassPanel>
+        <HouseholdOnboarding compact />
       </div>
     );
   }
 
-  const headerSlot = (
-    <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 mb-3">
-      <AppMark size="sm" />
-      <h1 className="text-4xl font-black mt-4 text-foreground tracking-tighter">{greeting}</h1>
-      <p className="text-foreground/70 mt-2 max-w-sm font-medium">{headerSubtitle}</p>
-    </motion.header>
-  );
-
-  const householdPanelSlot = themeId === "botanical" ? botanicalHouseholdPanelSlot : defaultHouseholdPanelSlot;
-  const feedSlot = themeId === "botanical" ? botanicalFeedSlot : defaultFeedSlot;
-
   return (
-    <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-6 md:p-6 space-y-4">
-      {seasonalTheme && (
-        <>
-          <PeakHolidayCard theme={seasonalTheme} displayName={displayName} />
-          <SeasonalHomeBanner theme={seasonalTheme} />
-        </>
-      )}
+    <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-4 px-4 py-5">
       <HiddenSeasonalCollectible spotId="home" />
-      <DashboardHomeLayout
-        themeId={themeId}
-        slots={{
-          header: headerSlot,
-          notice: <TimeOfDayNoticeCard />,
-          householdSummary: (
-            <div className="relative z-10">
-              <HouseholdSummary householdId={profile.household_id} density="compact" />
-            </div>
-          ),
-          water: (
-            <HouseholdWaterWidget scopeId={waterScopeId} members={members} currentUserId={user?.id ?? null} />
-          ),
-          metrics: metricsSlot,
-          householdPanel: householdPanelSlot,
-          modules: modulesSlot,
-          feed: feedSlot,
+
+      <GlassPanel className="space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-2">
+            <AppMark size="sm" />
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>
+              {locale === "lv" ? `Sveiks, ${displayName}` : `Hello, ${displayName}`}
+            </h1>
+            <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+              {locale === "lv"
+                ? "Tavs majas vadibas centrs sodienai."
+                : "Your household command center for today."}
+            </p>
+          </div>
+          <span
+            className="rounded-full border px-3 py-1 text-xs font-semibold"
+            style={{
+              borderColor: "var(--color-surface-border)",
+              background: "var(--color-surface)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {locale === "lv" ? "SVEICIENS" : "HERO"}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/reset"
+            className="rounded-full border px-4 py-2 text-sm font-semibold"
+            style={{
+              borderColor: "var(--color-accent)",
+              background: "var(--color-surface-2)",
+              color: "var(--color-text-primary)",
+            }}
+          >
+            {locale === "lv" ? "Atvert RESET" : "Open RESET"}
+          </Link>
+          <Link
+            href="/events"
+            className="rounded-full border px-4 py-2 text-sm"
+            style={{
+              borderColor: "var(--color-surface-border)",
+              background: "var(--color-surface)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {locale === "lv" ? "Kalendars" : "Calendar"}
+          </Link>
+          <Link
+            href="/kitchen"
+            className="rounded-full border px-4 py-2 text-sm"
+            style={{
+              borderColor: "var(--color-surface-border)",
+              background: "var(--color-surface)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            {locale === "lv" ? "Virtuve" : "Kitchen"}
+          </Link>
+        </div>
+      </GlassPanel>
+
+      <GlassPanel className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--color-text-secondary)" }}>
+          {locale === "lv" ? "Sodien svarigakais" : "Today's triage"}
+        </p>
+        {triageItems.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            {locale === "lv" ? "Nakamajas 3 dienas nav kritisku punktu." : "No urgent points in the next 3 days."}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {triageItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="block rounded-[var(--radius-card)] border p-3"
+                style={{ borderColor: "var(--color-surface-border)", background: "var(--color-surface)" }}
+              >
+                <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>{item.title}</p>
+                <p className="mt-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>{item.detail}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </GlassPanel>
+
+      <GlassPanel className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--color-text-secondary)" }}>
+          {locale === "lv" ? "Biedra noskanojums" : "Partner mood"}
+        </p>
+        <motion.div
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+          className="rounded-[var(--radius-card)] border p-3"
+          style={{ borderColor: "var(--color-surface-border)", background: "var(--color-surface)" }}
+        >
+          <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+            {locale === "lv"
+              ? `${memberName(partner, "Biedrs")} var but vajadzigs mazs atbalsts.`
+              : `${memberName(partner, "Partner")} may need a gentle check-in.`}
+          </p>
+          <p className="mt-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
+            {locale === "lv"
+              ? "Gentle nudge: pajauta, ka pagaja diena, un piedava 10 min mieru." 
+              : "Gentle nudge: ask how their day went and offer 10 minutes of calm."}
+          </p>
+        </motion.div>
+      </GlassPanel>
+
+      <GlassPanel className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--color-text-secondary)" }}>
+          {locale === "lv" ? "Izaicinajums" : "Challenge"}
+        </p>
+        <div className="rounded-[var(--radius-card)] border p-3" style={{ borderColor: "var(--color-surface-border)", background: "var(--color-surface)" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>{challengeTitle}</p>
+          <p className="mt-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>{challengeBody}</p>
+          <Link
+            href="/reset"
+            className="mt-3 inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold"
+            style={{ borderColor: "var(--color-accent)", color: "var(--color-text-primary)", background: "var(--color-surface-2)" }}
+          >
+            {locale === "lv" ? "Skatīt RESET" : "Open RESET"}
+          </Link>
+        </div>
+      </GlassPanel>
+
+      <GlassPanel className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--color-text-secondary)" }}>
+            {locale === "lv" ? "Iepirkumu grozs" : "Shopping cart"}
+          </p>
+          <Link href="/kitchen" className="text-xs" style={{ color: "var(--color-accent)" }}>
+            {locale === "lv" ? "Atvert" : "Open"}
+          </Link>
+        </div>
+        {openShoppingPreview.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            {locale === "lv" ? "Grozs ir tukss." : "Cart is empty."}
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {openShoppingPreview.map((item) => (
+              <li
+                key={item.id}
+                className="rounded-[var(--radius-card)] border px-3 py-2 text-sm"
+                style={{ borderColor: "var(--color-surface-border)", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
+              >
+                {item.title}
+              </li>
+            ))}
+          </ul>
+        )}
+      </GlassPanel>
+
+      <GlassPanel
+        className="space-y-3"
+        style={{
+          opacity: 0.82,
+          background: "color-mix(in srgb, var(--color-card) 70%, transparent)",
         }}
-      />
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--color-text-secondary)" }}>
+          {locale === "lv" ? "Papildu parskati" : "Additional overviews"}
+        </p>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-[var(--radius-card)] border p-2" style={{ borderColor: "var(--color-surface-border)", background: "var(--color-surface)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{locale === "lv" ? "Biedri" : "Members"}</p>
+            <p className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>{members.length}</p>
+          </div>
+          <div className="rounded-[var(--radius-card)] border p-2" style={{ borderColor: "var(--color-surface-border)", background: "var(--color-surface)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{locale === "lv" ? "Aktivitate" : "Feed"}</p>
+            <p className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>{feedLines.length}</p>
+          </div>
+          <div className="rounded-[var(--radius-card)] border p-2" style={{ borderColor: "var(--color-surface-border)", background: "var(--color-surface)" }}>
+            <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>{locale === "lv" ? "Uzdevumi" : "Tasks"}</p>
+            <p className="text-base font-semibold" style={{ color: "var(--color-text-primary)" }}>{pendingTasks}</p>
+          </div>
+        </div>
+      </GlassPanel>
     </div>
   );
 }

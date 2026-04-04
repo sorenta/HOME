@@ -4,6 +4,7 @@ import { motion, type Transition } from "framer-motion";
 import Link from "next/link";
 import { hapticTap } from "@/lib/haptic";
 import { THEMES, type ThemeId } from "@/lib/theme-logic";
+import hiveStyles from "@/components/theme/hive.module.css";
 
 export type BentoTileTier = "compact" | "featured";
 
@@ -99,6 +100,19 @@ export function BentoTile({
         {themeId === "forge" && isFeatured && (
           <div className="absolute top-3 right-3 flex gap-1 opacity-50">
             <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_5px_var(--color-primary)]"></div>
+          </div>
+        )}
+        {/* Hive: honey cap + drips on featured tiles */}
+        {themeId === "hive" && isFeatured && (
+          <div className={hiveStyles.honeyCap} aria-hidden>
+            <svg viewBox="0 0 800 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 70 C80 20, 160 100, 260 70 C360 40, 420 90, 520 70 C620 50, 720 96, 800 70 L800 200 L0 200 Z" fill="var(--color-primary)" opacity="0.96" />
+            </svg>
+            <div style={{ position: 'relative', width: '100%', height: 0 }}>
+              <span className={`${hiveStyles.drip} ${hiveStyles.dripSlow}`} style={{ left: '12%' }} />
+              <span className={`${hiveStyles.drip} ${hiveStyles.dripMed}`} style={{ left: '46%' }} />
+              <span className={`${hiveStyles.drip} ${hiveStyles.dripFast}`} style={{ left: '78%' }} />
+            </div>
           </div>
         )}
       </Link>

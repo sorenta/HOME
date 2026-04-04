@@ -2,6 +2,7 @@
 
 import { getBrowserClient } from "@/lib/supabase/client";
 import {
+  defaultResetOnboardingProfile,
   loadWellnessState,
   saveWellnessState,
   type BodyArea,
@@ -13,6 +14,72 @@ import {
   type WeighInEntry,
   type WellnessGoal,
 } from "@/lib/reset-wellness";
+
+const TRACK_METRICS = ["weight", "steps", "mood", "sleep"] as const;
+
+function isTrackMetric(value: unknown): value is ResetWellnessV1["trackMetrics"][number] {
+  return typeof value === "string" && TRACK_METRICS.includes(value as (typeof TRACK_METRICS)[number]);
+}
+
+function toOnboardingProfile(value: unknown, fallback: ResetWellnessV1["onboardingProfile"]) {
+  const defaults = defaultResetOnboardingProfile();
+  if (!value || typeof value !== "object") return fallback;
+
+  const raw = value as Record<string, unknown>;
+  const trackMetrics = Array.isArray(raw.trackMetrics)
+    ? raw.trackMetrics.filter(isTrackMetric)
+    : fallback.trackMetrics;
+
+  const quitPlanRaw = raw.quitPlan;
+  const quitPlan =
+    quitPlanRaw && typeof quitPlanRaw === "object"
+      ? {
+          habit:
+            quitPlanRaw &&
+            typeof (quitPlanRaw as Record<string, unknown>).habit === "string" &&
+            ["smoking", "sweets", "snacking", "other"].includes((quitPlanRaw as Record<string, unknown>).habit as string)
+              ? ((quitPlanRaw as Record<string, unknown>).habit as "smoking" | "sweets" | "snacking" | "other")
+              : fallback.quitPlan?.habit ?? null,
+          startedOn:
+            typeof (quitPlanRaw as Record<string, unknown>).startedOn === "string"
+              ? ((quitPlanRaw as Record<string, unknown>).startedOn as string)
+              : fallback.quitPlan?.startedOn ?? null,
+          approach:
+            typeof (quitPlanRaw as Record<string, unknown>).approach === "string" &&
+            ["quit", "reduce"].includes((quitPlanRaw as Record<string, unknown>).approach as string)
+              ? ((quitPlanRaw as Record<string, unknown>).approach as "quit" | "reduce")
+              : fallback.quitPlan?.approach ?? null,
+        }
+      : fallback.quitPlan;
+
+  return {
+    primaryGoal:
+      typeof raw.primaryGoal === "string" && ["weight", "wellbeing", "sleep", "stress"].includes(raw.primaryGoal)
+        ? (raw.primaryGoal as "weight" | "wellbeing" | "sleep" | "stress")
+        : fallback.primaryGoal ?? defaults.primaryGoal,
+    profileType:
+      typeof raw.profileType === "string" && ["desk", "active", "mixed"].includes(raw.profileType)
+        ? (raw.profileType as "desk" | "active" | "mixed")
+        : fallback.profileType ?? defaults.profileType,
+    baselineMood:
+      typeof raw.baselineMood === "string" && ["low", "steady", "high"].includes(raw.baselineMood)
+        ? (raw.baselineMood as "low" | "steady" | "high")
+        : fallback.baselineMood ?? defaults.baselineMood,
+    trackMetrics: trackMetrics.length > 0 ? trackMetrics : defaults.trackMetrics,
+    checkInFrequency:
+      typeof raw.checkInFrequency === "string" && ["daily", "weekdays", "three_per_week"].includes(raw.checkInFrequency)
+        ? (raw.checkInFrequency as "daily" | "weekdays" | "three_per_week")
+        : fallback.checkInFrequency ?? defaults.checkInFrequency,
+    quitPlan:
+      quitPlan && quitPlan.habit && quitPlan.startedOn && quitPlan.approach
+        ? {
+            habit: quitPlan.habit,
+            startedOn: quitPlan.startedOn,
+            approach: quitPlan.approach,
+          }
+        : null,
+  };
+}
 
 type GoalRow = {
   id: string;
@@ -122,7 +189,7 @@ export async function loadWellnessStateSynced(userId: string | null): Promise<Re
       .order("weighed_at", { ascending: false }),
     supabase
       .from("reset_training_state")
-      .select("training_week_index, wellness_onboarding_done")
+      .select("training_week_index, wellness_onboarding_done, wellness_onboarding_profile")
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
@@ -140,6 +207,7 @@ export async function loadWellnessStateSynced(userId: string | null): Promise<Re
   const trainingRow = trainingRes.data as {
     training_week_index?: number | null;
     wellness_onboarding_done?: boolean | null;
+    wellness_onboarding_profile?: unknown;
   } | null;
 
   const remoteGoals = (goalsRes.data ?? [])
@@ -149,9 +217,18 @@ export async function loadWellnessStateSynced(userId: string | null): Promise<Re
   const remoteOnboarding =
     Boolean(trainingRow?.wellness_onboarding_done) || remoteGoals.length > 0;
 
+  const defaults = defaultResetOnboardingProfile();
+  const onboardingProfile = toOnboardingProfile(
+    trainingRow?.wellness_onboarding_profile,
+    local.onboardingProfile ?? defaults,
+  );
+
   const remote: ResetWellnessV1 = {
     version: 1,
     onboardingDone: remoteOnboarding,
+    onboardingProfile,
+    trackMetrics: onboardingProfile.trackMetrics,
+    quitPlan: onboardingProfile.quitPlan,
     goals: remoteGoals,
     measurements: (measurementsRes.data ?? []).map(mapMeasurement),
     weighIns: (weighInsRes.data ?? []).map(mapWeighIn),
@@ -230,6 +307,7 @@ export async function persistWellnessStateSynced(
       user_id: userId,
       training_week_index: next.trainingWeekIndex % 4,
       wellness_onboarding_done: next.onboardingDone,
+      wellness_onboarding_profile: next.onboardingProfile,
       updated_at: new Date().toISOString(),
     }),
   ] as const;

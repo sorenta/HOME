@@ -13,25 +13,25 @@ type Props = {
   className?: string;
 };
 
-/**
- * Primary app mark: **H:0** — light frosted surface, dark type (splash);
- * theme-aware on in-app surfaces (Forge / botanical invert for contrast).
- */
 export function AppMark({
   size = "md",
   variant = "ui",
   className = "",
 }: Props) {
-  const base =
-    variant === "splash"
-      ? "maj-app-mark maj-app-mark--splash"
-      : "maj-app-mark";
+  const base = [
+    "inline-flex items-center justify-center rounded-full font-extrabold leading-none",
+    "bg-[#8f959d] text-white shadow-sm",
+    variant === "splash" ? "ring-1 ring-white/25" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <span
       className={[base, sizeClass[size], className].filter(Boolean).join(" ")}
-      aria-label="H:0"
+      aria-label="H:O"
     >
-      H:0
+      H:O
     </span>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/providers/theme-provider";
 import { ThemeId } from "@/lib/theme-logic";
 
@@ -12,7 +13,12 @@ const THEMES: { id: ThemeId; name: string; icon: string }[] = [
 ];
 
 export function ThemeSwitcher() {
+  const pathname = usePathname();
   const { themeId, setThemeId } = useTheme();
+
+  if (!pathname.startsWith("/settings")) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex gap-2 p-2 bg-card border-2 border-border rounded-full shadow-theme backdrop-blur-md transition-all">
