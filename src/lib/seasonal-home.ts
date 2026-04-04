@@ -189,19 +189,7 @@ export function getActiveSeasonalTheme(
   date = new Date(),
   profileDates?: SeasonalProfileDates | null,
 ): SeasonalTheme | null {
-  const matches = [
-    getRecurringProfileTheme(date, "birthday", profileDates?.birthday_at),
-    getRecurringProfileTheme(date, "nameday", profileDates?.name_day_at),
-    getFixedHolidayTheme(date, "christmas", 12, 25),
-    getFixedHolidayTheme(date, "newyear", 1, 1),
-    getFixedHolidayTheme(date, "state", 11, 18),
-    getFixedHolidayTheme(date, "state", 5, 4),
-    getMultiDayTheme(date, "midsummer", 6, 23, 6, 24),
-    getEasterTheme(date),
-    getFixedHolidayTheme(date, "womensday", 3, 8),
-    getFixedHolidayTheme(date, "mensday", 11, 19),
-    getFixedHolidayTheme(date, "valentine", 2, 14),
-  ];
-
-  return matches.find(Boolean) ?? null;
+  // Seasonal themes temporarily disabled per request — always return null.
+  // To re-enable, restore previous matching logic above.
+  return null;
 }
