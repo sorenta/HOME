@@ -131,25 +131,13 @@ export default function EventsPage() {
 
   useEffect(() => {
     let alive = true;
-    void loadPlannerStateSynced({
-      householdId: profile?.household_id ?? null,
-      userId: user?.id ?? null,
-      memberNameById,
-      fallbackMemberName: t("events.todo.unassigned"),
-    }).then((state) => {
-      if (!alive) return;
-      setEvents(sortByDate(state.events));
-      setTasks(sortByDate(state.tasks));
-      setLoading(false);
-    });
 
-    return () => {
-      alive = false;
-    };
-  }, [memberNameById, profile?.household_id, t, user?.id]);
+    // Helper to filter out meals and "Vakariņas" from the calendar view
+    const isMeal = (title: string, kind?: string) => 
+      kind === "meal" || 
+      title.toLowerCase().includes("vakariņas") || 
+      title.toLowerCase().includes("recept:");
 
-  useEffect(() => {
-    let alive = true;
     const syncPlannerState = async () => {
       const state = await loadPlannerStateSynced({
         householdId: profile?.household_id ?? null,
@@ -159,17 +147,18 @@ export default function EventsPage() {
       });
       if (!alive) return;
 
-      // STRICT FILTER: Remove anything marked as 'meal' or containing 'Vakariņas' from the calendar view
-      const isMeal = (title: string, kind?: string) => 
-        kind === "meal" || title.toLowerCase().includes("vakariņas") || title.toLowerCase().includes("recept:");
-
       const filteredEvents = state.events.filter(e => !isMeal(e.title, e.kind));
       const filteredTasks = state.tasks.filter(t => !isMeal(t.title));
 
       setEvents(sortByDate(filteredEvents));
       setTasks(sortByDate(filteredTasks));
+      setLoading(false);
     };
 
+    // Initial load
+    void syncPlannerState();
+
+    // Subscribe to real-time updates
     const unsubscribe = subscribePlannerState(profile?.household_id ?? null, user?.id ?? null, () => {
       void syncPlannerState();
     });
