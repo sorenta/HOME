@@ -18,6 +18,7 @@ import {
   writePlannerTasks,
   type PlannerEvent,
   type PlannerTask,
+  type EventKind,
 } from "@/lib/events-planner";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
@@ -35,6 +36,7 @@ import {
   loadPlannerStateSynced,
   subscribePlannerState,
   togglePlannerTaskSynced,
+  updatePlannerEventSynced
 } from "@/lib/events-sync";
 
 import { useThemeActionEffects } from "@/components/theme/theme-action-effects";
@@ -268,7 +270,7 @@ export default function EventsPage() {
 
       const selectedMember = members.find(m => m.id === assigneeId) || members[0];
 
-      if (isUpdate) {
+      if (isUpdate && editingItem?.sourceId) {
         await deletePlannerTaskSynced({ householdId: profile.household_id, taskId: editingItem.sourceId });
       }
 
@@ -287,7 +289,7 @@ export default function EventsPage() {
       const finalTitle = kind === "birthday" ? (title.startsWith("🎂") ? title : `🎂 ${title}`) : kind === "nameday" ? (title.startsWith("✨") ? title : `✨ ${title}`) : title;
       
       let response;
-      if (isUpdate) {
+      if (isUpdate && editingItem?.sourceId) {
         response = await updatePlannerEventSynced({
           eventId: editingItem.sourceId,
           householdId: profile?.household_id ?? null,
@@ -321,7 +323,7 @@ export default function EventsPage() {
     }
 
     await reloadPlanner();
-    triggerThemeActionEffect({ kind: isUpdate ? "edit" : "add", label: title });
+    triggerThemeActionEffect({ kind: isUpdate ? "save" : "add", label: title });
   }
 
   async function handleToggleTask(taskId: string, done: boolean) {

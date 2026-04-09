@@ -60,6 +60,7 @@ function scrollToSection(id: string) {
 
 export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate }: Props) {
   const { t, locale } = useI18n();
+  const { themeId } = useTheme();
   const [todayMs] = useState(() => Date.now());
   const [todaySignals, setTodaySignals] = useState<ResetDailySignalsRow | null>(null);
   const [signalsLoading, setSignalsLoading] = useState(true);

@@ -297,7 +297,7 @@ export default function KitchenPage() {
                     const today = new Date().toISOString().split("T")[0];
                     const response = await addPlannerEventSynced({
                       householdId,
-                      userId: profile?.user_id ?? null,
+                      userId: profile?.id ?? null,
                       title: `Vakariņas: ${name}`,
                       date: today,
                       style: "shared",
@@ -406,7 +406,7 @@ export default function KitchenPage() {
                   const today = new Date().toISOString().split("T")[0];
                   const response = await addPlannerEventSynced({
                     householdId,
-                    userId: profile?.user_id ?? null,
+                    userId: profile?.id ?? null,
                     title: `Vakariņas: ${name}`,
                     date: today,
                     style: "shared",

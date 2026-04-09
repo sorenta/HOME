@@ -40,7 +40,7 @@ function buildSuggestion(inventory: KitchenInventoryRecord[], urgentItems: Kitch
   };
 }
 
-export function AiChefSuggestions({ inventory, urgentItems, hasByok, onOpenPlan, onAddToCart }: AiChefSuggestionsProps) {
+export function AiChefSuggestions({ inventory, urgentItems, hasByok, onOpenPlan, onAddToCart, onPinMeal }: AiChefSuggestionsProps) {
   const { t, locale } = useI18n();
   const { themeId } = useTheme();
   const isForge = themeId === "forge";

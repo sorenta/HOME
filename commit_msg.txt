@@ -1,0 +1,8 @@
+Fix TypeScript errors preventing Vercel build
+
+- Resolve duplicate i18n keys for kitchen categories
+- Fix missing imports and null checks in events page
+- Handle missing `useTheme` hooks in profile and reset components
+- Correct `profile.user_id` to `profile.id` in kitchen page
+- Add missing `onPinMeal` prop in AiChefSuggestions
+- Add @google-cloud/api-gateway dependency

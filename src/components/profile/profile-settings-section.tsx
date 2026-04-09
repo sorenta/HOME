@@ -11,6 +11,7 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { loadUserWaterMedals } from "@/lib/household-water-sync";
 import { useI18n } from "@/lib/i18n/i18n-context";
+import { useTheme } from "@/components/providers/theme-provider";
 import { hapticTap } from "@/lib/haptic";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { useThemeActionEffects } from "@/components/theme/theme-action-effects";
