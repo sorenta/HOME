@@ -94,9 +94,9 @@ export function TodayFocus() {
           });
         }
 
-        // 4. Upcoming events (today) - Excluding personal "secret" events
+        // 4. Upcoming events (today) - Excluding personal "secret" events and meals (shown separately)
         const today = new Date().toISOString().split("T")[0];
-        const todayEvents = planner.events.filter(e => e.date === today && e.kind !== "personal").length;
+        const todayEvents = planner.events.filter(e => e.date === today && e.kind !== "personal" && e.kind !== "meal").length;
         if (todayEvents > 0) {
           newItems.push({
             id: "events",

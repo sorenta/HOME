@@ -244,7 +244,9 @@ export default function EventsPage() {
       memberNameById,
       fallbackMemberName: t("events.todo.unassigned"),
     });
-    setEvents(sortByDate(state.events));
+    // Filter out meal events - they should only be visible in the Kitchen section
+    const filteredEvents = state.events.filter(e => e.kind !== "meal");
+    setEvents(sortByDate(filteredEvents));
     setTasks(sortByDate(state.tasks));
   }
 

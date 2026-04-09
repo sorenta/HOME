@@ -45,10 +45,14 @@ export function ForgeMealDisplay() {
 
   if (loading || !meal) return null;
 
-  // Truncate long meal titles but show full on hover/click
-  const displayTitle = meal.title.length > 40 
-    ? meal.title.substring(0, 37) + "..." 
+  // Truncate long meal titles and strip prefix
+  const rawTitle = meal.title.startsWith("Vakariņas: ") 
+    ? meal.title.substring("Vakariņas: ".length) 
     : meal.title;
+
+  const displayTitle = rawTitle.length > 40 
+    ? rawTitle.substring(0, 37) + "..." 
+    : rawTitle;
 
   return (
     <Link 
