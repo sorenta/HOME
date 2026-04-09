@@ -452,6 +452,11 @@ export default function KitchenPage() {
               locale={locale}
               onCancel={() => setIsAddFormOpen(false)}
               onSave={(data) => {
+                const existing = inventory.find((item) => item.name.trim().toLowerCase() === data.name.trim().toLowerCase());
+                if (existing) {
+                  setError(locale === "lv" ? `Tev mājās jau ir ${data.name} :)` : `You already have ${data.name} at home :)`);
+                  return;
+                }
                 setIsAddFormOpen(false);
                 void runKitchenAction(async () => {
                   await addKitchenInventoryItem({
