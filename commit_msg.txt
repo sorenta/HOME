@@ -1,5 +1,0 @@
-fix: Real AI Chef integration with recipes and functional pins
-
-- Replaced hardcoded mock recipes in `AiChefSuggestions.tsx` with a "Ask for recipes" button that calls the `/api/kitchen/meals` backend endpoint securely via the user's Supabase session.
-- Updated the AI prompt in `api/kitchen/meals/route.ts` to instruct the LLM to generate short 2-3 sentence recipes (ingredients + steps) instead of just single-word meal titles.
-- Made the entire recipe `<li>` card clickable, correctly passing the recipe details to the `onPinMeal` handler to add it directly to the planner.

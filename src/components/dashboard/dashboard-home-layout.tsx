@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { ThemeId } from "@/lib/theme-logic";
 import { ForgeHero } from "@/components/dashboard/forge/ForgeHero";
 import { ForgeSatelliteComms } from "@/components/dashboard/forge/ForgeSatelliteComms";
+import { ForgeMealDisplay } from "@/components/dashboard/forge/ForgeMealDisplay";
 import { ForgeResourceMonitor } from "@/components/dashboard/forge/ForgeResourceMonitor";
 import { ForgeAlertLog } from "@/components/dashboard/forge/ForgeAlertLog";
 import { ForgeCargoManifest } from "@/components/dashboard/forge/ForgeCargoManifest";
@@ -54,6 +55,7 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
           <div className="space-y-4">
             <ForgeHero />
             <ForgeSatelliteComms />
+            <ForgeMealDisplay />
           </div>
         </div>
 

@@ -59,6 +59,7 @@ export function ForgeSatelliteComms() {
         .from("calendar_events")
         .select("id, title, starts_on")
         .eq("household_id", profile.household_id)
+        .neq("kind", "meal")
         .gte("starts_on", now)
         .order("starts_on", { ascending: true })
         .limit(1)
