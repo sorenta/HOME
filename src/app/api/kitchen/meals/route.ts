@@ -196,14 +196,13 @@ export async function POST(request: Request) {
     const system =
       locale === "lv"
         ? `Tu esi HOME:OS Virtuves maltīšu asistents. Atbildi TIKAI ar derīgu JSON objektu šādā formātā (bez markdown):
-{"reply":"īss draudzīgs teksts latviski","missing_for_cart":["produkts1","produkts2"],"meal_ideas":["ideja1","ideja2"]}
-"missing_for_cart" — precīzi produktu nosaukumi, kas trūkst vai jānopērk, balstoties uz lietotāja krājumiem un grozu.
-"meal_ideas" — 1–3 īsas maltīšu idejas no tā, kas jau ir mājās.
-Ja lietotājs uzdod jautājumu, atbildi reply laukos un papildini missing_for_cart tikai ja loģiski vajag.`
+{"reply":"īss draudzīgs ievads latviski","missing_for_cart":["produkts1","produkts2"],"meal_ideas":["1. Recepte: Kā to pagatavot (2-3 teikumi).","2. Recepte: ..."]}
+"missing_for_cart" — precīzi produktu nosaukumi, kas trūkst vai jānopērk.
+"meal_ideas" — 1–3 reālas un īsas, bet pamācošas receptes/idejas no tā, kas jau ir mājās.`
         : `You are the HOME:OS kitchen meal assistant. Reply ONLY with valid JSON (no markdown):
-{"reply":"short friendly text in English","missing_for_cart":["item1","item2"],"meal_ideas":["idea1","idea2"]}
-"missing_for_cart" — product names that are missing or should be bought, based on pantry and cart.
-"meal_ideas" — 1–3 short meal ideas using what is already at home.`;
+{"reply":"short friendly text in English","missing_for_cart":["item1","item2"],"meal_ideas":["1. Recipe: How to make it (2-3 sentences).","2. Recipe: ..."]}
+"missing_for_cart" — product names that are missing or should be bought.
+"meal_ideas" — 1–3 short but actionable recipes/instructions using what is already at home.`;
 
     const invLines = inv
       .map(
