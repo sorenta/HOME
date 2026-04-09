@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { getSupabaseServerEnv } from "@/lib/supabase/env";
+import { checkRateLimit } from "@/lib/ai/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -120,6 +121,14 @@ export async function POST(request: Request) {
     const { data: { user }, error: userErr } = await supabase.auth.getUser();
     if (userErr || !user) {
       return NextResponse.json({ ok: false, code: "NO_AUTH" }, { status: 401 });
+    }
+
+    if (!checkRateLimit(`reset:${user.id}`, 5, 60000)) {
+      console.warn(`[RateLimit] Reset AI usage exceeded by user: ${user.id}`);
+      return NextResponse.json(
+        { ok: false, code: "RATE_LIMITED", message: "Too many AI requests. Please wait a minute." },
+        { status: 429 }
+      );
     }
 
     const body = (await request.json()) as Body;

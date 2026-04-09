@@ -119,17 +119,28 @@ export default function KitchenPage() {
       action: () => Promise<void>,
       successHint: string,
       effect?: { kind: "add" | "done" | "save"; label: string },
+      optimisticUpdate?: () => void
     ) => {
+      // 1. OPTIMISTIC UI: Atskaņojam efektu un nomainām state uzreiz (0ms delay)
+      if (effect) {
+        triggerThemeActionEffect(effect);
+      }
+      if (optimisticUpdate) {
+        optimisticUpdate();
+      }
+
       try {
         setError(null);
+        // 2. Sūtām operāciju uz serveri
         await action();
-        await loadKitchenData();
+        
+        // 3. Fonā ielādējam un izlīdzinām datus
+        void loadKitchenData();
         setHintMessage(successHint);
-        if (effect) {
-          triggerThemeActionEffect(effect);
-        }
       } catch (nextError) {
         setError(normalizeKitchenError(nextError, t("household.error.generic")));
+        // Kļūdas gadījumā ielādējam datus atpakaļ no datubāzes (rollback)
+        void loadKitchenData();
       }
     },
     [loadKitchenData, t, triggerThemeActionEffect]
@@ -259,9 +270,15 @@ export default function KitchenPage() {
                   id="shopping-cart-section"
                   items={shopping.filter(i => i.status === "open")}
                   onBought={(id) => {
-                    void runKitchenAction(async () => {
-                      await moveShoppingItemToInventory({ householdId: householdId!, itemId: id });
-                    }, t("kitchen.quickAction.move.done"), { kind: "done", label: shopping.find(i => i.id === id)?.title || "" });
+                    const item = shopping.find(i => i.id === id);
+                    void runKitchenAction(
+                      async () => {
+                        await moveShoppingItemToInventory({ householdId: householdId!, itemId: id });
+                      },
+                      t("kitchen.quickAction.move.done"),
+                      { kind: "done", label: item?.title || "" },
+                      () => setShopping(prev => prev.filter(i => i.id !== id))
+                    );
                   }}
                   onDelete={(id) => {
                     void runKitchenAction(async () => {
@@ -376,9 +393,15 @@ export default function KitchenPage() {
                 id="shopping-cart-section"
                 items={shopping.filter(i => i.status === "open")}
                 onBought={(id) => {
-                  void runKitchenAction(async () => {
-                    await moveShoppingItemToInventory({ householdId: householdId!, itemId: id });
-                  }, t("kitchen.quickAction.move.done"), { kind: "done", label: shopping.find(i => i.id === id)?.title || "" });
+                  const item = shopping.find(i => i.id === id);
+                  void runKitchenAction(
+                    async () => {
+                      await moveShoppingItemToInventory({ householdId: householdId!, itemId: id });
+                    },
+                    t("kitchen.quickAction.move.done"),
+                    { kind: "done", label: item?.title || "" },
+                    () => setShopping(prev => prev.filter(i => i.id !== id))
+                  );
                 }}
                 onDelete={(id) => {
                   void runKitchenAction(async () => {

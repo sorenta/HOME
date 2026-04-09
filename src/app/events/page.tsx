@@ -331,16 +331,22 @@ export default function EventsPage() {
     const client = getBrowserClient();
     const taskTitle = tasks.find((item) => item.id === taskId)?.title ?? t("events.todo.form.save");
 
+    // 1. OPTIMISTIC UI: Atjaunojam sarakstu uzreiz (0ms aizkave)
+    const originalTasks = [...tasks];
+    const optimisticTasks = sortByDate(tasks.map((item) => (item.id === taskId ? { ...item, done } : item)));
+    setTasks(optimisticTasks);
+
+    // Vizuālais efekts "done" atskan uzreiz
+    if (done) {
+      triggerThemeActionEffect({ kind: "done", label: taskTitle });
+    }
+
     if (!client || !profile?.household_id) {
-      const nextTasks = sortByDate(tasks.map((item) => (item.id === taskId ? { ...item, done } : item)));
-      setTasks(nextTasks);
-      writePlannerTasks(nextTasks);
-      if (done) {
-        triggerThemeActionEffect({ kind: "done", label: taskTitle });
-      }
+      writePlannerTasks(optimisticTasks);
       return;
     }
 
+    // 2. Sūtam datus Supabase (fonā)
     const response = await togglePlannerTaskSynced({
       householdId: profile.household_id,
       taskId,
@@ -349,13 +355,13 @@ export default function EventsPage() {
 
     if (!response.ok) {
       setFormError(mapSyncMessage(response.message));
+      // Ja nofeilo - atgriežam (rollback) vizuāli atpakaļ iepriekšējo stāvokli
+      setTasks(originalTasks);
       return;
     }
 
-    await reloadPlanner();
-    if (done) {
-      triggerThemeActionEffect({ kind: "done", label: taskTitle });
-    }
+    // 3. Klusām atjaunojam pārējos datus (piem., sinhronizējot partnera paziņojumus), vizuālais efekts jau bijis
+    void reloadPlanner();
   }
 
   async function handleDeleteEvent(eventId: string) {

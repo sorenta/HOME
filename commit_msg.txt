@@ -1,8 +1,6 @@
-Fix TypeScript errors preventing Vercel build
+feat: AI security, PWA offline support, optimistic UI & calendar tests
 
-- Resolve duplicate i18n keys for kitchen categories
-- Fix missing imports and null checks in events page
-- Handle missing `useTheme` hooks in profile and reset components
-- Correct `profile.user_id` to `profile.id` in kitchen page
-- Add missing `onPinMeal` prop in AiChefSuggestions
-- Add @google-cloud/api-gateway dependency
+- Implement rate limiting for AI endpoints (finance, reset, kitchen).
+- Update Service Worker for robust caching strategy (Cache-First for Next.js static assets) enabling offline PWA functionality.
+- Apply Optimistic UI updates to event task toggling and kitchen shopping cart actions, ensuring immediate feedback.
+- Add Jest unit tests for calendar planner logic (`sortByDate`, `buildMonthGrid`, `isSameDay`).
