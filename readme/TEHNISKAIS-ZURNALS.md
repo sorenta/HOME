@@ -57,6 +57,21 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
 
 ## Hronoloģija
 
+### [2026-04-09 18:00 Europe/Riga] AI Drošība, PWA un Optimistic UI
+- **Ierakstu veica:** Gemini CLI
+- **Kāpēc ieraksts veikts:** Uzlabot aplikācijas drošību, ātrdarbību un stabilitāti, kā arī atrisināt Vercel kompilācijas problēmas.
+- **Kas salabots:** Novērstas >20 TypeScript kompilācijas kļūdas, kas bloķēja Vercel build (i18n atslēgu dublikāti, neprecīzi tipi Notikumu lapā, trūkstoši React hooks un prop-i).
+- **Kas izdarīts:** 
+  1. Ieviests `checkRateLimit` utilīts (5 pieprasījumi minūtē) AI asistentiem (Finance, Reset, Kitchen), lai pasargātu BYOK API atslēgas.
+  2. Pārrakstīta Service Worker (`sw.js`) stratēģija uz "Cache-First" iekš `/_next/static/` un `/_next/image`, atļaujot PWA bezsaistes (offline) navigāciju.
+  3. Ieviesta zibenīga atgriezeniskā saite (Optimistic UI) "Notikumu" un "Virtuves" sarakstu interakcijās.
+  4. Pievienoti `Jest` vienību testi sarežģītajai kalendāra tabulas un šķirošanas loģikai (`events-planner.ts`).
+- **Ietekme:** Kods kompilējas bez kļūdām; būtiski uzlabots UX lēnos tīklos (0ms aizture uz klikšķiem); aplikācija neatver baltu lapu, ja pazūd internets.
+- **Verifikācija:** Visi `tsc` un `jest` testi izpildīti lokāli bez kļūdām. Pushed to `main`.
+- **Riska piezīmes (nebūtiski):** In-Memory Rate Limiter laika logs tiek iestatīts atsevišķi katram servera instancam (Next.js serverless/edge), tādēļ absolūtās limits var mazliet staigāt atkarībā no izvietošanas.
+- **Riska piezīmes (tūlītēja uzmanība):** Neviens kritisks risks. Nākotnē (Tehniskais Parāds) ieteicams refaktorēt lielās `page.tsx` (>600 rindas) mazākos `Server/Client` komponentos.
+- **Galvenie faili:** `public/sw.js`, `src/lib/ai/rate-limit.ts`, `src/app/api/ai/*/route.ts`, `src/app/events/page.tsx`, `src/app/kitchen/page.tsx`, `src/lib/events-planner.test.ts`.
+
 ### [2026-04-07] UX, i18n un tēmu polish
 - Sakārtota navigācijas atpakaļ poga (`ModuleShell`) ar i18n.
 - Ieviesta dinamiska “Today’s Focus” loģika dashboard.
