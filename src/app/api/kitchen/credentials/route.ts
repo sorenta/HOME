@@ -75,8 +75,7 @@ export async function POST(request: Request) {
 
     if (existing?.vault_secret_id) {
       const { error: updateSecretErr } = await supabaseAdmin
-        .schema("vault")
-        .rpc("update_secret", {
+        .rpc("update_vault_secret", {
           secret_id: existing.vault_secret_id,
           new_secret: apiKey,
           new_name: `user_kitchen_ai_${user.id}`,
@@ -93,8 +92,7 @@ export async function POST(request: Request) {
       vaultSecretId = existing.vault_secret_id;
     } else {
       const { data: createSecretData, error: createSecretErr } = await supabaseAdmin
-        .schema("vault")
-        .rpc("create_secret", {
+        .rpc("create_vault_secret", {
           secret: apiKey,
           name: `user_kitchen_ai_${user.id}`,
           description: `Kitchen AI key for user ${user.id}`,

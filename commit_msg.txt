@@ -1,6 +1,5 @@
-feat: AI security, PWA offline support, optimistic UI & calendar tests
+fix: Supabase Vault RPC calls failing over PostgREST
 
-- Implement rate limiting for AI endpoints (finance, reset, kitchen).
-- Update Service Worker for robust caching strategy (Cache-First for Next.js static assets) enabling offline PWA functionality.
-- Apply Optimistic UI updates to event task toggling and kitchen shopping cart actions, ensuring immediate feedback.
-- Add Jest unit tests for calendar planner logic (`sortByDate`, `buildMonthGrid`, `isSameDay`).
+- Added `vault_wrappers.sql` containing `public.create_vault_secret` and `public.update_vault_secret`.
+- Supabase by default does not expose the `vault` schema to PostgREST. Calling `.schema('vault').rpc('create_secret')` directly from the Next.js API route throws an error because the function cannot be found over HTTP.
+- Updated `src/app/api/kitchen/credentials/route.ts` to call the public wrapper functions using the `service_role` client.
