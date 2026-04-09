@@ -80,6 +80,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onOpenPlan,
         body: JSON.stringify({
           locale,
           inventory,
+          shopping: [], // In this context we don't have shopping items directly, but we should pass them if available
           prompt: urgentItems.length > 0 
             ? `Man ir šādi produkti, kas drīz sabojāsies: ${urgentItems.map(i => i.name).join(", ")}. Lūdzu iekļauj tos receptē.`
             : ""

@@ -158,8 +158,16 @@ export default function EventsPage() {
         fallbackMemberName: t("events.todo.unassigned"),
       });
       if (!alive) return;
-      setEvents(sortByDate(state.events));
-      setTasks(sortByDate(state.tasks));
+
+      // STRICT FILTER: Remove anything marked as 'meal' or containing 'Vakariņas' from the calendar view
+      const isMeal = (title: string, kind?: string) => 
+        kind === "meal" || title.toLowerCase().includes("vakariņas") || title.toLowerCase().includes("recept:");
+
+      const filteredEvents = state.events.filter(e => !isMeal(e.title, e.kind));
+      const filteredTasks = state.tasks.filter(t => !isMeal(t.title));
+
+      setEvents(sortByDate(filteredEvents));
+      setTasks(sortByDate(filteredTasks));
     };
 
     const unsubscribe = subscribePlannerState(profile?.household_id ?? null, user?.id ?? null, () => {

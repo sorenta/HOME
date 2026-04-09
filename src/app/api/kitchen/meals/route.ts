@@ -84,7 +84,7 @@ async function callOpenAI(apiKey: string, system: string, user: string) {
 }
 
 async function callGemini(apiKey: string, system: string, user: string) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${encodeURIComponent(apiKey)}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -92,7 +92,7 @@ async function callGemini(apiKey: string, system: string, user: string) {
       contents: [
         {
           role: "user",
-          parts: [{ text: `${system}\n\n---\n\n${user}` }],
+          parts: [{ text: `${system}\n\nLietotāja dati un jautājums:\n${user}` }],
         },
       ],
       generationConfig: {
@@ -103,8 +103,14 @@ async function callGemini(apiKey: string, system: string, user: string) {
   });
 
   if (!res.ok) {
-    const err = await res.text();
-    return { ok: false as const, message: err.slice(0, 200) };
+    const errText = await res.text();
+    console.error("[Gemini Error]", res.status, errText);
+    let msg = "AI pakalpojuma kļūda";
+    try {
+      const errJson = JSON.parse(errText);
+      msg = errJson.error?.message || msg;
+    } catch { /* ignore */ }
+    return { ok: false as const, message: msg.slice(0, 200) };
   }
 
   const data = (await res.json()) as {
