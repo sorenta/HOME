@@ -1,0 +1,446 @@
+HOME aplikācijas pilnais audits
+Datums: 2026-04-07
+Audita statuss: pabeigts
+Audita valoda: latviešu
+
+================================================================
+1) AUDITA MĒRĶIS UN TVĒRUMS
+================================================================
+
+Mērķis:
+- Iziet cauri visām projekta mapēm un failiem (praktiski auditējamajai daļai).
+- Sakārtot mapju hierarhiju un ceļus no galvenajiem ieejas punktiem līdz komponentiem.
+- Definēt katras mapes atbildību.
+- Identificēt liekus / dzēšamus failus vai koda daļas.
+- Norādīt loģikas, drošības, testu un dokumentācijas uzlabojumus.
+
+Tvērums:
+- Audita kodola tvērums: /workspaces/HOME
+- Galvenais runtime kods: src/
+- Konfigurācija: package.json, next.config.ts, tsconfig.json, eslint.config.mjs
+- SQL/migrācijas: supabase/
+- Dokumentācija un papildprojekti: docs/, readme/, app-playground/, marketing-site/, secrets/, agent-skills/
+
+No auditējamā izslēgts kā “ārējās atkarības / ģenerēts saturs”:
+- node_modules/
+- .git/
+- .next/
+
+================================================================
+2) METODOLOĢIJA (KĀ TIKA VEIKTS AUDITS)
+================================================================
+
+Tika izmantota kombinēta pieeja:
+- failu inventarizācija (directory listing + failu skaits pa mapēm),
+- ieejas punktu noteikšana (Next app router lapas, layout, loading, api routes),
+- importu ķēžu kartēšana no src/app uz src/components un src/lib,
+- potenciāli nelietoto failu noteikšana ar atsauču meklēšanu,
+- manuāla kritisko failu izlasīšana (providers, shell, auth, ai routes, pwa, i18n),
+- kvalitātes pārbaude ar lint un testiem.
+
+Pārbaudes komandu rezultātu kopsavilkums:
+- lint: izpildījās bez kļūdām.
+- tests: 1 tests, 1 passed (reset-notes-crypto.test.ts).
+
+================================================================
+3) AUGSTA LĪMEŅA STRUKTŪRA (TOP-LEVEL)
+================================================================
+
+Svarīgākās mapes un loma:
+- src/                     -> galvenais produkta kods (Next.js app, komponentes, lib)
+- supabase/                -> SQL shēma, politikas, migrāciju skripti
+- public/                  -> statiskie resursi (manifest, sw, ikonas, sezonālie aktīvi)
+- docs/                    -> papildu dokumentācija/aktīvi
+- readme/                  -> release piezīmes un produkcijas pārbaudes faili
+- app-playground/          -> atsevišķa statiska UX smilškaste
+- marketing-site/          -> atsevišķa statiska landing lapa
+- agent-skills/            -> atsevišķs projekts/repozitorijs ar Supabase skills
+- secrets/                 -> instrukcija par lokālu secret glabāšanu
+
+Aptuvenais failu blīvums (bez detalizētas mikrosadalīšanas):
+- src: vidēja izmēra lietotnes kods ar tematisku moduļu sadalījumu
+- supabase: koncentrēts SQL skriptu komplekts
+- docs: liels statisko aktīvu apjoms (ikonu kolekcijas)
+- node_modules: ļoti liels (auditā neanalizēts pēc būtības)
+
+================================================================
+4) SRC MAPES DETALIZĒTA ATBILDĪBU KARTE
+================================================================
+
+4.1) src/app
+- Atbildība: maršruti, lapas, global layout, loading state, API route handleri.
+- Galvenie ieejas punkti (UI):
+  - src/app/layout.tsx
+  - src/app/page.tsx
+  - src/app/auth/page.tsx
+  - src/app/calendar/page.tsx
+  - src/app/events/page.tsx
+  - src/app/finance/page.tsx
+  - src/app/household/page.tsx
+  - src/app/kitchen/page.tsx
+  - src/app/pharmacy/page.tsx
+  - src/app/profile/page.tsx
+  - src/app/reset/page.tsx
+  - src/app/settings/page.tsx
+  - src/app/sandbox/page.tsx
+  - src/app/legal/privacy/page.tsx
+- API route zonas:
+  - src/app/api/ai/*
+  - src/app/api/kitchen/*
+  - src/app/api/integrations/google-fit/*
+  - src/app/api/openai/test/route.ts
+
+4.2) src/components
+- Atbildība: UI komponentes pa domēnu un cross-cutting slāņi.
+- Domēnu grupas: auth, dashboard, events, finance, household, kitchen, pharmacy, profile, reset, legal, navigation, theme, ui.
+- Arhitektūras grupas:
+  - layout/: shell komponentes (root-shell, module-shell)
+  - providers/: app context orchestrācija (auth/theme/i18n/seasonal/pwa)
+
+4.3) src/lib
+- Atbildība: business loģika, datu fetch/mutācijas, helperi, i18n, integrācijas.
+- Kritiskie mezgli:
+  - supabase/client.ts (klienta izveide)
+  - i18n/i18n-context.tsx (lokalizācija)
+  - finance.ts, kitchen.ts, household.ts, events-sync.ts, events-planner.ts
+  - reset-* faili (labsajūtas/RESET loģika)
+  - ai/keys.ts (BYOK validācija + helperi)
+
+================================================================
+5) CEĻI NO GALVENĀ FAILA UZ KOMPONENTĒM (SEKVENCE)
+================================================================
+
+5.1) Globalais ceļš
+1. src/app/layout.tsx
+2. src/components/providers/app-providers.tsx
+3. src/components/layout/root-shell.tsx
+4. konkrētā route lapa src/app/**/page.tsx
+5. route importētās komponentes src/components/**
+6. route izmantotā domēna loģika src/lib/**
+
+5.2) Home dashboard plūsma
+- src/app/page.tsx
+  -> RequireAuth
+  -> BentoDashboard
+  -> DashboardHomeLayout + BentoTile + HouseholdWaterWidget + TimeOfDayNoticeCard
+  -> household/events/reset helperi no src/lib
+
+5.3) Finance plūsma
+- src/app/finance/page.tsx
+  -> ModuleShell
+  -> FinanceThemeLayer
+  -> WalletHero / UrgentBillsCard / PlannedBillsPreview / FinanceQuickActions
+  -> src/lib/finance.ts (summaries, transakcijas, fixed costs)
+
+5.4) Kitchen plūsma
+- src/app/kitchen/page.tsx
+  -> ModuleShell
+  -> KitchenThemeLayer
+  -> InventoryPreview / CartPreview / UrgentItemsCard / AiChefSuggestions
+  -> src/lib/kitchen.ts + src/lib/household-kitchen-ai.ts
+
+5.5) Reset plūsma
+- src/app/reset/page.tsx
+  -> ModuleShell
+  -> ResetThemeLayer
+  -> ResetOnboardingWizard vai ResetDashboard
+  -> src/lib/reset-wellness.ts + src/lib/reset-wellness-sync.ts
+
+5.6) Events plūsma
+- src/app/events/page.tsx
+  -> ModuleShell
+  -> EventsThemeLayer
+  -> CalendarGrid / DayEventsList / EventAddMenu / UpcomingEventCard
+  -> src/lib/events-planner.ts + src/lib/events-sync.ts
+
+5.7) Household plūsma
+- src/app/household/page.tsx
+  -> RequireAuth / ModuleShell
+  -> HouseholdOnboarding / HouseholdSummary
+  -> src/lib/household.ts
+
+5.8) Pharmacy plūsma
+- src/app/pharmacy/page.tsx
+  -> ModuleShell / PharmacyThemeLayer
+  -> SectionHeading / StatusPill / GlassPanel
+  -> src/lib/pharmacy.ts + household/plans/date-format helperi
+
+5.9) Settings plūsma
+- src/app/settings/page.tsx
+  -> ModuleShell
+  -> Theme/Locale/Notification/BYOK bloki
+  -> auth + theme provider + household-kitchen-ai + supabase client
+
+5.10) Profile plūsma
+- src/app/profile/page.tsx
+  -> ModuleShell
+  -> ProfileSettingsSection
+
+5.11) Legal privacy plūsma
+- src/app/legal/privacy/page.tsx
+  -> ModuleShell + GlassPanel
+  -> privacy policy helperi no src/lib/legal
+
+5.12) Calendar plūsma (pašlaik)
+- src/app/calendar/page.tsx
+  -> ModuleShell
+  -> placeholder saturs “Calendar Page”
+
+================================================================
+6) KATRAS GALVENĀS MAPES ĪSS SATURA APRAKSTS
+================================================================
+
+src/app/api/ai/
+- verify: API key verifikācija provideriem (gemini/openai)
+- finance/reset: server-side AI prompti ar lietotāja BYOK un JSON atbildes formātu
+- raksturīgi: auth token pārbaude, Supabase user lookup, Vault secret nolasīšana
+
+src/app/api/kitchen/
+- credentials: BYOK atslēgas CRUD (vault + user_kitchen_ai)
+- meals: AI maltīšu ieteikumi, trūkstošie produkti, idejas
+
+src/app/api/integrations/google-fit/
+- authorize: OAuth start
+- callback: pašlaik redirect-only “connected/error” plūsma
+- status: vienkāršs pieejamības ping pēc client id esamības
+
+src/components/providers/
+- AppProviders kā centrālais wrappers
+- auth, theme, seasonal, i18n koordinācija
+- profile error bar, theme profile sync, pwa provider
+
+src/components/layout/
+- root-shell: globālais mobilais shell + bottom nav + switcher
+- module-shell: inner lapu universālais karkass
+
+src/components/theme/
+- tēmu ambient slānis, efekti, hive background u.c.
+- dažas komponentes izskatās nelietotas (skat. cleanup sadaļu)
+
+src/lib/i18n/
+- dictionaries + i18n context
+- locale switch + t() helper
+
+src/lib/supabase/
+- browser client factory ar anon/publishable key fallback
+
+supabase/
+- SQL faili pa domēniem: household, kitchen, finance, reset, events, legal, pharmacy, settings
+- schema.sql + vairāki policy/fix/update skripti
+
+================================================================
+7) ATRASTIE RISKI UN PROBLĒMAS (PRIORITIZĒTI)
+================================================================
+
+[AUGSTS] 7.1) Atvērts diagnostikas endpoints OpenAI testam
+Fails: src/app/api/openai/test/route.ts
+Novērojums:
+- GET endpoint tieši izsauc testOpenAiConnection bez auth slāņa.
+Riski:
+- Neautorizēta diagnostikas izmantošana,
+- potenciāls izmaksu/rate abuse,
+- nevajadzīga infrastruktūras metadatu ekspozīcija.
+Ieteikums:
+- aizsargāt ar auth,
+- vai limitēt uz development vidi,
+- vai vispār noņemt no production maršrutiem.
+
+[AUGSTS] 7.2) OpenAI env nosaukuma neatbilstības risks
+Fails: src/lib/openai.ts
+Novērojums:
+- gaidīts OPENAI_API_KEY, kamēr projektā vairākviet izmantota OPENAI nomenklatūra.
+Riski:
+- “strādā lokāli, nestrādā deploy” klases kļūda.
+Ieteikums:
+- standartizēt vides mainīgo nosaukumu,
+- dokumentēt vienā vietā README + .env.local.example.
+
+[VIDĒJS] 7.3) Google Fit callback plūsma nav pilnībā ieviesta
+Fails: src/app/api/integrations/google-fit/callback/route.ts
+Novērojums:
+- callback tikai pārvirza uz /reset?fit=connected, bet neapmaina code pret tokeniem.
+Riski:
+- UI var signalizēt “connected”, lai gan backends nav pieslēgts datu sinhronizācijai.
+Ieteikums:
+- implementēt pilnu OAuth callback: state validācija, token exchange, refresh token glabāšana, user saite.
+
+[VIDĒJS] 7.4) ModuleShell atpakaļ poga vizuāli tukša
+Fails: src/components/layout/module-shell.tsx
+Novērojums:
+- Link pogā nav redzama ikona/teksts.
+Riski:
+- UX degradācija un piekļūstamības neskaidrība.
+Ieteikums:
+- pievienot skaidru simbolu/ikonu un konsekventu aria atbalstu.
+
+[VIDĒJS] 7.5) BYOK drošības stāsts nav pilnībā konsekvents
+Faili:
+- src/lib/ai/keys.ts
+- src/app/settings/page.tsx
+Novērojums:
+- ir localStorage helperi API atslēgām (izskatās nelietoti),
+- Settings tekstā ir localStorage piezīme, kamēr pamatplūsma ir server-side vault.
+Riski:
+- komandas līmeņa neskaidrība, nākotnē iespējami drošības regresi.
+Ieteikums:
+- noņemt nelietotos localStorage API key helperus,
+- saskaņot UI tekstus ar reālo server-side glabāšanas modeli.
+
+[ZEMS] 7.6) Calendar lapa ir placeholder stāvoklī
+Fails: src/app/calendar/page.tsx
+Novērojums:
+- satur minimālu placeholder (“Calendar Page”).
+Riski:
+- produkta nepabeigtības sajūta gala lietotājam.
+Ieteikums:
+- vai nu pabeigt moduli,
+- vai pagaidām paslēpt navigācijā.
+
+[ZEMS] 7.7) Testu pārklājums ir minimāls
+Novērojums:
+- testu suite: 1 tests.
+Riski:
+- regresijas var nepamanīti iekļūt release.
+Ieteikums:
+- pievienot API smoke testus + kritisko lib vienību testus + minimālu e2e.
+
+================================================================
+8) LIEKO / DZĒŠAMO FAILU KANDIDĀTI
+================================================================
+
+Pēc atsauču skenēšanas kā potenciāli nelietoti (0 references no citiem src failiem) identificēti:
+
+- src/components/billing/household-plan-card.tsx
+- src/components/dashboard/peak-holiday-card.tsx
+- src/components/dashboard/seasonal-home-banner.tsx
+- src/components/finance/finance-ai-panel.tsx
+- src/components/finance/odometer-value.tsx
+- src/components/household/household-members-list.tsx
+- src/components/kitchen/kitchen-ai-panel.tsx
+- src/components/kitchen/kitchen-onboarding-survey.tsx
+- src/components/layout/forge/forge-inner.tsx
+- src/components/navigation/BotanicalNavigation.tsx
+- src/components/profile/ai-profile-card.tsx
+- src/components/reset/reset-wellness-onboarding.tsx
+- src/components/seasonal/seasonal-badge-card.tsx
+- src/components/spring/home-rolling-egg.tsx
+- src/components/spring/pussy-willow-frame.tsx
+- src/components/theme/comic-burst.tsx
+- src/components/theme/forge-icons.tsx
+- src/components/theme/hive-card.tsx
+- src/components/theme/hive-icons.tsx
+- src/lib/kitchen-autofill.ts
+- src/lib/kitchen-categories.ts
+- src/lib/reset-checkin-sync.ts
+
+Papildu kandidāts (specifisks):
+- src/lib/i18n/i18n-context.tsx funkcija detectLocale ir eksportēta, bet neizmantota.
+
+Piezīme:
+- “potenciāli nelietots” nav 100% pierādījums dzēšanai bez funkcionāla smoke testa.
+- ieteicams dzēst pa partijām un pēc katras partijas palaist lint/test/build.
+
+================================================================
+9) KONFIGURĀCIJA, BŪVE, KVALITĀTE
+================================================================
+
+package.json novērojumi:
+- Stack: Next 16, React 19, Supabase JS + SSR, Framer Motion.
+- Skripti: dev/build/start/lint/test.
+- Testu instruments: Jest + ts-jest.
+
+next.config.ts novērojumi:
+- definēti security headers,
+- sw.js specifiska cache/service-worker galvene,
+- images.unoptimized = true.
+
+tsconfig.json novērojumi:
+- strict true,
+- alias @/* -> src/*,
+- include aptver ts/tsx/mts un .next types,
+- exclude node_modules un agent-skills.
+
+Kvalitātes signāli:
+- Lint: bez kļūdām.
+- Testi: 1 suite, 1 passed.
+
+================================================================
+10) DOKUMENTĀCIJAS AUDITS
+================================================================
+
+README.md:
+- satur daudz produkta vīzijas teksta un tehniskā setup daļas vienā dokumentā.
+- ir noderīgs, bet pārāk blīvs ikdienas inženierijas darbam.
+
+Ieteikums dokumentācijai:
+- sadalīt 3 līmeņos:
+  1) “Getting Started / Runbook” (īsas praktiskas komandas),
+  2) “Architecture” (provider chain, route map, domain boundaries),
+  3) “Product Vision” (dizaina filozofija, tematiskie virzieni).
+
+docs/supabase-setup.md:
+- satur konkrētu Supabase URL + publisko anon/publishable key.
+- anon/publishable key nav slepena, bet ieteicama skaidra piezīme par to, kas ir publisks vs slepens.
+
+secrets/README.md:
+- pareizi uzsver, ka īstus secretus nedrīkst commitot.
+- labs drošības atgādinājums, var papildināt ar “rotation checklist”.
+
+================================================================
+11) PRAKTISKS UZLABOJUMU PLĀNS (IZPILDĀMS PA SOĻIEM)
+================================================================
+
+11.1) Drošība (prioritāte 1)
+- aizsargāt/noņemt src/app/api/openai/test/route.ts no publiskas piekļuves,
+- standartizēt OpenAI env key naming visā kodā + docs.
+
+11.2) Integrācijas pabeigšana (prioritāte 2)
+- pabeigt Google Fit callback plūsmu ar token exchange un drošu glabāšanu.
+
+11.3) Cleanup (prioritāte 3)
+- noņemt nelietotos komponentu/lib kandidātus 2-3 partijās,
+- katrā partijā: lint + test + build.
+
+11.4) UX/pieejamība (prioritāte 4)
+- salabot module-shell atpakaļ pogu,
+- izvērtēt placeholder lapas paslēpšanu/pabeigšanu (calendar).
+
+11.5) Testi un QA (prioritāte 5)
+- pievienot API smoke testus,
+- pievienot kritisko business loģiku vienību testus,
+- minimāls e2e happy path galvenajiem moduļiem.
+
+11.6) Dokumentācija (prioritāte 6)
+- README restrukturizācija,
+- arhitektūras ceļu diagramma,
+- vienots BYOK drošības apraksts.
+
+================================================================
+12) KOPSAVILKUMS
+================================================================
+
+Galvenais secinājums:
+- Projekts ir strukturēts un modulārs ar skaidru domēnu sadalījumu, spēcīgu tematisko UI sistēmu un server-side BYOK virzienu.
+- Kritiskie riski ir koncentrēti dažos punktos (publisks test endpoint, env naming neatbilstība, nepabeigta OAuth callback loģika).
+- Pastāv ievērojams cleanup potenciāls (vairāki nelietoti faili), kas var samazināt tehnisko parādu.
+- Kvalitātes signāli (lint/test) nav slikti, bet testu pārklājums ir pārāk zems ilgtermiņa drošai attīstībai.
+
+Ieteicamais tūlītējais fokuss:
+1) Security hardening,
+2) Google Fit callback completion,
+3) unused code cleanup,
+4) testu pārklājuma pieaugums,
+5) dokumentācijas segmentēšana.
+
+================================================================
+13) AUDITA DATU IZCELSME
+================================================================
+
+Šis dokuments veidots no:
+- failu inventarizācijas,
+- importu ķēžu analīzes,
+- manuālas kritisko failu izlasīšanas,
+- lint/test izpildes rezultātiem,
+- top-level un src-level mapju semantiskā izvērtējuma.
+
+Audits paredzēts kā tehniska bāze nākamajiem refactor/cleanup/security darbiem.

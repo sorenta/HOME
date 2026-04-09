@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspaces/HOME/src", "/workspaces/HOME/supabase", "/workspaces/HOME/public"],
+      "description": "Secure file operations within project directories"
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "description": "Fetch web content - API docs, Supabase schema, design resources"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "GitHub PR/issue management, code search"
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "Persistent knowledge graph memory across sessions"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Dynamic multi-step reasoning for complex architecture decisions"
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${SUPABASE_DB_URL}"],
+      "description": "Direct PostgreSQL connection to Supabase — schema inspection, query analysis, migration validation"
+    }
+  },
+  "skillsDir": ".claude/skills",
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run build)",
+      "Bash(npm test)",
+      "Bash(npm run dev)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git status)"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+out
+dist
+build
+.claude
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.mp4
+*.heic
