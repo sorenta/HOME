@@ -331,23 +331,28 @@ export default function KitchenPage() {
                       setError(response.message);
                     }
                   }}
-                  onSaveRecipe={(recipe) => {
+                  onSaveRecipe={(title, instructions, metadata) => {
+                    let fullText = instructions ? `${title}\n\n${instructions}` : title;
+                    if (metadata?.cooking_time || metadata?.temperature) {
+                      fullText += `\n\n---`;
+                      if (metadata.cooking_time) fullText += `\n⏱️ ${metadata.cooking_time}`;
+                      if (metadata.temperature) fullText += `\n🌡️ ${metadata.temperature}`;
+                    }
+                    if (metadata?.source_url) {
+                      fullText += `\n\n🔗 ${metadata.source_url}`;
+                    }
+                    if (metadata?.image_url) {
+                      fullText += `\n\n🖼️ ${metadata.image_url}`;
+                    }
+
                     void runKitchenAction(async () => {
                       await addKitchenInventoryItem({
                         householdId: householdId!,
-                        name: recipe,
+                        name: fullText,
                         category: "recipe",
                         quantity: 1
                       });
                     }, locale === "lv" ? "Recepte saglabāta" : "Recipe saved", { kind: "save", label: "Recepte" });
-                  }}
-                />
-                <SavedRecipes
-                  items={savedRecipes}
-                  onDelete={(id) => {
-                    void runKitchenAction(async () => {
-                      await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
-                    }, locale === "lv" ? "Recepte dzēsta" : "Recipe deleted");
                   }}
                 />
               </div>
@@ -463,27 +468,44 @@ export default function KitchenPage() {
                     setError(response.message);
                   }
                 }}
-                onSaveRecipe={(recipe) => {
+                onSaveRecipe={(title, instructions, metadata) => {
+                  let fullText = instructions ? `${title}\n\n${instructions}` : title;
+                  if (metadata?.cooking_time || metadata?.temperature) {
+                    fullText += `\n\n---`;
+                    if (metadata.cooking_time) fullText += `\n⏱️ ${metadata.cooking_time}`;
+                    if (metadata.temperature) fullText += `\n🌡️ ${metadata.temperature}`;
+                  }
+                  if (metadata?.source_url) {
+                    fullText += `\n\n🔗 ${metadata.source_url}`;
+                  }
+                  if (metadata?.image_url) {
+                    fullText += `\n\n🖼️ ${metadata.image_url}`;
+                  }
+
                   void runKitchenAction(async () => {
                     await addKitchenInventoryItem({
                       householdId: householdId!,
-                      name: recipe,
+                      name: fullText,
                       category: "recipe",
                       quantity: 1
                     });
                   }, locale === "lv" ? "Recepte saglabāta" : "Recipe saved", { kind: "save", label: "Recepte" });
                 }}
               />
-              <SavedRecipes
-                items={savedRecipes}
-                onDelete={(id) => {
-                  void runKitchenAction(async () => {
-                    await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
-                  }, locale === "lv" ? "Recepte dzēsta" : "Recipe deleted");
-                }}
-              />
             </div>
           )}
+
+          {/* SHARED SECTION: SAVED RECIPES */}
+          <div className="pt-6 border-t border-[var(--color-border)] opacity-90">
+            <SavedRecipes
+              items={savedRecipes}
+              onDelete={(id) => {
+                void runKitchenAction(async () => {
+                  await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
+                }, locale === "lv" ? "Recepte dzēsta" : "Recipe deleted");
+              }}
+            />
+          </div>
 
           {isAddFormOpen && (
             <KitchenItemForm

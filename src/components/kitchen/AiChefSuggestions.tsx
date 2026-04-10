@@ -15,12 +15,17 @@ type AiChefSuggestionsProps = {
   hasByok: boolean;
   onAddToCart: (name: string) => void;
   onPinMeal: (name: string) => void;
-  onSaveRecipe: (recipe: string) => void;
+  onSaveRecipe: (title: string, instructions: string, metadata?: { source_url?: string; cooking_time?: string; temperature?: string }) => void;
 };
 
 type MealIdea = {
-  recipe: string;
+  title: string;
+  instructions: string;
   missing: string[];
+  source_url?: string;
+  cooking_time?: string;
+  temperature?: string;
+  image_url?: string;
 };
 
 type AiResponse = {
@@ -37,6 +42,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiData, setAiData] = useState<AiResponse | null>(null);
+  const [mealType, setMealType] = useState<string | null>(null);
 
   if (!hasByok) {
     return (
@@ -86,9 +92,12 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
           locale,
           inventory,
           shopping: [], // In this context we don't have shopping items directly, but we should pass them if available
-          prompt: urgentItems.length > 0 
-            ? `Man ir šādi produkti, kas drīz sabojāsies: ${urgentItems.map(i => i.name).join(", ")}. Lūdzu iekļauj tos receptē.`
-            : ""
+          prompt: [
+            mealType ? (locale === "lv" ? `Vēlos idejas šai ēdienreizei: ${mealType}.` : `I want ideas for this meal: ${mealType}.`) : "",
+            urgentItems.length > 0 
+              ? (locale === "lv" ? `Man ir šādi produkti, kas drīz sabojāsies: ${urgentItems.map(i => i.name).join(", ")}. Lūdzu iekļauj tos receptē.` : `I have these items expiring soon: ${urgentItems.map(i => i.name).join(", ")}. Please include them in the recipe.`)
+              : ""
+          ].filter(Boolean).join(" ")
         })
       });
 
@@ -125,64 +134,117 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
     }
   };
 
+  const mealTypes = [
+    { id: "breakfast", lv: "Brokastis", en: "Breakfast", icon: "🍳" },
+    { id: "lunch", lv: "Pusdienas", en: "Lunch", icon: "🍲" },
+    { id: "dinner", lv: "Vakariņas", en: "Dinner", icon: "🍽️" },
+    { id: "snack", lv: "Našķis", en: "Snack", icon: "🍎" },
+  ];
+
   return (
     <div className="space-y-3">
-      <GlassPanel className="space-y-3" style={{ background: "color-mix(in srgb, var(--color-surface-2) 90%, transparent)" }}>
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">👨‍🍳</span>
-              <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
-                AI Šefpavārs
-              </p>
-            </div>
-            {!aiData && !loading && (
-              <button
-                onClick={handleFetchAi}
-                className={`px-3 py-1 text-[0.55rem] font-black uppercase tracking-widest border transition-all ${
-                  isForge ? 'border-primary/30 text-primary hover:bg-primary/10 rounded-sm' : 'border-[var(--color-border)] text-[var(--color-text-primary)] rounded-full hover:bg-[var(--color-surface-3)]'
-                }`}
-              >
-                {locale === "lv" ? "Jautāt receptes" : "Ask for recipes"}
-              </button>
-            )}
+      <GlassPanel className="p-5" style={{ background: "color-mix(in srgb, var(--color-surface-2) 90%, transparent)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">👨‍🍳</span>
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+              AI Šefpavārs
+            </p>
           </div>
-          
-          {loading && (
+          {aiData && !loading && (
+            <button
+              onClick={() => {
+                setAiData(null);
+                setMealType(null);
+              }}
+              className="text-[0.6rem] font-bold uppercase opacity-50 hover:opacity-100 transition-opacity"
+            >
+              {locale === "lv" ? "Jauna izvēle" : "New choice"}
+            </button>
+          )}
+        </div>
+
+        {!aiData && !loading && (
+          <div className="space-y-4 py-2">
+            <p className="text-[0.65rem] font-black uppercase tracking-widest text-primary/70 px-1">
+              {locale === "lv" ? "Kas tevi interesē?" : "What are you looking for?"}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {mealTypes.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => setMealType(type.id)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all text-sm font-bold ${
+                    mealType === type.id
+                      ? (isForge ? 'border-primary bg-primary/20 text-white' : 'border-primary bg-primary text-white shadow-md')
+                      : (isForge ? 'border-white/10 bg-white/5 text-white/60 hover:border-white/20' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:border-primary/30')
+                  }`}
+                >
+                  <span>{type.icon}</span>
+                  <span>{locale === "lv" ? type.lv : type.en}</span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={handleFetchAi}
+              disabled={!mealType}
+              className={`w-full py-4 text-xs font-black uppercase tracking-[0.2em] transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
+                isForge 
+                  ? 'bg-primary text-white hover:bg-primary/80 rounded-sm' 
+                  : 'bg-primary text-white rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5'
+              }`}
+            >
+              {locale === "lv" ? "Jautāt receptes" : "Ask for recipes"}
+            </button>
+          </div>
+        )}
+        
+        {loading && (
+          <div className="py-8 text-center space-y-3">
+            <div className="inline-block animate-spin text-2xl">🌀</div>
             <p className="text-sm animate-pulse text-[var(--color-text-secondary)]">
               {locale === "lv" ? "Šefpavārs domā..." : "Chef is thinking..."}
             </p>
-          )}
+          </div>
+        )}
 
-          {error && (
+        {error && (
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
             <p className="text-sm text-red-500">{error}</p>
-          )}
+            <button 
+              onClick={() => setError(null)}
+              className="mt-2 text-xs font-bold uppercase text-red-500/60 hover:text-red-500"
+            >
+              {locale === "lv" ? "Mēģināt vēlreiz" : "Try again"}
+            </button>
+          </div>
+        )}
 
-          {aiData && (
-            <div className="space-y-4">
-              <p className="text-sm leading-relaxed text-[var(--color-text-primary)]">
-                {aiData.reply}
-              </p>
-              
-              {aiData.missing.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-[var(--color-border)] opacity-60">
-                  <p className="text-[0.6rem] font-bold uppercase mb-2">Trūkstošās sastāvdaļas:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {aiData.missing.map(item => (
-                      <button
-                        key={item}
-                        onClick={() => onAddToCart(item)}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10 border border-primary/20 text-[0.6rem] font-black text-primary hover:bg-primary/20 transition-all"
-                      >
-                        + {item.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
+        {aiData && (
+          <div className="space-y-4">
+            <p className="text-sm leading-relaxed text-[var(--color-text-primary)]">
+              {aiData.reply}
+            </p>
+            
+            {aiData.missing.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-[var(--color-border)] opacity-60">
+                <p className="text-[0.6rem] font-bold uppercase mb-2">Trūkstošās sastāvdaļas:</p>
+                <div className="flex flex-wrap gap-2">
+                  {aiData.missing.map(item => (
+                    <button
+                      key={item}
+                      onClick={() => onAddToCart(item)}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/10 border border-primary/20 text-[0.6rem] font-black text-primary hover:bg-primary/20 transition-all"
+                    >
+                      + {item.toUpperCase()}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </GlassPanel>
 
       {aiData && aiData.recipes.length > 0 && (
@@ -207,19 +269,61 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
                 className={`flex flex-col px-3 py-3 text-sm border transition-all group ${
                   isForge 
                     ? 'border-white/5 bg-black/40 text-white/80 hover:border-primary/30' 
-                    : 'rounded-xl border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-foreground)] hover:shadow-md'
+                    : 'rounded-xl border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-primary)] hover:shadow-md'
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <span className="leading-relaxed flex-1">{idea.recipe}</span>
-                  <div className="pl-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); onSaveRecipe(idea.recipe); }} className="text-xl" title={locale === "lv" ? "Saglabāt recepti" : "Save recipe"}>💾</button>
-                    <button onClick={(e) => { e.stopPropagation(); onPinMeal(idea.recipe); }} className="text-xl" title={locale === "lv" ? "Piespraust kalendāram" : "Pin to calendar"}>📌</button>
+                <div className="flex gap-4">
+                  {idea.image_url && (
+                    <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                      <img src={idea.image_url} alt={idea.title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between mb-1 gap-2">
+                      <span className="font-bold text-[var(--color-text-primary)] leading-tight truncate">{idea.title}</span>
+                      <div className="flex gap-2 shrink-0">
+                        <button onClick={(e) => { e.stopPropagation(); onSaveRecipe(idea.title, idea.instructions, { source_url: idea.source_url, cooking_time: idea.cooking_time, temperature: idea.temperature }); }} className="text-lg" title={locale === "lv" ? "Saglabāt recepti" : "Save recipe"}>💾</button>
+                        <button onClick={(e) => { e.stopPropagation(); onPinMeal(idea.title); }} className="text-lg" title={locale === "lv" ? "Piespraust kalendāram" : "Pin to calendar"}>📌</button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2 opacity-60">
+                      {idea.cooking_time && (
+                        <span className="text-[0.65rem] flex items-center gap-1">⏱️ {idea.cooking_time}</span>
+                      )}
+                      {idea.temperature && (
+                        <span className="text-[0.65rem] flex items-center gap-1">🌡️ {idea.temperature}</span>
+                      )}
+                    </div>
+
+                    <p className="text-xs opacity-80 leading-relaxed mb-2 line-clamp-2">
+                      {idea.instructions}
+                    </p>
+
+                    {idea.source_url && (
+                      <div className="mt-2">
+                        {idea.source_url === "AI-ORIGINAL" ? (
+                          <span className="text-[0.6rem] font-black uppercase text-primary/60 italic">
+                            ✨ {locale === "lv" ? "AI oriģinālrecepte" : "AI Original Recipe"}
+                          </span>
+                        ) : (
+                          <a 
+                            href={idea.source_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[0.65rem] font-bold text-primary hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            🔗 {locale === "lv" ? "Skatīt avotu" : "View source"}
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
                 {idea.missing && idea.missing.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-[var(--color-border)] opacity-80 flex flex-wrap items-center gap-2">
+                  <div className="mt-1 pt-2 border-t border-[var(--color-border)] opacity-80 flex flex-wrap items-center gap-2">
                     <span className="text-[0.6rem] font-bold uppercase py-1 text-[var(--color-text-secondary)]">
                       {locale === "lv" ? "Grozam:" : "To buy:"}
                     </span>

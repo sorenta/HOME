@@ -28,7 +28,15 @@ type Body = {
 function parseAssistantPayload(raw: string): {
   reply: string;
   missing_for_cart: string[];
-  meal_ideas: string[];
+  meal_ideas: Array<{ 
+    title: string; 
+    instructions: string; 
+    missing: string[]; 
+    source_url?: string;
+    cooking_time?: string;
+    temperature?: string;
+    image_url?: string;
+  }>;
 } {
   let text = raw.trim();
   if (text.startsWith("```")) {
@@ -40,9 +48,19 @@ function parseAssistantPayload(raw: string): {
   const missing = Array.isArray(parsed.missing_for_cart)
     ? parsed.missing_for_cart.filter((x): x is string => typeof x === "string")
     : [];
-  const ideas = Array.isArray(parsed.meal_ideas)
-    ? parsed.meal_ideas.filter((x): x is string => typeof x === "string")
-    : [];
+  
+  const ideasRaw = Array.isArray(parsed.meal_ideas) ? parsed.meal_ideas : [];
+  const ideas = (ideasRaw as Array<Record<string, unknown>>).map((item) => {
+    return {
+      title: typeof item.title === "string" ? item.title : (typeof item.recipe === "string" ? item.recipe : ""),
+      instructions: typeof item.instructions === "string" ? item.instructions : "",
+      missing: Array.isArray(item.missing) ? item.missing.filter((x): x is string => typeof x === "string") : [],
+      source_url: typeof item.source_url === "string" ? item.source_url : undefined,
+      cooking_time: typeof item.cooking_time === "string" ? item.cooking_time : undefined,
+      temperature: typeof item.temperature === "string" ? item.temperature : undefined,
+      image_url: typeof item.image_url === "string" ? item.image_url : undefined,
+    };
+  }).filter(item => item.title || item.instructions);
 
   return { reply, missing_for_cart: missing, meal_ideas: ideas };
 }
@@ -315,13 +333,13 @@ export async function POST(request: Request) {
     const system =
       locale === "lv"
         ? `Tu esi HOME:OS Virtuves maltīšu asistents. Atbildi TIKAI ar derīgu JSON objektu šādā formātā (bez markdown):
-{"reply":"īss draudzīgs ievads latviski","missing_for_cart":["produkts1","produkts2"],"meal_ideas":[{"recipe":"1. Recepte: Kā to pagatavot (2-3 teikumi).","missing":["trūkstošs produkts"]}]}
-"missing_for_cart" — precīzi produktu nosaukumi, kas trūkst un jānopērk (visām receptēm kopā).
-"meal_ideas" — 1–3 reālas un īsas, bet pamācošas receptes/idejas no tā, kas jau ir mājās. "missing" masīvā norādi TIKAI ŠAI RECEPTEI trūkstošās sastāvdaļas (ja tādas ir), kuras nav mājās un kuras varētu pievienot grozam.`
+{"reply":"ievads","missing_for_cart":["produkts"],"meal_ideas":[{"title":"Nosaukums","instructions":"Instrukcija","missing":[],"source_url":"https://www.google.com/search?q=[nosaukums]+recepte","cooking_time":"30 min","temperature":"180C","image_url":"https://loremflickr.com/600/400/food,[keyword]?random=[1-100]"}]}
+"source_url" — OBLIGĀTI ģenerē vienkāršu Google meklēšanas saiti: https://www.google.com/search?q=[nosaukums-bez-atstarpem]+recepte. Neizmanto "site:" vai "OR" operatorus, lai garantētu rezultātus.
+"image_url" — OBLIGĀTI: https://loremflickr.com/600/400/food,[keyword]?random=[unique-id]. Lieto atšķirīgu anglisku [keyword] un atšķirīgu random skaitli katrai receptei.`
         : `You are the HOME:OS kitchen meal assistant. Reply ONLY with valid JSON (no markdown):
-{"reply":"short friendly text in English","missing_for_cart":["item1","item2"],"meal_ideas":[{"recipe":"1. Recipe: How to make it (2-3 sentences).","missing":["missing item"]}]}
-"missing_for_cart" — product names that are missing and should be bought.
-"meal_ideas" — 1–3 short but actionable recipes/instructions using what is already at home. In "missing" array list ONLY the ingredients MISSING FOR THIS SPECIFIC RECIPE (if any) that are not at home.`;
+{"reply":"intro","missing_for_cart":["item"],"meal_ideas":[{"title":"Title","instructions":"Instructions","missing":[],"source_url":"https://www.google.com/search?q=[title]+recipe","cooking_time":"30 min","temperature":"180C","image_url":"https://loremflickr.com/600/400/food,[keyword]?random=[1-100]"}]}
+"source_url" — MUST be a simple Google search link: https://www.google.com/search?q=[title-without-spaces]+recipe. Avoid complex operators.
+"image_url" — MUST use: https://loremflickr.com/600/400/food,[keyword]?random=[unique-id]. Use different English keywords and different random seeds for each idea.`;
 
     const invLines = inv
       .map(
