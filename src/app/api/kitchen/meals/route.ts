@@ -102,7 +102,7 @@ async function callOpenAI(apiKey: string, system: string, user: string) {
 }
 
 async function getGeminiModelCandidates(apiKey: string): Promise<string[]> {
-  const preferred = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-1.5-flash-latest"];
+  const preferred = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro"];
   const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
 
   try {
@@ -173,12 +173,17 @@ async function callGemini(apiKey: string, system: string, user: string) {
       lastErrorMessage = msg;
 
       const msgLower = msg.toLowerCase();
-      const modelMissing =
+      const modelIssue =
+        res.status === 429 ||
+        res.status === 503 ||
+        msgLower.includes("overloaded") ||
+        msgLower.includes("high demand") ||
         msgLower.includes("is not found") ||
         msgLower.includes("not supported for generatecontent") ||
         msgLower.includes("no longer available to new users") ||
         msgLower.includes("deprecated");
-      if (modelMissing) {
+
+      if (modelIssue) {
         continue;
       }
 

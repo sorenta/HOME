@@ -15,7 +15,7 @@ type AiChefSuggestionsProps = {
   hasByok: boolean;
   onAddToCart: (name: string) => void;
   onPinMeal: (name: string) => void;
-  onSaveRecipe: (title: string, instructions: string, metadata?: { source_url?: string; cooking_time?: string; temperature?: string }) => void;
+  onSaveRecipe: (title: string, instructions: string, metadata?: { source_url?: string; cooking_time?: string; temperature?: string; image_url?: string }) => void;
 };
 
 type MealIdea = {
