@@ -14,6 +14,15 @@ function getKeyLastFour(key: string) {
   return clean.length >= 4 ? clean.slice(-4) : clean;
 }
 
+function getVaultSecretBaseName(userId: string) {
+  return `user_kitchen_ai_${userId}`;
+}
+
+function isDuplicateVaultNameError(message: string | undefined) {
+  const text = `${message ?? ""}`.toLowerCase();
+  return text.includes("secrets_name_idx") || text.includes("duplicate key value");
+}
+
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -72,13 +81,14 @@ export async function POST(request: Request) {
     }
 
     let vaultSecretId: string;
+    const baseSecretName = getVaultSecretBaseName(user.id);
 
     if (existing?.vault_secret_id) {
       const { error: updateSecretErr } = await supabaseAdmin
         .rpc("update_vault_secret", {
           secret_id: existing.vault_secret_id,
           new_secret: apiKey,
-          new_name: `user_kitchen_ai_${user.id}`,
+          new_name: baseSecretName,
           new_description: `Kitchen AI key for user ${user.id}`,
         });
 
@@ -91,12 +101,23 @@ export async function POST(request: Request) {
 
       vaultSecretId = existing.vault_secret_id;
     } else {
-      const { data: createSecretData, error: createSecretErr } = await supabaseAdmin
+      let { data: createSecretData, error: createSecretErr } = await supabaseAdmin
         .rpc("create_vault_secret", {
           secret: apiKey,
-          name: `user_kitchen_ai_${user.id}`,
+          name: baseSecretName,
           description: `Kitchen AI key for user ${user.id}`,
         });
+
+      if (createSecretErr && isDuplicateVaultNameError(createSecretErr.message)) {
+        const fallbackName = `${baseSecretName}_${Date.now()}`;
+        const retry = await supabaseAdmin.rpc("create_vault_secret", {
+          secret: apiKey,
+          name: fallbackName,
+          description: `Kitchen AI key for user ${user.id}`,
+        });
+        createSecretData = retry.data;
+        createSecretErr = retry.error;
+      }
 
       if (createSecretErr || !createSecretData) {
         return NextResponse.json(

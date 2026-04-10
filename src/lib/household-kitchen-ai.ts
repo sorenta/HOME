@@ -78,9 +78,10 @@ export async function upsertHouseholdKitchenAi(input: {
     | null;
 
   if (!res.ok || !payload?.ok) {
+    const combined = [payload?.code, payload?.message].filter(Boolean).join(": ");
     return {
       ok: false,
-      message: payload?.code ?? payload?.message ?? "SAVE_FAILED",
+      message: combined || payload?.code || payload?.message || "SAVE_FAILED",
     };
   }
 

@@ -280,3 +280,61 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
 - **Riska piezīmes (tūlītēja uzmanība):**
   - Supabase OAuth URL ir īslaicīgs (`state`/nonce); pie noilguma jāpalaiž auth no jauna.
 - **Galvenie faili:** `/home/codespace/.gemini/extensions/extension-enablement.json`, `/home/codespace/.gemini/mcp-server-enablement.json`, `/home/codespace/.bashrc`, `.env.local`.
+
+### [2026-04-10 12:35 Europe/Riga] Kitchen AI BYOK/Vault/Gemini incidenta noversana
+- **Ierakstu veica:** GitHub Copilot (GPT-5 Codex coding agents).
+- **Kāpēc ieraksts veikts:** Lietotajs zinoja, ka Virtuve poga "Jautat receptes" neatgriez rezultatu, lai gan BYOK atslga iestatijumos ir saglabata.
+- **Root cause (kopsavilkums):**
+  - tiesa pieeja `vault.decrypted_secrets` caur PostgREST deva kludu `Invalid schema: vault`;
+  - BYOK saglabasana krita uz `VAULT_CREATE_FAILED` ar `secrets_name_idx` (dubults secret nosaukums);
+  - Gemini modelis `gemini-1.5-flash` nebija pieejams konkretajam key/projektam (`not found/not supported`).
+- **Kas izdarits (kods):**
+  - `src/app/api/kitchen/meals/route.ts`
+    - nomainits Vault secrets lasijums uz RPC wrapper `read_vault_secret`;
+    - pievienoti skaidri error kodi: `VAULT_READ_FAILED`, `VAULT_WRAPPER_MISSING`, `NO_USER_AI_SECRET`;
+    - Gemini izsaukumam pievienota modelu fallback seciba:
+      - `gemini-2.0-flash`
+      - `gemini-1.5-flash-latest`
+      - `gemini-1.5-flash`.
+  - `src/app/api/kitchen/credentials/route.ts`
+    - pie `create_vault_secret` dubulta nosaukuma gadijuma pievienots retry ar unikalu fallback name (`..._<timestamp>`).
+  - `src/components/kitchen/AiChefSuggestions.tsx`
+    - uzlabota API kludu apstrade un lokalizeti pazinojumi;
+    - klientam tiek paradits konkretaks iemesls, nevis visparigs "neizdodas sazinaties".
+  - `src/lib/household-kitchen-ai.ts`
+    - BYOK saglabasanas kludu teksts tagad satur gan `code`, gan backend `message`.
+  - `supabase/vault_wrappers.sql`
+    - pievienota `public.read_vault_secret(secret_id uuid)` wrapper funkcija;
+    - wrapper role check paplasinats (`service_role`, `supabase_admin`, `postgres`);
+    - pievienoti explicit `grant execute` wrapper funkcijam.
+- **Kas izdarits (DB/ops):**
+  - Supabase SQL Editor palaists atjaunotais `supabase/vault_wrappers.sql` (rezultats: `Success. No rows returned`).
+  - BYOK atslga veiksmigi pienemta pec wrapper/retry labojumiem.
+- **Verifikacija:**
+  - `npx eslint src/components/kitchen/AiChefSuggestions.tsx src/app/api/kitchen/meals/route.ts` -> bez kritiskam kludam (warningi tikai par neizmantotiem simboliem);
+  - `npx eslint src/app/api/kitchen/credentials/route.ts` -> OK;
+  - `npx eslint src/lib/household-kitchen-ai.ts src/app/api/kitchen/meals/route.ts` -> OK.
+- **Ietekme:**
+  - Kitchen AI pieprasijuma plusma ir stabilaka pret Vault schema ierobezojumiem, dublikatu secret nosaukumiem un Gemini modelu pieejamibas atskirbam.
+  - Diagnostika ir caurspidigaka (konkreti kodi/teksti UI un route atbildes).
+- **Atvertie riski / nakamie soli:**
+  - pec stabilizesanas var iztirit vecos Vault secret ierakstus ar dubliskiem nosaukumiem (ops housekeeping).
+- **Galvenie faili:** `src/app/api/kitchen/meals/route.ts`, `src/app/api/kitchen/credentials/route.ts`, `src/components/kitchen/AiChefSuggestions.tsx`, `src/lib/household-kitchen-ai.ts`, `supabase/vault_wrappers.sql`.
+
+### [2026-04-10 12:55 Europe/Riga] Incident closed: Gemini fallback paplasinats uz Finance/Reset
+- **Ierakstu veica:** GitHub Copilot (GPT-5 Codex coding agents).
+- **Kapec ieraksts veikts:** Pec Kitchen AI stabilizacijas fallback tika paplasinats uz parejiem AI endpointiem, lai neatkartotos modelu pieejamibas kludas.
+- **Kas izdarits:**
+  - `src/app/api/ai/finance/route.ts`
+    - pievienota dinamiska modelu atlase no `ListModels`;
+    - pievienota prefereto modelu seciba (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.0-flash-lite`, `gemini-1.5-flash-latest`);
+    - kludu fallback, ja modelis nav pieejams / deprecated / nav atbalstits.
+  - `src/app/api/ai/reset/route.ts`
+    - ieviesata ta pati dinamiska modelu fallback logika ka Finance un Kitchen endpointos.
+- **Verifikacija:**
+  - `npx eslint src/app/api/ai/finance/route.ts src/app/api/ai/reset/route.ts` -> `EXIT=0`.
+- **Ietekme:**
+  - samazinats risks, ka lietotajiem paradisies Gemini modela novecosanas/pieejamibas kludas citos AI moduļos;
+  - vienadota uzvediba visos galvenajos AI endpointos (Kitchen, Finance, Reset).
+- **Statuss:** Incidenta celsana aptureta, risinajums izvietots kodbase.
+- **Galvenie faili:** `src/app/api/ai/finance/route.ts`, `src/app/api/ai/reset/route.ts`.

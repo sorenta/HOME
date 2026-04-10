@@ -87,8 +87,26 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onOpenPlan,
         })
       });
 
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.message || "Neizdevās sazināties ar AI.");
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.ok) {
+        const code = data?.code;
+
+        if (code === "NO_USER_AI_SECRET") {
+          const msg = locale === "lv"
+            ? "Neizdevās nolasīt tavu AI atslēgu no drošās krātuves."
+            : "Failed to read your AI key from secure storage.";
+          throw new Error(msg);
+        }
+
+        const msg = data?.message || (
+          code === "NO_USER_AI" ? (locale === "lv" ? "AI atslēga nav atrasta." : "AI key not found.") :
+          code === "RATE_LIMITED" ? (locale === "lv" ? "Pārāk daudz pieprasījumu." : "Too many requests.") :
+          (locale === "lv" ? "Neizdevās sazināties ar AI." : "Could not connect to AI.")
+        );
+
+        throw new Error(msg);
+      }
 
       setAiData({
         reply: data.reply || "",

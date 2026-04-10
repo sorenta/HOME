@@ -71,33 +71,85 @@ async function callOpenAI(apiKey: string, system: string, user: string) {
   }
 }
 
-async function callGemini(apiKey: string, system: string, user: string) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: `${system}\n\n---\n\n${user}` }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.6 },
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    return { ok: false as const, message: err.slice(0, 200) };
-  }
-
-  const data = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) return { ok: false as const, message: "Empty Gemini response." };
+async function getGeminiModelCandidates(apiKey: string): Promise<string[]> {
+  const preferred = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-1.5-flash-latest"];
+  const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
 
   try {
-    return { ok: true as const, payload: parsePayload(text) };
+    const res = await fetch(listUrl, { method: "GET", cache: "no-store" });
+    if (!res.ok) return preferred;
+
+    const payload = (await res.json()) as {
+      models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
+    };
+
+    const available = (payload.models ?? [])
+      .filter((m) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
+      .map((m) => (m.name ?? "").replace(/^models\//, ""))
+      .filter(Boolean);
+
+    if (available.length === 0) return preferred;
+
+    return [
+      ...preferred.filter((m) => available.includes(m)),
+      ...available.filter((m) => !preferred.includes(m)),
+    ];
   } catch {
-    return { ok: false as const, message: "Could not parse Gemini JSON." };
+    return preferred;
   }
+}
+
+async function callGemini(apiKey: string, system: string, user: string) {
+  const modelCandidates = await getGeminiModelCandidates(apiKey);
+  let lastErrorMessage = "Gemini request failed.";
+
+  for (const model of modelCandidates) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: `${system}\n\n---\n\n${user}` }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.6 },
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      let msg = `AI Error (${res.status})`;
+      try {
+        const errJson = JSON.parse(errText) as { error?: { message?: string } };
+        msg = errJson.error?.message || msg;
+      } catch {
+        // ignore invalid json
+      }
+
+      lastErrorMessage = msg;
+      const msgLower = msg.toLowerCase();
+      const modelIssue =
+        msgLower.includes("is not found") ||
+        msgLower.includes("not supported for generatecontent") ||
+        msgLower.includes("no longer available to new users") ||
+        msgLower.includes("deprecated");
+
+      if (modelIssue) continue;
+      return { ok: false as const, message: msg.slice(0, 300) };
+    }
+
+    const data = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return { ok: false as const, message: "Empty Gemini response." };
+
+    try {
+      return { ok: true as const, payload: parsePayload(text) };
+    } catch {
+      return { ok: false as const, message: "Could not parse Gemini JSON." };
+    }
+  }
+
+  return { ok: false as const, message: lastErrorMessage.slice(0, 300) };
 }
 
 export async function POST(request: Request) {

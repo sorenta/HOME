@@ -10,7 +10,8 @@
     "prestart": "node scripts/validate-env.mjs --mode=start",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@google-cloud/api-gateway": "^4.2.1",
