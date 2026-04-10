@@ -23,6 +23,8 @@ function initialsFromName(name: string): string {
 
 export function HouseholdCard({ householdName, roleLabel, members }: HouseholdCardProps) {
   const { themeId } = useTheme();
+  
+  const isForge = themeId === "forge";
 
   // Avatar shape per theme
   const avatarStyle: React.CSSProperties =
@@ -33,18 +35,56 @@ export function HouseholdCard({ householdName, roleLabel, members }: HouseholdCa
         : themeId === "pulse"
           ? { borderRadius: "4px", border: "2px solid #000" }
           : themeId === "forge"
-            ? { borderRadius: "4px", borderLeft: "2px solid var(--color-primary)" }
+            ? { borderRadius: "1px", borderLeft: "2px solid var(--color-primary)" }
             : { borderRadius: "9999px" }; // lucent — circle
+
+  if (isForge) {
+    return (
+      <GlassPanel className="p-0 overflow-hidden font-mono">
+        <div className="border-b border-white/5 bg-white/5 px-4 py-3">
+          <h2 className="text-[0.6rem] font-black uppercase tracking-[0.2em] text-white/80">Vienības_Sastāvs</h2>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="border-l-2 border-primary pl-4 py-1">
+            <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest mb-1">MĀJSAIMNIECĪBA</p>
+            <h3 className="text-sm font-bold text-white uppercase tracking-tight">
+              {householdName || "SISTĒMAS_TELPA"}
+            </h3>
+            <p className="text-[0.55rem] text-white/40 uppercase mt-1">LOMA: {roleLabel}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+            {members.slice(0, 8).map((member) => {
+              const name = memberBadgeName(member);
+              return (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-3 border border-white/5 bg-black/20 px-3 py-2 rounded-sm"
+                >
+                  <span
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center bg-black/40 text-[0.6rem] font-bold text-primary border border-primary/20"
+                    style={avatarStyle}
+                  >
+                    {initialsFromName(name)}
+                  </span>
+                  <span className="truncate text-[0.65rem] font-black text-white/80 uppercase tracking-tight">{name}</span>
+                  <span className="ml-auto text-[0.5rem] text-primary/40 animate-pulse">●</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </GlassPanel>
+    );
+  }
 
   // Member row card style per theme
   const rowStyle: React.CSSProperties =
     themeId === "pulse"
       ? { border: "2px solid #000", boxShadow: "2px 2px 0px #000", borderRadius: "var(--radius-card)" }
-      : themeId === "forge"
-        ? { borderLeft: "2px solid var(--color-primary)", borderRadius: "var(--radius-card)" }
-        : themeId === "hive"
-          ? { borderWidth: "2px", borderRadius: "var(--radius-card)" }
-          : {};
+      : themeId === "hive"
+        ? { borderWidth: "2px", borderRadius: "var(--radius-card)" }
+        : {};
 
   return (
     <GlassPanel className="space-y-4">

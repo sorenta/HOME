@@ -13,14 +13,14 @@ export function GlassPanel({ children, className = "", style, ...rest }: Props) 
   // Bāzes klases un maģiskais stils katrai tēmai
   let themeClass = "glass-panel bg-card text-card-foreground border border-border rounded-theme p-4 md:p-6";
 
-  if (themeId === "lucent") {
+  if (themeId === "forge") {
+    themeClass = "glass-panel bg-black/20 backdrop-blur-xl border border-white/5 rounded-sm p-4 md:p-6 text-white/80";
+  } else if (themeId === "lucent") {
     themeClass = "glass-panel bg-card/60 backdrop-blur-xl border border-border/50 shadow-theme rounded-theme p-4 md:p-6";
   } else if (themeId === "hive") {
     themeClass = "glass-panel bg-card border-4 border-border shadow-sm rounded-theme p-4 md:p-6 relative overflow-hidden";
   } else if (themeId === "pulse") {
     themeClass = "glass-panel bg-background border-4 border-black shadow-[6px_6px_0px_#000] rounded-xl p-4 md:p-6";
-  } else if (themeId === "forge") {
-    themeClass = "glass-panel metal-gradient border-t-4 border-primary shadow-inner rounded-sm p-4 md:p-6 text-foreground";
   } else if (themeId === "botanical") {
     themeClass = "glass-panel bg-card border border-border shadow-[inset_0_0_20px_rgba(255,255,255,0.3)] rounded-[2.5rem] p-4 md:p-6";
   }
@@ -29,9 +29,11 @@ export function GlassPanel({ children, className = "", style, ...rest }: Props) 
     <div
       className={`${themeClass} transition-all duration-500 ${className}`}
       style={{
-        backgroundColor: "var(--glass-bg, var(--color-surface))",
-        borderRadius: "var(--radius-card)",
-        borderColor: "var(--color-surface-border)",
+        ...(themeId !== 'forge' ? {
+          backgroundColor: "var(--glass-bg, var(--color-surface))",
+          borderRadius: "var(--radius-card)",
+          borderColor: "var(--color-surface-border)",
+        } : {}),
         ...style,
       }}
       {...rest}

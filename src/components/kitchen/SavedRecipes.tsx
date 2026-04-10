@@ -44,7 +44,7 @@ export function SavedRecipes({ items, onDelete }: Props) {
         )}
       </div>
 
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className={`grid gap-4 ${isForge ? 'sm:grid-cols-1 lg:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
         <AnimatePresence>
           {items.map((item) => {
             const parts = item.name.split("\n\n");
@@ -77,28 +77,28 @@ export function SavedRecipes({ items, onDelete }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onClick={() => setSelectedRecipe(item)}
-                className={`relative flex flex-col p-4 transition-all group border cursor-pointer hover:ring-2 hover:ring-primary/20 ${
+                className={`relative flex flex-col p-4 transition-all group border cursor-pointer ${
                   isForge 
-                    ? 'border-white/5 bg-black/40 text-white/80 hover:border-primary/30' 
+                    ? 'border-white/5 bg-black/20 text-white/80 hover:border-primary/30 rounded-sm font-mono' 
                     : 'rounded-2xl border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-primary)] hover:shadow-lg'
                 }`}
               >
                 <div className="flex gap-4">
                   {imageUrl && (
-                    <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                    <div className={`shrink-0 w-16 h-16 overflow-hidden border border-white/10 bg-black/20 ${isForge ? 'rounded-sm' : 'rounded-lg'}`}>
                       <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <h4 className="font-bold pr-10 leading-tight group-hover:text-primary transition-colors truncate">{title}</h4>
-                    <p className="text-xs opacity-70 line-clamp-2 leading-relaxed whitespace-pre-wrap italic">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h4 className={`font-bold pr-10 leading-tight group-hover:text-primary transition-colors truncate uppercase ${isForge ? 'text-[0.7rem] tracking-tight' : ''}`}>{title}</h4>
+                    <p className={`opacity-70 line-clamp-2 leading-relaxed whitespace-pre-wrap italic ${isForge ? 'text-[0.6rem] uppercase' : 'text-xs'}`}>
                       {instructions.trim() || (locale === "lv" ? "Skatīt gatavošanas gaitu..." : "View cooking steps...")}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between pt-3 border-t border-[var(--color-border)]/10">
-                  <span className="text-[0.6rem] font-black uppercase tracking-widest text-primary">
+                <div className={`mt-4 flex items-center justify-between pt-3 border-t ${isForge ? 'border-white/5' : 'border-[var(--color-border)]/10'}`}>
+                  <span className={`font-black uppercase tracking-widest text-primary ${isForge ? 'text-[0.55rem]' : 'text-[0.6rem]'}`}>
                     {locale === "lv" ? "Skatīt pilnu →" : "View full →"}
                   </span>
                   
@@ -107,12 +107,14 @@ export function SavedRecipes({ items, onDelete }: Props) {
                       e.stopPropagation();
                       onDelete(item.id);
                     }}
-                    className={`flex items-center justify-center w-7 h-7 rounded-full transition-all shadow-sm ${
-                      isForge ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white'
+                    className={`flex items-center justify-center transition-all ${
+                      isForge 
+                        ? 'w-6 h-6 border border-red-500/20 text-red-500 hover:bg-red-500/10' 
+                        : 'w-7 h-7 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white shadow-sm'
                     }`}
                     title={locale === "lv" ? "Dzēst recepti" : "Delete recipe"}
                   >
-                    <span className="text-xs">✕</span>
+                    <span className="text-[0.6rem]">✕</span>
                   </button>
                 </div>
               </motion.li>
@@ -130,7 +132,7 @@ export function SavedRecipes({ items, onDelete }: Props) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedRecipe(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
             />
             
             <motion.div
@@ -139,7 +141,7 @@ export function SavedRecipes({ items, onDelete }: Props) {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto border shadow-2xl ${
                 isForge 
-                  ? 'bg-black border-primary/40 text-white' 
+                  ? 'bg-black border-primary/40 text-white rounded-sm font-mono' 
                   : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-primary)] rounded-[2.5rem]'
               }`}
             >
@@ -162,7 +164,11 @@ export function SavedRecipes({ items, onDelete }: Props) {
               <div className="p-6 sm:p-10 space-y-6">
                 <button
                   onClick={() => setSelectedRecipe(null)}
-                  className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-[var(--color-surface-2)] hover:bg-primary hover:text-white transition-all z-10 shadow-lg"
+                  className={`absolute top-6 right-6 flex items-center justify-center transition-all z-10 shadow-lg ${
+                    isForge 
+                      ? 'w-8 h-8 border border-white/10 bg-black hover:border-primary text-primary' 
+                      : 'w-10 h-10 rounded-full bg-[var(--color-surface-2)] hover:bg-primary hover:text-white'
+                  }`}
                 >
                   ✕
                 </button>
@@ -170,11 +176,11 @@ export function SavedRecipes({ items, onDelete }: Props) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-primary">
                     <span className="text-2xl">👨‍🍳</span>
-                    <span className="text-[0.6rem] font-black uppercase tracking-[0.3em]">
+                    <span className={`font-black uppercase tracking-[0.3em] ${isForge ? 'text-[0.55rem]' : 'text-[0.6rem]'}`}>
                       {locale === "lv" ? "Saglabātā recepte" : "Saved recipe"}
                     </span>
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-black leading-tight">
+                  <h2 className={`font-black leading-tight uppercase ${isForge ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}`}>
                     {selectedRecipe.name.split("\n\n")[0]}
                   </h2>
                 </div>
@@ -191,15 +197,15 @@ export function SavedRecipes({ items, onDelete }: Props) {
                   if (time || temp || source) {
                     return (
                       <div className="flex flex-wrap gap-4 pt-2">
-                        {time && <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5">⏱️ {time}</span>}
-                        {temp && <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5">🌡️ {temp}</span>}
+                        {time && <span className={`px-3 py-1.5 border font-bold flex items-center gap-1.5 uppercase ${isForge ? 'border-primary/20 bg-primary/5 text-primary text-[0.55rem]' : 'rounded-full bg-primary/10 text-primary text-xs'}`}>⏱️ {time}</span>}
+                        {temp && <span className={`px-3 py-1.5 border font-bold flex items-center gap-1.5 uppercase ${isForge ? 'border-primary/20 bg-primary/5 text-primary text-[0.55rem]' : 'rounded-full bg-primary/10 text-primary text-xs'}`}>🌡️ {temp}</span>}
                         {source && (
                           source === "AI-ORIGINAL" ? (
-                            <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black italic flex items-center gap-1.5">
+                            <span className={`px-3 py-1.5 border font-black italic flex items-center gap-1.5 uppercase ${isForge ? 'border-primary/20 bg-primary/5 text-primary text-[0.55rem]' : 'rounded-full bg-primary/10 text-primary text-xs'}`}>
                               ✨ {locale === "lv" ? "AI oriģināls" : "AI Original"}
                             </span>
                           ) : (
-                            <a href={source} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-bold flex items-center gap-1.5 hover:bg-primary/80 transition-all">
+                            <a href={source} target="_blank" rel="noopener noreferrer" className={`px-3 py-1.5 font-bold flex items-center gap-1.5 transition-all uppercase ${isForge ? 'border border-primary bg-primary text-white text-[0.55rem]' : 'rounded-full bg-primary text-white text-xs hover:bg-primary/80'}`}>
                               🔗 {locale === "lv" ? "Avots" : "Source"}
                             </a>
                           )
@@ -210,10 +216,10 @@ export function SavedRecipes({ items, onDelete }: Props) {
                   return null;
                 })()}
 
-                <div className="h-px w-20 bg-primary/30" />
+                <div className={`h-px w-20 ${isForge ? 'bg-primary/40' : 'bg-primary/30'}`} />
 
                 <div className="prose prose-sm max-w-none">
-                  <p className="text-base sm:text-lg leading-relaxed whitespace-pre-wrap opacity-90">
+                  <p className={`leading-relaxed whitespace-pre-wrap opacity-90 uppercase font-mono ${isForge ? 'text-[0.7rem]' : 'text-base sm:text-lg'}`}>
                     {(() => {
                       const parts = selectedRecipe.name.split("\n\n");
                       let instr = "";
@@ -230,8 +236,10 @@ export function SavedRecipes({ items, onDelete }: Props) {
                 <div className="pt-6 flex gap-3">
                   <button
                     onClick={() => setSelectedRecipe(null)}
-                    className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
-                      isForge ? 'bg-primary text-white hover:bg-primary/80' : 'bg-[var(--color-surface-2)] hover:bg-[var(--color-border)]'
+                    className={`px-6 py-3 font-black uppercase tracking-widest transition-all ${
+                      isForge 
+                        ? 'border border-white/10 text-white/40 hover:bg-white/5 text-[0.6rem]' 
+                        : 'rounded-full bg-[var(--color-surface-2)] hover:bg-[var(--color-border)] text-xs'
                     }`}
                   >
                     {locale === "lv" ? "Aizvērt" : "Close"}
@@ -241,7 +249,11 @@ export function SavedRecipes({ items, onDelete }: Props) {
                       onDelete(selectedRecipe.id);
                       setSelectedRecipe(null);
                     }}
-                    className="px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                    className={`px-6 py-3 font-black uppercase tracking-widest transition-all ${
+                      isForge
+                        ? 'border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-[0.6rem]'
+                        : 'rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-xs'
+                    }`}
                   >
                     {locale === "lv" ? "Dzēst" : "Delete"}
                   </button>

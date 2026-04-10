@@ -198,80 +198,103 @@ export default function SettingsPage() {
         ? `${t("settings.byok.savedDevice")} ••••${byokMeta.key_last_four}`
         : t("settings.byok.state.saved")
       : state.value.trim()
-        ? t("settings.byok.unsaved")
-        : t("settings.byok.notSaved");
+        ? t("settings.byok.state.ready")
+        : t("settings.byok.state.empty");
 
-    const statusLabel =
-      state.status === "testing"
-        ? t("settings.byok.state.testing")
-        : state.status === "error"
-          ? t("settings.byok.state.error")
-          : isSaved
-            ? t("settings.byok.state.saved")
-            : t("settings.byok.state.notSaved");
+    if (themeId === "forge") {
+      return (
+        <div key={provider} className="space-y-2 border border-white/5 bg-black/20 p-4 rounded-sm font-mono">
+          <div className="flex items-center justify-between">
+            <span className="text-[0.6rem] font-black uppercase tracking-widest text-white/80">{label}</span>
+            <span className={`text-[0.5rem] font-black px-1.5 py-0.5 border uppercase tracking-tighter ${
+              isSaved ? 'border-emerald-500 text-emerald-500' : 'border-white/20 text-white/20'
+            }`}>
+              {isSaved ? 'CONNECTED' : 'STANDBY'}
+            </span>
+          </div>
+          <p className="text-[0.55rem] text-white/40 uppercase">{helperText}</p>
+          
+          <div className="flex gap-2 pt-1">
+            <input
+              type="password"
+              placeholder="ENTER_KEY_..."
+              value={state.value}
+              onChange={(e) => setByok((prev) => ({
+                ...prev,
+                [provider]: { ...prev[provider], value: e.target.value, status: "idle", error: null },
+              }))}
+              className="flex-1 border border-white/10 bg-black/40 px-3 py-2 text-[0.7rem] text-white focus:border-primary outline-none transition-all rounded-sm uppercase"
+            />
+            <button
+              onClick={() => void verifyAndSaveProvider(provider)}
+              disabled={state.status === "testing" || !state.value.trim()}
+              className="border border-primary bg-primary/10 px-4 py-2 text-[0.6rem] font-black uppercase tracking-widest text-primary hover:bg-primary/20 transition-all rounded-sm disabled:opacity-30"
+            >
+              {state.status === "testing" ? "[ TESTING... ]" : "[ SAVE ]"}
+            </button>
+          </div>
+          {state.error && (
+            <p className="text-[0.55rem] text-red-500 uppercase mt-1">ERROR: {state.error}</p>
+          )}
+          {isSaved && (
+            <button
+              onClick={() => {
+                hapticTap();
+                void deleteHouseholdKitchenAi();
+                setByokMeta(null);
+              }}
+              className="text-[0.5rem] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 transition-colors pt-1"
+            >
+              [ DISCONNECT_MODULE ]
+            </button>
+          )}
+        </div>
+      );
+    }
 
     return (
-      <div className="space-y-3 rounded-(--radius-card) border border-(--color-border) bg-[color-mix(in_srgb,var(--color-surface)_86%,transparent)] p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-bold text-(--color-text-primary)">{label}</p>
-            <p className="mt-1 text-xs text-(--color-text-secondary)">{helperText}</p>
-          </div>
-          <StatusPill tone={state.status === "error" ? "warn" : isSaved ? "good" : "neutral"}>
-            {statusLabel}
+      <div key={provider} className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-bold text-(--color-text-secondary)">{label}</span>
+          <StatusPill tone={isSaved ? "good" : "neutral"}>
+            {isSaved ? t("settings.byok.state.saved") : t("settings.byok.state.empty")}
           </StatusPill>
         </div>
-
-        <input
-          type="password"
-          value={state.value}
-          onChange={(event) =>
-            setByok((prev) => ({
-              ...prev,
-              [provider]: {
-                ...prev[provider],
-                value: event.target.value,
-                status: "idle",
-                error: null,
-              },
-            }))
-          }
-          className="w-full rounded-(--radius-button) border border-(--color-border) bg-transparent px-3 py-2 text-sm outline-none"
-          placeholder={provider === "gemini" ? "AIza..." : "sk-..."}
-        />
-
-        {state.error ? (
-          <p className="text-xs font-semibold text-(--color-danger,#c43c3c)">{state.error}</p>
-        ) : null}
-
+        <p className="px-1 text-[0.65rem] text-(--color-text-secondary) opacity-70">{helperText}</p>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => void verifyAndSaveProvider(provider)}
-            className="flex-1 rounded-(--radius-button) bg-(--color-button-primary) px-4 py-2.5 text-sm font-semibold text-(--color-button-primary-text)"
-          >
-            {state.status === "testing"
-              ? t("settings.byok.action.testing")
-              : t("settings.byok.action.verify")}
-          </button>
-          <button
-            type="button"
-            disabled={!isSaved}
-            onClick={() =>
-              void (async () => {
-                await deleteHouseholdKitchenAi();
-                setByokMeta(null);
-                setByok((prev) => ({
-                  ...prev,
-                  [provider]: { ...prev[provider], value: "", status: "idle", error: null },
-                }));
-              })()
+          <input
+            type="password"
+            placeholder={t("settings.byok.placeholder")}
+            value={state.value}
+            onChange={(e) =>
+              setByok((prev) => ({
+                ...prev,
+                [provider]: { ...prev[provider], value: e.target.value, status: "idle", error: null },
+              }))
             }
-            className="rounded-(--radius-button) border border-(--color-border) px-3 py-2.5 text-sm font-semibold text-(--color-text-primary) disabled:opacity-40"
+            className={`flex-1 border bg-[color-mix(in_srgb,var(--color-surface)_84%,transparent)] px-3 py-2.5 text-sm text-(--color-text-primary) focus:border-(--color-button-primary) focus:ring-1 focus:ring-(--color-button-primary) outline-none transition-all rounded-(--radius-card)`}
+          />
+          <button
+            onClick={() => void verifyAndSaveProvider(provider)}
+            disabled={state.status === "testing" || !state.value.trim()}
+            className="rounded-(--radius-button) bg-(--color-button-primary) px-4 py-2.5 text-sm font-semibold text-(--color-button-primary-text) shadow-sm hover:opacity-90 disabled:opacity-50"
           >
-            {t("settings.byok.action.remove")}
+            {state.status === "testing" ? t("settings.byok.verifying") : t("settings.byok.save")}
           </button>
         </div>
+        {state.error && <p className="px-1 text-xs font-medium text-red-500">{state.error}</p>}
+        {isSaved && (
+          <button
+            onClick={() => {
+              hapticTap();
+              void deleteHouseholdKitchenAi();
+              setByokMeta(null);
+            }}
+            className="px-1 text-xs font-bold text-red-500 hover:underline"
+          >
+            {t("settings.byok.delete")}
+          </button>
+        )}
       </div>
     );
   };
@@ -280,12 +303,10 @@ export default function SettingsPage() {
 
   return (
     <ModuleShell
-      title={t("settings.title")}
+      title={t("tile.settings")}
       moduleId="settings"
       sectionId="settings"
       description={t("settings.page.description")}
-      actionHref="/profile"
-      actionLabel={t("settings.page.actionProfile")}
     >
       <SettingsThemeLayer>
       <HiddenSeasonalCollectible spotId="settings" />
@@ -293,7 +314,7 @@ export default function SettingsPage() {
       <div className="space-y-10 pt-4 pb-12">
         {isForge ? (
           <>
-            {/* SECTOR 01: USER_INTERFACE */}
+            {/* SECTOR 01: UI_CONFIGURATION */}
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-1 opacity-40">
                 <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 01</span>
@@ -301,59 +322,62 @@ export default function SettingsPage() {
                 <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Lietotāja saskarne</span>
               </div>
               
-              <GlassPanel className="space-y-4 border-primary/20 bg-black/40">
-                <SectionHeading
-                  eyebrow="STILA_MOTĪVS"
-                  title={t("settings.theme")}
-                  detail={t(THEMES[themeId].labelKey).toUpperCase()}
-                />
-                <div className="grid grid-cols-1 gap-2">
-                  {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => void handleThemeChange(id)}
-                      className={`flex items-center justify-between border p-4 text-left transition-all rounded-sm ${
-                        themeId === id
-                          ? "border-primary bg-primary/10"
-                          : "border-white/5 bg-white/5 hover:border-white/20"
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <ThemeToolbarIcon themeId={id} size={22} tone={themeId === id ? "active" : "inactive"} />
-                        <span className={`text-[0.65rem] font-black uppercase tracking-widest ${themeId === id ? 'text-primary' : 'text-white/60'}`}>
-                          {t(THEMES[id].labelKey)}
-                        </span>
-                      </span>
-                      {themeId === id ? (
-                        <span className="text-[0.5rem] font-black px-1.5 py-0.5 border border-primary text-primary uppercase tracking-tighter">
-                          ACTIVE
-                        </span>
-                      ) : null}
-                    </button>
-                  ))}
+              <GlassPanel className="p-0 overflow-hidden">
+                <div className="border-b border-white/5 bg-white/5 px-4 py-3">
+                  <h2 className="text-[0.6rem] font-black uppercase tracking-[0.2em] text-white/80">Sistēmas vizualizācija</h2>
                 </div>
+                <div className="p-4 space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest ml-1">STILA_MOTĪVS</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => void handleThemeChange(id)}
+                          className={`flex items-center justify-between border p-4 text-left transition-all rounded-sm ${
+                            themeId === id
+                              ? "border-primary bg-primary/10"
+                              : "border-white/5 bg-white/5 hover:border-white/20"
+                          }`}
+                        >
+                          <span className="flex items-center gap-3">
+                            <ThemeToolbarIcon themeId={id} size={22} tone={themeId === id ? "active" : "inactive"} />
+                            <span className={`text-[0.65rem] font-black uppercase tracking-widest ${themeId === id ? 'text-primary' : 'text-white/60'}`}>
+                              {t(THEMES[id].labelKey)}
+                            </span>
+                          </span>
+                          {themeId === id ? (
+                            <span className="text-[0.5rem] font-black px-1.5 py-0.5 border border-primary text-primary uppercase tracking-tighter">
+                              ACTIVE
+                            </span>
+                          ) : null}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                <div className="space-y-3 pt-2">
-                  <SectionHeading title={t("settings.language").toUpperCase()} />
-                  <div className="grid grid-cols-2 gap-2">
-                    {([
-                      { id: "lv", label: "Latviešu" },
-                      { id: "en", label: "English" },
-                    ] as const).map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => void handleLocaleChange(item.id)}
-                        className={`border px-4 py-3 text-[0.6rem] font-black uppercase tracking-widest rounded-sm transition-all ${
-                          locale === item.id
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-white/10 text-white/40 hover:border-white/20"
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
+                  <div className="space-y-3">
+                    <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest ml-1">SISTĒMAS_VALODA</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { id: "lv", label: "Latviešu" },
+                        { id: "en", label: "English" },
+                      ] as const).map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => void handleLocaleChange(item.id)}
+                          className={`border px-4 py-3 text-[0.6rem] font-black uppercase tracking-widest rounded-sm transition-all ${
+                            locale === item.id
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-white/10 text-white/40 hover:border-white/20"
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </GlassPanel>
@@ -366,17 +390,18 @@ export default function SettingsPage() {
                 <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
                 <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">AI Koprocesora konfigurācija</span>
               </div>
-              <GlassPanel className="space-y-4 border-primary/20 bg-black/40">
-                <SectionHeading
-                  eyebrow="BYOK_INTEGRATION"
-                  title={t("settings.byok.title").toUpperCase()}
-                />
-                <p className="text-xs font-mono text-white/40 leading-relaxed">
-                  {t("settings.byok.hint")}
-                </p>
-                <div className="space-y-3">
-                  {renderProviderControl("gemini", "Gemini")}
-                  {renderProviderControl("openai", "OpenAI")}
+              <GlassPanel className="p-0 overflow-hidden">
+                <div className="border-b border-white/5 bg-white/5 px-4 py-3">
+                  <h2 className="text-[0.6rem] font-black uppercase tracking-[0.2em] text-white/80">AI moduļu integrācija</h2>
+                </div>
+                <div className="p-4 space-y-4">
+                  <p className="text-[0.55rem] font-mono text-white/40 uppercase leading-relaxed">
+                    {t("settings.byok.hint")}
+                  </p>
+                  <div className="space-y-3">
+                    {renderProviderControl("gemini", "Gemini")}
+                    {renderProviderControl("openai", "OpenAI")}
+                  </div>
                 </div>
               </GlassPanel>
             </div>
@@ -397,7 +422,7 @@ export default function SettingsPage() {
                     key={item.key}
                     type="button"
                     onClick={() => void persistSettings({ ...settings, [item.key]: !settings[item.key] })}
-                    className="flex w-full items-center justify-between border border-white/5 bg-black/20 p-4 text-left rounded-sm hover:border-primary/30 transition-all group"
+                    className="flex w-full items-center justify-between border border-white/5 bg-black/20 p-4 text-left rounded-sm hover:border-primary/30 transition-all group font-mono"
                   >
                     <span className="text-[0.6rem] font-black uppercase tracking-widest text-white/80 group-hover:text-primary">
                       {item.label}
@@ -419,16 +444,19 @@ export default function SettingsPage() {
                 <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
                 <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Drošība un sesija</span>
               </div>
-              <GlassPanel className="space-y-4 border-primary/20 bg-black/40">
-                <div className="flex items-center justify-between">
+              <GlassPanel className="p-0 overflow-hidden font-mono">
+                <div className="border-b border-white/5 bg-white/5 px-4 py-3">
+                  <p className="text-[0.6rem] font-black uppercase tracking-widest text-primary">AUTHENTICATED_SESSION</p>
+                </div>
+                <div className="p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest">AUTHENTICATED_USER</p>
-                    <p className="text-sm font-mono text-white/80 mt-1">{user?.email}</p>
+                    <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest">IDENTIFICATOR</p>
+                    <p className="text-[0.65rem] text-white/80 mt-1 uppercase">{user?.email}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => void signOut()}
-                    className="bg-primary/10 border border-primary/30 px-4 py-2 text-[0.6rem] font-black uppercase tracking-widest text-primary hover:bg-primary/20 transition-all rounded-sm"
+                    className="border border-primary bg-primary/10 px-4 py-2 text-[0.6rem] font-black uppercase tracking-widest text-primary hover:bg-primary/20 transition-all rounded-sm"
                   >
                     [ {t("auth.signout").toUpperCase()} ]
                   </button>

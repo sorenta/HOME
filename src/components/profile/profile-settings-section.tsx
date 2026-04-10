@@ -7,8 +7,6 @@ import { HouseholdCard } from "@/components/profile/household-card";
 import { ProfileHero } from "@/components/profile/profile-hero";
 import { ProfileSummary } from "@/components/profile/profile-summary";
 import { fetchMyHouseholdMembers, fetchMyHouseholdSummary, type HouseholdMember } from "@/lib/household";
-import { StatusPill } from "@/components/ui/status-pill";
-import { GlassPanel } from "@/components/ui/glass-panel";
 import { loadUserWaterMedals } from "@/lib/household-water-sync";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useTheme } from "@/components/providers/theme-provider";
@@ -212,114 +210,114 @@ export function ProfileSettingsSection() {
         </>
       )}
 
+      {/* EDIT MODAL */}
       <AnimatePresence>
-        {isEditOpen ? (
-          <>
-            <motion.button
-              type="button"
-              onClick={() => setIsEditOpen(false)}
-              className={`fixed inset-0 z-40 transition-all ${isForge ? 'bg-black/60 backdrop-blur-sm' : 'bg-[color-mix(in_srgb,var(--color-text-primary)_30%,transparent)]'}`}
+        {isEditOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              onClick={() => setIsEditOpen(false)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
             />
-            <motion.aside
-              role="dialog"
-              aria-modal="true"
-              aria-label="Profila rediģēšana"
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-md p-3"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={`relative w-full max-w-md overflow-hidden border p-6 shadow-2xl ${
+                isForge 
+                  ? 'bg-black border-primary/40 text-white font-mono rounded-sm' 
+                  : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-primary)] rounded-[2.5rem]'
+              }`}
             >
-              <GlassPanel className={`h-full space-y-4 overflow-y-auto ${isForge ? 'border-primary/20 bg-black/90' : ''}`}
-                          style={{ borderRadius: isForge ? '2px' : undefined }}>
-                <div className={`flex items-center justify-between border-b pb-3 mb-6 ${isForge ? 'border-white/10' : 'border-(--color-border)'}`}>
-                  <h3 className={`text-lg font-bold uppercase tracking-widest ${isForge ? 'text-white font-(family-name:--font-rajdhani)' : 'text-(--color-text-primary)'}`}>
-                    {isForge ? "PROFILA_KONFIGURĀCIJA" : "Pilnais profils"}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditOpen(false)}
-                    className={`px-3 py-1 text-xs font-bold uppercase tracking-widest transition-all ${
-                      isForge ? 'border border-white/10 text-white/40 hover:text-white' : 'rounded-full border border-(--color-border) text-sm'
-                    }`}
-                  >
-                    {isForge ? "[ AIZVĒRT ]" : "Aizvērt"}
-                  </button>
-                </div>
+              <div className={`mb-6 border-b pb-3 ${isForge ? 'border-white/10' : 'border-current opacity-20'}`}>
+                <h2 className={`text-lg font-bold uppercase tracking-widest ${isForge ? 'text-primary' : ''}`}>
+                  {t("profile.edit.title")}
+                </h2>
+              </div>
 
-                <label className="block space-y-1">
-                  <span className={`text-[0.6rem] font-black uppercase tracking-[0.12em] ${isForge ? 'text-primary' : 'text-(--color-text-secondary)'}`}>
-                    {t("profile.name.label")}
-                  </span>
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className={`text-[0.6rem] font-black uppercase tracking-widest ${isForge ? 'text-primary' : 'text-[var(--color-text-secondary)]'}`}>
+                    {t("profile.form.name")}
+                  </label>
                   <input
                     type="text"
                     value={displayNameInput}
-                    onChange={(event) => setDisplayNameInput(event.target.value)}
-                    className={`w-full px-3 py-2.5 text-sm outline-none transition-all ${
+                    onChange={(e) => setDisplayNameInput(e.target.value)}
+                    className={`w-full px-4 py-3 text-sm transition-all outline-none border ${
                       isForge 
-                        ? 'border border-white/10 bg-white/5 text-white font-mono focus:border-primary' 
-                        : 'rounded-(--radius-button) border border-(--color-border) bg-transparent focus:border-(--color-button-primary)'
+                        ? 'bg-black/40 border-white/10 text-white focus:border-primary rounded-sm uppercase' 
+                        : 'bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl focus:border-primary'
                     }`}
                   />
-                </label>
-
-                <label className="block space-y-1">
-                  <span className={`text-[0.6rem] font-black uppercase tracking-[0.12em] ${isForge ? 'text-primary' : 'text-(--color-text-secondary)'}`}>
-                    {t("profile.specialDates.birthday")}
-                  </span>
-                  <input
-                    type="date"
-                    lang={locale === "lv" ? "lv-LV" : "en-US"}
-                    value={birthdayAt}
-                    onChange={(event) => setBirthdayAt(event.target.value)}
-                    className={`w-full px-3 py-2.5 text-sm outline-none transition-all ${
-                      isForge 
-                        ? 'border border-white/10 bg-white/5 text-white font-mono focus:border-primary [color-scheme:dark]' 
-                        : 'rounded-(--radius-button) border border-(--color-border) bg-transparent focus:border-(--color-button-primary)'
-                    }`}
-                  />
-                </label>
-
-                <label className="block space-y-1">
-                  <span className={`text-[0.6rem] font-black uppercase tracking-[0.12em] ${isForge ? 'text-primary' : 'text-(--color-text-secondary)'}`}>
-                    {t("profile.specialDates.nameday")}
-                  </span>
-                  <input
-                    type="date"
-                    lang={locale === "lv" ? "lv-LV" : "en-US"}
-                    value={nameDayAt}
-                    onChange={(event) => setNameDayAt(event.target.value)}
-                    className={`w-full px-3 py-2.5 text-sm outline-none transition-all ${
-                      isForge 
-                        ? 'border border-white/10 bg-white/5 text-white font-mono focus:border-primary [color-scheme:dark]' 
-                        : 'rounded-(--radius-button) border border-(--color-border) bg-transparent focus:border-(--color-button-primary)'
-                    }`}
-                  />
-                </label>
-
-                <div className="pt-6">
-                  <button
-                    type="button"
-                    onClick={() => void saveProfileDetails()}
-                    disabled={savingProfile}
-                    className={`w-full py-3 text-[0.65rem] font-black uppercase tracking-widest transition-all ${
-                      isForge 
-                        ? 'bg-primary text-white shadow-[0_0_20px_rgba(225,29,46,0.4)] hover:bg-primary/80' 
-                        : 'rounded-theme bg-(--color-button-primary) text-(--color-button-primary-text)'
-                    } disabled:opacity-60`}
-                  >
-                    {savingProfile ? "..." : (isForge ? "[ SAGLABĀT_IZMAIŅAS ]" : t("profile.action.saveChanges"))}
-                  </button>
                 </div>
 
-                {editMessage ? <StatusPill tone={editTone}>{editMessage}</StatusPill> : null}
-              </GlassPanel>
-            </motion.aside>
-          </>
-        ) : null}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className={`text-[0.6rem] font-black uppercase tracking-widest ${isForge ? 'text-primary' : 'text-[var(--color-text-secondary)]'}`}>
+                      {t("profile.form.birthday")}
+                    </label>
+                    <input
+                      type="date"
+                      value={birthdayAt}
+                      onChange={(e) => setBirthdayAt(e.target.value)}
+                      className={`w-full px-4 py-2 text-xs transition-all outline-none border ${
+                        isForge 
+                          ? 'bg-black/40 border-white/10 text-white focus:border-primary rounded-sm [color-scheme:dark]' 
+                          : 'bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl focus:border-primary'
+                      }`}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={`text-[0.6rem] font-black uppercase tracking-widest ${isForge ? 'text-primary' : 'text-[var(--color-text-secondary)]'}`}>
+                      {t("profile.form.nameDay")}
+                    </label>
+                    <input
+                      type="date"
+                      value={nameDayAt}
+                      onChange={(e) => setNameDayAt(e.target.value)}
+                      className={`w-full px-4 py-2 text-xs transition-all outline-none border ${
+                        isForge 
+                          ? 'bg-black/40 border-white/10 text-white focus:border-primary rounded-sm [color-scheme:dark]' 
+                          : 'bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl focus:border-primary'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {editMessage && (
+                  <p className={`text-[0.6rem] font-bold uppercase ${editTone === 'critical' ? 'text-red-500' : 'text-emerald-500'}`}>
+                    {editMessage}
+                  </p>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setIsEditOpen(false)}
+                    className={`flex-1 py-3 text-[0.65rem] font-black uppercase tracking-widest transition-all ${
+                      isForge ? 'border border-white/10 text-white/40 hover:bg-white/5' : 'text-[var(--color-text-secondary)] hover:opacity-70'
+                    }`}
+                  >
+                    {t("nav.back")}
+                  </button>
+                  <button
+                    onClick={saveProfileDetails}
+                    disabled={savingProfile || !displayNameInput.trim()}
+                    className={`flex-1 py-3 text-[0.65rem] font-black uppercase tracking-widest transition-all shadow-lg disabled:opacity-30 ${
+                      isForge 
+                        ? 'bg-primary text-white shadow-[0_0_20px_rgba(225,29,46,0.4)] hover:bg-primary/80 rounded-sm' 
+                        : 'bg-[var(--color-button-primary)] text-[var(--color-button-primary-text)] rounded-full'
+                    }`}
+                  >
+                    {savingProfile ? '...' : t("events.form.save")}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );

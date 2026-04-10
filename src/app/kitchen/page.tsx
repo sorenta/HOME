@@ -35,27 +35,9 @@ function normalizeKitchenError(error: unknown, fallback: string): string {
   if (error instanceof Error && error.message.trim()) {
     return error.message;
   }
-
   if (typeof error === "string" && error.trim()) {
     return error;
   }
-
-  if (error && typeof error === "object") {
-    const details = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
-    if (typeof details.message === "string" && details.message.trim()) {
-      return details.message;
-    }
-    if (typeof details.details === "string" && details.details.trim()) {
-      return details.details;
-    }
-    if (typeof details.hint === "string" && details.hint.trim()) {
-      return details.hint;
-    }
-    if (typeof details.code === "string" && details.code.trim()) {
-      return details.code;
-    }
-  }
-
   return fallback;
 }
 
@@ -123,24 +105,15 @@ export default function KitchenPage() {
       effect?: { kind: "add" | "done" | "save"; label: string },
       optimisticUpdate?: () => void
     ) => {
-      // 1. OPTIMISTIC UI: Atskaņojam efektu un nomainām state uzreiz (0ms delay)
-      if (effect) {
-        triggerThemeActionEffect(effect);
-      }
-      if (optimisticUpdate) {
-        optimisticUpdate();
-      }
+      if (effect) triggerThemeActionEffect(effect);
+      if (optimisticUpdate) optimisticUpdate();
 
       try {
         setError(null);
-        // 2. Sūtām operāciju uz serveri
         await action();
-        
-        // 3. Fonā ielādējam un izlīdzinām datus
         void loadKitchenData();
       } catch (nextError) {
         setError(normalizeKitchenError(nextError, t("household.error.generic")));
-        // Kļūdas gadījumā ielādējam datus atpakaļ no datubāzes (rollback)
         void loadKitchenData();
       }
     },
@@ -165,7 +138,6 @@ export default function KitchenPage() {
     const frame = requestAnimationFrame(() => {
       void loadKitchenData(controller.signal);
     });
-
     return () => {
       controller.abort();
       cancelAnimationFrame(frame);
@@ -187,46 +159,25 @@ export default function KitchenPage() {
       .filter((item) => item.status === "expiring" || item.status === "low_stock" || Boolean(item.expiry_date))
       .slice(0, 5);
 
-  const themeDescription = (({
-    forge: locale === "lv" ? "Mājas resursu loģistika un pārtikas krājumu kontrole." : "Home resource logistics and food stock control.",
-    lucent: locale === "lv" ? "Dzidrs un caurspīdīgs skats uz mājas pieliekamo." : "A clear and transparent view of the home pantry.",
-    botanical: locale === "lv" ? "Zemes augļi un mājas barojošais ritms." : "Fruits of the earth and the home's nourishing rhythm.",
-    pulse: locale === "lv" ? "Dinamiska maltīšu plānošana un gatavošanas jauda." : "Dynamic meal planning and cooking power.",
-    hive: locale === "lv" ? "Mājas strops – organizēta un kopīga pārtikas plūsma." : "Home hive – organized and shared food flow.",
-  } as Record<string, string>)[themeId]) || t("kitchen.page.description");
-
-  if (!householdId) {
-    return (
-      <ModuleShell
-        title={t("tile.kitchen")}
-        moduleId="kitchen"
-        sectionId="kitchen"
-        description={themeDescription}
-      >
-        <HouseholdOnboarding compact />
-      </ModuleShell>
-    );
-  }
+  const isForge = themeId === "forge";
 
   return (
     <ModuleShell
       title={t("tile.kitchen")}
       moduleId="kitchen"
       sectionId="kitchen"
-      description={themeDescription}
+      description={t("kitchen.page.description")}
     >
       <KitchenThemeLayer>
-        <HiddenSeasonalCollectible spotId="kitchen" />
-
         <div className="space-y-10 pt-4 pb-12">
-          {themeId === "forge" ? (
+          {isForge ? (
             <>
-              {/* SECTOR 01: SUPPLY LOGISTICS */}
+              {/* SECTOR 01: INVENTORY_LOGISTICS */}
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-1 opacity-40">
                   <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 01</span>
                   <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                  <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Loģistikas krājumi</span>
+                  <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Krājumu loģistika</span>
                 </div>
                 
                 <KitchenHeader 
@@ -238,12 +189,38 @@ export default function KitchenPage() {
                   }}
                 />
 
+                {expiringToday.length > 0 && (
+                  <div className="border border-red-500/20 bg-red-500/5 p-4 font-mono">
+                    <div className="flex items-center gap-3">
+                      <span className="text-primary animate-pulse text-lg">⚠️</span>
+                      <div className="flex-1">
+                        <p className="text-[0.6rem] font-black uppercase tracking-widest text-primary">KRITISKS_STATUSS: TERMIŅI</p>
+                        <p className="text-[0.55rem] text-white/60 uppercase">
+                          {expiringToday.map(i => i.name).join(", ")}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          void runKitchenAction(async () => {
+                            for (const item of expiringToday) {
+                              await deleteKitchenInventoryItem({ householdId: householdId!, itemId: item.id });
+                            }
+                          }, t("kitchen.quickAction.move.done"));
+                        }}
+                        className="border border-primary px-3 py-1 text-[0.5rem] font-black uppercase text-primary hover:bg-primary/10 transition-all"
+                      >
+                        IZLIETOTS
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <KitchenStock
                   items={normalInventory}
                   onDelete={(id) => {
                     void runKitchenAction(async () => {
                       await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
-                    }, locale === "lv" ? "Produkts izņemts no krājumiem" : "Product removed from stock");
+                    }, t("kitchen.quickAction.move.done"));
                   }}
                   onAddToCart={(name, category) => {
                     void runKitchenAction(async () => {
@@ -258,7 +235,7 @@ export default function KitchenPage() {
                 />
               </div>
 
-              {/* SECTOR 02: PROCUREMENT OPERATIONS */}
+              {/* SECTOR 02: PROCUREMENT_OPERATIONS */}
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-1 opacity-40">
                   <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 02</span>
@@ -282,17 +259,17 @@ export default function KitchenPage() {
                   onDelete={(id) => {
                     void runKitchenAction(async () => {
                       await deleteShoppingItem({ householdId: householdId!, itemId: id });
-                    }, locale === "lv" ? "Ieraksts izdzēsts" : "Item deleted");
+                    }, t("kitchen.quickAction.move.done"));
                   }}
                 />
               </div>
 
-              {/* SECTOR 03: INTELLIGENCE & PLANNING */}
+              {/* SECTOR 03: INTELLIGENCE_UNIT */}
               <div className="space-y-3">
                 <div className="flex items-center gap-3 px-1 opacity-40">
                   <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 03</span>
                   <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                  <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Intelekts un plānošana</span>
+                  <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Intelekta vienība</span>
                 </div>
                 <AiChefSuggestions
                   inventory={normalInventory}
@@ -318,12 +295,8 @@ export default function KitchenPage() {
                       style: "shared",
                       kind: "meal"
                     });
-                    
                     if (response.ok) {
-                      setHintMessage(`${locale === "lv" ? "Maltīte piesprausta šodienas kalendārā" : "Meal pinned to today's calendar"}: ${name}`);
                       triggerThemeActionEffect({ kind: "save", label: name });
-                    } else {
-                      setError(response.message);
                     }
                   }}
                   onSaveRecipe={(title, instructions, metadata) => {
@@ -333,12 +306,8 @@ export default function KitchenPage() {
                       if (metadata.cooking_time) fullText += `\n⏱️ ${metadata.cooking_time}`;
                       if (metadata.temperature) fullText += `\n🌡️ ${metadata.temperature}`;
                     }
-                    if (metadata?.source_url) {
-                      fullText += `\n\n🔗 ${metadata.source_url}`;
-                    }
-                    if (metadata?.image_url) {
-                      fullText += `\n\n🖼️ ${metadata.image_url}`;
-                    }
+                    if (metadata?.source_url) fullText += `\n\n🔗 ${metadata.source_url}`;
+                    if (metadata?.image_url) fullText += `\n\n🖼️ ${metadata.image_url}`;
 
                     void runKitchenAction(async () => {
                       await addKitchenInventoryItem({
@@ -347,7 +316,7 @@ export default function KitchenPage() {
                         category: "recipe",
                         quantity: 1
                       });
-                    }, locale === "lv" ? "Recepte saglabāta" : "Recipe saved", { kind: "save", label: "Recepte" });
+                    }, t("kitchen.saved"), { kind: "save", label: "Recepte" });
                   }}
                 />
               </div>
@@ -381,7 +350,7 @@ export default function KitchenPage() {
                           for (const item of expiringToday) {
                             await deleteKitchenInventoryItem({ householdId: householdId!, itemId: item.id });
                           }
-                        }, locale === "lv" ? "Krājumi atjaunināti" : "Inventory updated");
+                        }, t("kitchen.quickAction.move.done"));
                       }}
                       className="px-3 py-1 text-[0.6rem] font-black uppercase tracking-widest bg-amber-500 text-white rounded-full"
                     >
@@ -396,7 +365,7 @@ export default function KitchenPage() {
                 onDelete={(id) => {
                   void runKitchenAction(async () => {
                     await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
-                  }, locale === "lv" ? "Produkts izņemts no krājumiem" : "Product removed from stock");
+                  }, t("kitchen.quickAction.move.done"));
                 }}
                 onAddToCart={(name, category) => {
                   void runKitchenAction(async () => {
@@ -427,7 +396,7 @@ export default function KitchenPage() {
                 onDelete={(id) => {
                   void runKitchenAction(async () => {
                     await deleteShoppingItem({ householdId: householdId!, itemId: id });
-                  }, locale === "lv" ? "Ieraksts izdzēsts" : "Item deleted");
+                  }, t("kitchen.quickAction.move.done"));
                 }}
               />
 
@@ -455,12 +424,8 @@ export default function KitchenPage() {
                     style: "shared",
                     kind: "meal"
                   });
-                  
                   if (response.ok) {
-                    setHintMessage(`${locale === "lv" ? "Maltīte piesprausta šodienas kalendārā" : "Meal pinned to today's calendar"}: ${name}`);
                     triggerThemeActionEffect({ kind: "save", label: name });
-                  } else {
-                    setError(response.message);
                   }
                 }}
                 onSaveRecipe={(title, instructions, metadata) => {
@@ -470,12 +435,8 @@ export default function KitchenPage() {
                     if (metadata.cooking_time) fullText += `\n⏱️ ${metadata.cooking_time}`;
                     if (metadata.temperature) fullText += `\n🌡️ ${metadata.temperature}`;
                   }
-                  if (metadata?.source_url) {
-                    fullText += `\n\n🔗 ${metadata.source_url}`;
-                  }
-                  if (metadata?.image_url) {
-                    fullText += `\n\n🖼️ ${metadata.image_url}`;
-                  }
+                  if (metadata?.source_url) fullText += `\n\n🔗 ${metadata.source_url}`;
+                  if (metadata?.image_url) fullText += `\n\n🖼️ ${metadata.image_url}`;
 
                   void runKitchenAction(async () => {
                     await addKitchenInventoryItem({
@@ -484,20 +445,19 @@ export default function KitchenPage() {
                       category: "recipe",
                       quantity: 1
                     });
-                  }, locale === "lv" ? "Recepte saglabāta" : "Recipe saved", { kind: "save", label: "Recepte" });
+                  }, t("kitchen.saved"), { kind: "save", label: "Recepte" });
                 }}
               />
             </div>
           )}
 
-          {/* SHARED SECTION: SAVED RECIPES */}
-          <div className="pt-6 border-t border-[var(--color-border)] opacity-90">
+          <div className={`pt-6 border-t opacity-90 ${isForge ? 'border-white/5' : 'border-[var(--color-border)]'}`}>
             <SavedRecipes
               items={savedRecipes}
               onDelete={(id) => {
                 void runKitchenAction(async () => {
                   await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
-                }, locale === "lv" ? "Recepte dzēsta" : "Recipe deleted");
+                }, t("kitchen.quickAction.move.done"));
               }}
             />
           </div>
@@ -526,21 +486,11 @@ export default function KitchenPage() {
             />
           )}
 
-          {loading ? (
-            <GlassPanel style={{ background: "color-mix(in srgb, var(--color-surface) 90%, transparent)" }}>
-              <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-                {t("kitchen.loading")}
-              </p>
-            </GlassPanel>
-          ) : null}
-
-          {error ? (
-            <GlassPanel style={{ background: "color-mix(in srgb, var(--color-surface) 90%, transparent)" }}>
-              <p className="text-sm" style={{ color: "var(--color-text-primary)" }}>
-                {error}
-              </p>
-            </GlassPanel>
-          ) : null}
+          {error && (
+            <div className={`p-4 font-mono uppercase text-[0.6rem] ${isForge ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-red-50 text-red-500 rounded-xl'}`}>
+              [ SISTĒMAS_KĻŪDA ]: {error}
+            </div>
+          )}
         </div>
       </KitchenThemeLayer>
     </ModuleShell>
