@@ -13,19 +13,24 @@ type AiChefSuggestionsProps = {
   inventory: KitchenInventoryRecord[];
   urgentItems: KitchenInventoryRecord[];
   hasByok: boolean;
-  onOpenPlan: () => void;
   onAddToCart: (name: string) => void;
   onPinMeal: (name: string) => void;
+  onSaveRecipe: (recipe: string) => void;
+};
+
+type MealIdea = {
+  recipe: string;
+  missing: string[];
 };
 
 type AiResponse = {
   reply: string;
   missing: string[];
-  recipes: string[];
+  recipes: MealIdea[];
 };
 
-export function AiChefSuggestions({ inventory, urgentItems, hasByok, onOpenPlan, onAddToCart, onPinMeal }: AiChefSuggestionsProps) {
-  const { t, locale } = useI18n();
+export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart, onPinMeal, onSaveRecipe }: AiChefSuggestionsProps) {
+  const { locale } = useI18n();
   const { themeId } = useTheme();
   const isForge = themeId === "forge";
 
@@ -194,22 +199,48 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onOpenPlan,
             </button>
           </div>
 
-          <ul className="space-y-2">
-            {aiData.recipes.map((recipe, index) => (
+          <ul className="space-y-3">
+            {aiData.recipes.map((idea, index) => (
               <motion.li
                 key={index}
                 whileHover={{ x: 4 }}
-                onClick={() => onPinMeal(recipe)}
-                className={`flex items-center justify-between px-3 py-3 text-sm border cursor-pointer transition-all group ${
+                className={`flex flex-col px-3 py-3 text-sm border transition-all group ${
                   isForge 
                     ? 'border-white/5 bg-black/40 text-white/80 hover:border-primary/30' 
                     : 'rounded-xl border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-foreground)] hover:shadow-md'
                 }`}
               >
-                <span className="leading-relaxed">{recipe}</span>
-                <div className="pl-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xl" title={locale === "lv" ? "Piespraust kalendāram" : "Pin to calendar"}>📌</span>
+                <div className="flex items-start justify-between">
+                  <span className="leading-relaxed flex-1">{idea.recipe}</span>
+                  <div className="pl-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); onSaveRecipe(idea.recipe); }} className="text-xl" title={locale === "lv" ? "Saglabāt recepti" : "Save recipe"}>💾</button>
+                    <button onClick={(e) => { e.stopPropagation(); onPinMeal(idea.recipe); }} className="text-xl" title={locale === "lv" ? "Piespraust kalendāram" : "Pin to calendar"}>📌</button>
+                  </div>
                 </div>
+                
+                {idea.missing && idea.missing.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-[var(--color-border)] opacity-80 flex flex-wrap items-center gap-2">
+                    <span className="text-[0.6rem] font-bold uppercase py-1 text-[var(--color-text-secondary)]">
+                      {locale === "lv" ? "Grozam:" : "To buy:"}
+                    </span>
+                    {idea.missing.map(item => (
+                      <button
+                        key={item}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart(item);
+                        }}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-[0.6rem] font-black transition-all ${
+                          isForge 
+                            ? 'bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20' 
+                            : 'bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)]'
+                        }`}
+                      >
+                        + {item.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </motion.li>
             ))}
           </ul>

@@ -9,6 +9,7 @@ import { GlassPanel } from "@/components/ui/glass-panel";
 import { KitchenStock } from "@/components/kitchen/KitchenStock";
 import { ShoppingCart } from "@/components/kitchen/ShoppingCart";
 import { AiChefSuggestions } from "@/components/kitchen/AiChefSuggestions";
+import { SavedRecipes } from "@/components/kitchen/SavedRecipes";
 import { fetchHouseholdKitchenAiMeta } from "@/lib/household-kitchen-ai";
 import { KitchenHeader } from "@/components/kitchen/KitchenHeader";
 import { KitchenItemForm } from "@/components/kitchen/kitchen-item-form";
@@ -84,7 +85,10 @@ export default function KitchenPage() {
     void checkByok();
   }, [profile]);
 
-  const expiringToday = inventory.filter(item => {
+  const normalInventory = inventory.filter((i) => i.category !== "recipe");
+  const savedRecipes = inventory.filter((i) => i.category === "recipe");
+
+  const expiringToday = normalInventory.filter(item => {
     if (!item.expiry_date) return false;
     const today = new Date().toISOString().split("T")[0];
     return item.expiry_date === today;
@@ -182,7 +186,7 @@ export default function KitchenPage() {
     }
   }, [loading, householdId, searchParams, handleAddCart]);
 
-  const urgentInventory = inventory
+  const urgentInventory = normalInventory
       .filter((item) => item.status === "expiring" || item.status === "low_stock" || Boolean(item.expiry_date))
       .slice(0, 5);
 
@@ -240,7 +244,7 @@ export default function KitchenPage() {
                 />
 
                 <KitchenStock
-                  items={inventory}
+                  items={normalInventory}
                   onDelete={(id) => {
                     void runKitchenAction(async () => {
                       await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
@@ -296,10 +300,9 @@ export default function KitchenPage() {
                   <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Intelekts un plānošana</span>
                 </div>
                 <AiChefSuggestions
-                  inventory={inventory}
+                  inventory={normalInventory}
                   urgentItems={urgentInventory}
                   hasByok={hasServerByok}
-                  onOpenPlan={() => setHintMessage(t("kitchen.hint.openAiPlan"))}
                   onAddToCart={(name) => {
                     void runKitchenAction(async () => {
                       await addShoppingItem({
@@ -327,6 +330,24 @@ export default function KitchenPage() {
                     } else {
                       setError(response.message);
                     }
+                  }}
+                  onSaveRecipe={(recipe) => {
+                    void runKitchenAction(async () => {
+                      await addKitchenInventoryItem({
+                        householdId: householdId!,
+                        name: recipe,
+                        category: "recipe",
+                        quantity: 1
+                      });
+                    }, locale === "lv" ? "Recepte saglabāta" : "Recipe saved", { kind: "save", label: "Recepte" });
+                  }}
+                />
+                <SavedRecipes
+                  items={savedRecipes}
+                  onDelete={(id) => {
+                    void runKitchenAction(async () => {
+                      await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
+                    }, locale === "lv" ? "Recepte dzēsta" : "Recipe deleted");
                   }}
                 />
               </div>
@@ -371,7 +392,7 @@ export default function KitchenPage() {
               )}
 
               <KitchenStock
-                items={inventory}
+                items={normalInventory}
                 onDelete={(id) => {
                   void runKitchenAction(async () => {
                     await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
@@ -411,10 +432,9 @@ export default function KitchenPage() {
               />
 
               <AiChefSuggestions
-                inventory={inventory}
+                inventory={normalInventory}
                 urgentItems={urgentInventory}
                 hasByok={hasServerByok}
-                onOpenPlan={() => setHintMessage(t("kitchen.hint.openAiPlan"))}
                 onAddToCart={(name) => {
                   void runKitchenAction(async () => {
                     await addShoppingItem({
@@ -442,6 +462,24 @@ export default function KitchenPage() {
                   } else {
                     setError(response.message);
                   }
+                }}
+                onSaveRecipe={(recipe) => {
+                  void runKitchenAction(async () => {
+                    await addKitchenInventoryItem({
+                      householdId: householdId!,
+                      name: recipe,
+                      category: "recipe",
+                      quantity: 1
+                    });
+                  }, locale === "lv" ? "Recepte saglabāta" : "Recipe saved", { kind: "save", label: "Recepte" });
+                }}
+              />
+              <SavedRecipes
+                items={savedRecipes}
+                onDelete={(id) => {
+                  void runKitchenAction(async () => {
+                    await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
+                  }, locale === "lv" ? "Recepte dzēsta" : "Recipe deleted");
                 }}
               />
             </div>

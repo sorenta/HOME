@@ -310,19 +310,18 @@ export async function POST(request: Request) {
     }
 
     const inv = body.inventory ?? [];
-    const cart = body.shopping ?? [];
     const userPrompt = (body.prompt ?? "").trim();
 
     const system =
       locale === "lv"
         ? `Tu esi HOME:OS Virtuves maltīšu asistents. Atbildi TIKAI ar derīgu JSON objektu šādā formātā (bez markdown):
-{"reply":"īss draudzīgs ievads latviski","missing_for_cart":["produkts1","produkts2"],"meal_ideas":["1. Recepte: Kā to pagatavot (2-3 teikumi).","2. Recepte: ..."]}
-"missing_for_cart" — precīzi produktu nosaukumi, kas trūkst vai jānopērk.
-"meal_ideas" — 1–3 reālas un īsas, bet pamācošas receptes/idejas no tā, kas jau ir mājās.`
+{"reply":"īss draudzīgs ievads latviski","missing_for_cart":["produkts1","produkts2"],"meal_ideas":[{"recipe":"1. Recepte: Kā to pagatavot (2-3 teikumi).","missing":["trūkstošs produkts"]}]}
+"missing_for_cart" — precīzi produktu nosaukumi, kas trūkst un jānopērk (visām receptēm kopā).
+"meal_ideas" — 1–3 reālas un īsas, bet pamācošas receptes/idejas no tā, kas jau ir mājās. "missing" masīvā norādi TIKAI ŠAI RECEPTEI trūkstošās sastāvdaļas (ja tādas ir), kuras nav mājās un kuras varētu pievienot grozam.`
         : `You are the HOME:OS kitchen meal assistant. Reply ONLY with valid JSON (no markdown):
-{"reply":"short friendly text in English","missing_for_cart":["item1","item2"],"meal_ideas":["1. Recipe: How to make it (2-3 sentences).","2. Recipe: ..."]}
-"missing_for_cart" — product names that are missing or should be bought.
-"meal_ideas" — 1–3 short but actionable recipes/instructions using what is already at home.`;
+{"reply":"short friendly text in English","missing_for_cart":["item1","item2"],"meal_ideas":[{"recipe":"1. Recipe: How to make it (2-3 sentences).","missing":["missing item"]}]}
+"missing_for_cart" — product names that are missing and should be bought.
+"meal_ideas" — 1–3 short but actionable recipes/instructions using what is already at home. In "missing" array list ONLY the ingredients MISSING FOR THIS SPECIFIC RECIPE (if any) that are not at home.`;
 
     const invLines = inv
       .map(
@@ -331,14 +330,8 @@ export async function POST(request: Request) {
       )
       .join("\n");
 
-    const cartLines = cart
-      .filter((r) => r.status !== "archived")
-      .map((r) => `- ${r.title}`)
-      .join("\n");
-
     const userBlock = [
       `Pantry:\n${invLines || "(empty)"}`,
-      `Shopping cart:\n${cartLines || "(empty)"}`,
       userPrompt
         ? `User question:\n${userPrompt}`
         : `Task: Suggest what to cook soon and what to add to the cart if needed.`,
