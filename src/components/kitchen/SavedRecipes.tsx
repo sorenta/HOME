@@ -52,18 +52,15 @@ export function SavedRecipes({ items, onDelete }: Props) {
             
             // Extract metadata
             let instructions = "";
-            let sourceUrl = "";
             let imageUrl = "";
-            let cookingTime = "";
-            let temperature = "";
 
             if (parts.length > 1) {
               parts.slice(1).forEach(part => {
-                if (part.startsWith("🔗 ")) sourceUrl = part.replace("🔗 ", "").trim();
-                else if (part.startsWith("🖼️ ")) imageUrl = part.replace("🖼️ ", "").trim();
+                if (part.startsWith("🖼️ ")) imageUrl = part.replace("🖼️ ", "").trim();
+                else if (part.startsWith("🔗 ")) { /* skip in list */ }
                 else if (part.startsWith("---")) { /* separator */ }
-                else if (part.startsWith("⏱️ ")) cookingTime = part.replace("⏱️ ", "").trim();
-                else if (part.startsWith("🌡️ ")) temperature = part.replace("🌡️ ", "").trim();
+                else if (part.startsWith("⏱️ ")) { /* skip in list */ }
+                else if (part.startsWith("🌡️ ")) { /* skip in list */ }
                 else if (part.trim()) instructions += part + "\n\n";
               });
             }
