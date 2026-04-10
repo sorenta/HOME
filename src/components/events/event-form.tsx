@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useTheme } from "@/components/providers/theme-provider";
 import { type HouseholdMember } from "@/lib/household";

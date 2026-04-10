@@ -24,7 +24,6 @@ export function KitchenStock({ items, onDelete, onAddToCart }: Props) {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const isForge = themeId === "forge";
-  const isLucent = themeId === "lucent";
 
   const title = t(`kitchen.label.stock.${themeId}`) || t("kitchen.label.homeNow");
 

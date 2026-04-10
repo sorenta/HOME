@@ -1,7 +1,6 @@
 import {
   sortByDate,
   isSameDay,
-  startOfMonth,
   buildMonthGrid,
 } from "./events-planner";
 

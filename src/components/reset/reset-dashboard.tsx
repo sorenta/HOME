@@ -69,7 +69,6 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
   const quitPlan = wellness.quitPlan;
 
   const lastWeight = wellness.weighIns[0]?.kg ?? null;
-  const lastMeasurement = wellness.measurements[0] ?? null;
 
   const quitDays = quitPlan
     ? Math.max(
@@ -336,9 +335,6 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
     ],
     [locale, onOpenQuestionnaire],
   );
-
-  const measurementSnapshot =
-    lastMeasurement != null ? `${lastMeasurement.area}: ${lastMeasurement.valueCm} cm` : null;
 
   const metricPreview = quickMetrics.map((metric) => metricLabel[metric as ResetTrackMetric]).join(" · ");
   const isForge = themeId === "forge";

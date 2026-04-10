@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function KitchenHeader({ cartCount, onAddClick, onCartClick }: Props) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const { themeId } = useTheme();
 
   const isForge = themeId === "forge";

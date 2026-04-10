@@ -26,7 +26,6 @@ import {
   fetchKitchenInventory,
   fetchShoppingItems,
   moveShoppingItemToInventory,
-  updateShoppingItemStatus,
   type KitchenInventoryRecord,
   type ShoppingRecord,
 } from "@/lib/kitchen";
@@ -72,7 +71,6 @@ export default function KitchenPage() {
   const [loading, setLoading] = useState(true);
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hintMessage, setHintMessage] = useState<string | null>(null);
   const [hasServerByok, setHasServerByok] = useState(false);
 
   const householdId = profile?.household_id ?? null;
@@ -140,7 +138,6 @@ export default function KitchenPage() {
         
         // 3. Fonā ielādējam un izlīdzinām datus
         void loadKitchenData();
-        setHintMessage(successHint);
       } catch (nextError) {
         setError(normalizeKitchenError(nextError, t("household.error.generic")));
         // Kļūdas gadījumā ielādējam datus atpakaļ no datubāzes (rollback)
@@ -189,8 +186,6 @@ export default function KitchenPage() {
   const urgentInventory = normalInventory
       .filter((item) => item.status === "expiring" || item.status === "low_stock" || Boolean(item.expiry_date))
       .slice(0, 5);
-
-  const showAiBlocks = false;
 
   const themeDescription = (({
     forge: locale === "lv" ? "Mājas resursu loģistika un pārtikas krājumu kontrole." : "Home resource logistics and food stock control.",
