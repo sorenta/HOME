@@ -32,7 +32,7 @@ function isMissingSpecialDateColumns(error: unknown) {
 }
 
 export function ProfileSettingsSection() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { themeId } = useTheme();
   const { user, profile, refreshProfile } = useAuth();
   const { triggerThemeActionEffect } = useThemeActionEffects();

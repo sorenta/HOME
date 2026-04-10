@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
-import { HouseholdOnboarding } from "@/components/household/household-onboarding";
-import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { KitchenThemeLayer } from "@/components/kitchen/kitchen-theme-layer";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { KitchenStock } from "@/components/kitchen/KitchenStock";

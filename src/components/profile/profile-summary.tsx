@@ -17,7 +17,7 @@ type ProfileSummaryProps = {
 };
 
 export function ProfileSummary({ resetScore, celebrationsCount, householdMemberCount, medals }: ProfileSummaryProps) {
-  const { locale, t } = useI18n();
+  const { locale } = useI18n();
   const { themeId } = useTheme();
   const isForge = themeId === "forge";
   const totalMedals = medals.gold + medals.silver + medals.bronze;
