@@ -268,11 +268,9 @@ export default function PharmacyPage() {
                               </p>
                             </div>
                             <div className="flex shrink-0 items-center gap-4">
-                              <span className={`text-[0.5rem] font-black px-1.5 py-0.5 border uppercase tracking-tighter ${
-                                item.status === 'ok' ? 'border-emerald-500/30 text-emerald-500' : 'border-primary/30 text-primary'
-                              }`}>
-                                {statusLabel(item.status as string).toUpperCase()}
-                              </span>
+                              <StatusPill tone={statusTone(item.status as string)}>
+                                {statusLabel(item.status as string)}
+                              </StatusPill>
                               <button
                                 type="button"
                                 onClick={() => void handleDeleteItem(item.id)}
