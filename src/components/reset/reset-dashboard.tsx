@@ -483,18 +483,30 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
 
           {/* TAB CONTENT: TODAY */}
           {activeTab === "today" && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl mx-auto w-full">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl mx-auto w-full pt-2">
               
-              {/* Clean Greeting instead of a massive box */}
-              <div className="text-center space-y-3 py-6">
-                <h2 className="text-3xl font-medium text-(--color-text-primary) tracking-tight">
-                  {greetingText}
-                </h2>
-                <p className="text-(--color-text-secondary) text-sm">
-                  {!hasTodayCheckIn 
-                    ? (locale === "lv" ? "Piefiksē pāris signālus, lai saglabātu saikni ar sevi un redzētu dinamiku." : "Log a few signals to stay connected with yourself and see your progress.")
-                    : (locale === "lv" ? "Vari aprunāties ar AI asistentu vai vienkārši atpūsties." : "You can chat with the AI assistant or just rest.")}
+              {/* Ultra-compact status line */}
+              <div className="flex items-center justify-between px-2">
+                <p className="text-xs font-medium text-(--color-text-primary)">
+                  {greetingText.split("!")[0]}!
                 </p>
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    {hasTodayCheckIn ? (
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                    ) : (
+                      <>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+                      </>
+                    )}
+                  </span>
+                  <p className="text-[10px] uppercase tracking-widest text-(--color-text-secondary)">
+                    {hasTodayCheckIn 
+                      ? (locale === "lv" ? "Sinhronizēts" : "Synced")
+                      : (locale === "lv" ? "Gaida datus" : "Awaiting logs")}
+                  </p>
+                </div>
               </div>
 
               {/* The Form takes center stage */}
