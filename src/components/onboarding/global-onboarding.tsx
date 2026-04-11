@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
-import { useResetWellness } from "@/lib/reset-wellness";
+import { loadWellness, persistWellness, type ResetWellnessV1 } from "@/lib/reset-wellness";
 
 type StepId = "welcome" | "kitchen" | "logistics" | "reset_intro" | "reset_config" | "finish";
 
@@ -13,13 +13,16 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<StepId>("welcome");
   
   // RESET Config State (Integrated into the grand tour)
-  const [wellness, setWellness] = useResetWellness();
+  const [wellness, setWellness] = useState<ResetWellnessV1 | null>(null);
   const [primaryGoal, setPrimaryGoal] = useState("wellbeing");
   const [trackMetrics, setTrackMetrics] = useState<string[]>(["mood", "energy", "sleep"]);
 
-  // Block scrolling while onboarding is active
+  // Block scrolling while onboarding is active and load initial state
   useEffect(() => {
     document.body.style.overflow = "hidden";
+    const data = loadWellness();
+    if (data) setWellness(data);
+    
     return () => {
       document.body.style.overflow = "auto";
     };
@@ -28,12 +31,17 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
   const handleFinish = () => {
     hapticTap();
     // Save the integrated RESET config
-    setWellness({
-      ...wellness,
-      onboardingComplete: true,
-      primaryGoal: primaryGoal as any,
-      trackMetrics: trackMetrics as any,
-    });
+    if (wellness) {
+      persistWellness({
+        ...wellness,
+        onboardingDone: true,
+        onboardingProfile: {
+          ...wellness.onboardingProfile,
+          primaryGoal: primaryGoal as any,
+          trackMetrics: trackMetrics as any,
+        }
+      });
+    }
     // Mark global onboarding as complete in localStorage
     localStorage.setItem("maj-global-tour-complete", "true");
     onComplete();
