@@ -158,79 +158,11 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
       {loading ? (
         <p className="text-sm text-(--color-secondary)">{t("reset.signals.loading")}</p>
       ) : (
-        <div className="space-y-5">
-          {/* ── Block 1: Activity ── */}
-          {trackMetrics.includes("steps") && (
-            <div className="space-y-3 rounded-xl border border-(--color-surface-border) bg-background/40 p-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-(--color-secondary)">
-                {t("reset.signals.groupActivity")}
-              </p>
-              <label className="block text-sm">
-                <span className="font-medium text-(--color-text)">
-                  {t("reset.signals.steps")}
-                </span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  className={inputCls}
-                  value={form.steps ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      steps: e.target.value === "" ? null : parseOptInt(e.target.value),
-                    }))
-                  }
-                  placeholder={t("reset.signals.optional")}
-                />
-              </label>
-              <label className="block text-sm">
-                <span className="font-medium text-(--color-text)">
-                  {t("reset.signals.screen")}
-                </span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  className={inputCls}
-                  value={form.screen_time_minutes ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      screen_time_minutes:
-                        e.target.value === "" ? null : parseOptInt(e.target.value),
-                    }))
-                  }
-                  placeholder={t("reset.signals.optional")}
-                />
-              </label>
-              <label className="block text-sm">
-                <span className="font-medium text-(--color-text)">
-                  {t("reset.signals.meditation")}
-                </span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  className={inputCls}
-                  value={form.meditation_minutes ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      meditation_minutes:
-                        e.target.value === "" ? null : parseOptInt(e.target.value),
-                    }))
-                  }
-                  placeholder={t("reset.signals.optional")}
-                />
-              </label>
-              <QuitStreakProgressRing progress={form.steps ? (form.steps / 10000) * 100 : 0} />
-            </div>
-          )}
-
-          {/* ── Block: Sleep ── */}
-          {trackMetrics.includes("sleep") && (
-            <div className="space-y-4 rounded-xl border border-(--color-surface-border) bg-background/40 p-4">
+        <div className="space-y-4">
+          <div className="space-y-5 rounded-xl border border-(--color-surface-border) bg-background/40 p-4">
+            
+            {/* ── 1. Sleep ── */}
+            {trackMetrics.includes("sleep") && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-(--color-text)">
@@ -244,7 +176,7 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                      form.sleep_wake_time === "09:00" ? "Izcili" : ""}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-1">
                   {[
                     { val: 1, wake: "05:00" },
                     { val: 2, wake: "06:00" },
@@ -259,15 +191,14 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                         hapticTap();
                         setForm((f) => ({
                           ...f,
-                          // Map 1-5 quality back to 4-8 hours (from midnight) for the DB schema
                           sleep_bedtime: f.sleep_wake_time === wake ? null : "00:00",
                           sleep_wake_time: f.sleep_wake_time === wake ? null : wake,
                         }));
                       }}
                       className={[
-                        "flex h-10 flex-1 items-center justify-center rounded-xl border text-sm font-bold transition-all",
+                        "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-sm font-bold transition-all",
                         form.sleep_wake_time === wake
-                          ? "border-indigo-500 bg-indigo-500/10 text-indigo-500 scale-[1.02] shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                          ? "border-indigo-500 bg-indigo-500/10 text-indigo-500 scale-105 shadow-[0_0_10px_rgba(99,102,241,0.2)]"
                           : "border-(--color-surface-border) bg-(--color-surface) text-(--color-secondary) hover:bg-(--color-surface-2)",
                       ].join(" ")}
                     >
@@ -276,16 +207,10 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                   ))}
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* ── Block 2: Mood & Energy ── */}
-          {trackMetrics.includes("mood") && (
-            <div className="space-y-3 rounded-xl border border-(--color-surface-border) bg-background/40 p-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-(--color-secondary)">
-                {t("reset.signals.groupFeeling")}
-              </p>
-            <div className="space-y-4">
+            {/* ── 2. Mood ── */}
+            {trackMetrics.includes("mood") && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-(--color-text)">{t("reset.signals.mood")}</span>
@@ -293,7 +218,7 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                     {form.mood === 1 ? "Ļoti slikti" : form.mood === 5 ? "Lieliski" : form.mood ? "Vidēji" : ""}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-1">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={`mood-${n}`}
@@ -303,9 +228,9 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                         setForm((f) => ({ ...f, mood: f.mood === n ? null : n }));
                       }}
                       className={[
-                        "flex h-10 flex-1 items-center justify-center rounded-xl border text-sm font-bold transition-all",
+                        "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-sm font-bold transition-all",
                         form.mood === n
-                          ? "border-primary bg-primary/10 text-primary scale-[1.02] shadow-[0_0_10px_var(--color-primary-soft)]"
+                          ? "border-primary bg-primary/10 text-primary scale-105 shadow-[0_0_10px_var(--color-primary-soft)]"
                           : "border-(--color-surface-border) bg-(--color-surface) text-(--color-secondary) hover:bg-(--color-surface-2)",
                       ].join(" ")}
                     >
@@ -314,7 +239,10 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                   ))}
                 </div>
               </div>
+            )}
 
+            {/* ── 3. Energy ── */}
+            {trackMetrics.includes("mood") && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-(--color-text)">{t("reset.signals.energy")}</span>
@@ -322,7 +250,7 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                     {form.energy === 1 ? "Izsmelts" : form.energy === 5 ? "Pārpilns" : form.energy ? "Normāli" : ""}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-1">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={`energy-${n}`}
@@ -332,9 +260,9 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                         setForm((f) => ({ ...f, energy: f.energy === n ? null : n }));
                       }}
                       className={[
-                        "flex h-10 flex-1 items-center justify-center rounded-xl border text-sm font-bold transition-all",
+                        "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-sm font-bold transition-all",
                         form.energy === n
-                          ? "border-amber-500 bg-amber-500/10 text-amber-500 scale-[1.02] shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                          ? "border-amber-500 bg-amber-500/10 text-amber-500 scale-105 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
                           : "border-(--color-surface-border) bg-(--color-surface) text-(--color-secondary) hover:bg-(--color-surface-2)",
                       ].join(" ")}
                     >
@@ -343,29 +271,37 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                   ))}
                 </div>
               </div>
+            )}
+            
+            {/* ── Notes Toggle ── */}
+            <div className="pt-2 border-t border-(--color-surface-border)">
+              <button
+                type="button"
+                onClick={() => {
+                  hapticTap();
+                  if (form.notes_private !== null) {
+                    setForm(f => ({ ...f, notes_private: null }));
+                  } else {
+                    setForm(f => ({ ...f, notes_private: "" }));
+                  }
+                }}
+                className="text-xs font-semibold uppercase tracking-widest flex items-center gap-2 transition-colors text-(--color-text-secondary) hover:text-(--color-text-primary)"
+              >
+                {form.notes_private !== null ? "− Slēpt piezīmes" : "+ Pievienot piezīmi"}
+              </button>
+              {form.notes_private !== null && (
+                <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <textarea
+                    rows={2}
+                    className={"w-full resize-none rounded-xl border border-(--color-surface-border) bg-background px-3 py-2 text-sm text-(--color-text)"}
+                    value={form.notes_private}
+                    onChange={(e) => setForm((f) => ({ ...f, notes_private: e.target.value }))}
+                    placeholder={t("reset.signals.notesPlaceholder")}
+                    autoFocus
+                  />
+                </div>
+              )}
             </div>
-          </div>
-          )}
-
-          {/* ── Block 3: Private notes ── */}
-          <div className="space-y-3 rounded-xl border border-(--color-surface-border) bg-background/40 p-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-(--color-secondary)">
-              {t("reset.signals.groupNotes")}
-            </p>
-            <label className="block text-sm">
-              <span className="font-medium text-(--color-text)">
-                {t("reset.signals.notes")}
-              </span>
-              <textarea
-                rows={2}
-                className={"mt-1 w-full resize-none rounded-xl border border-(--color-surface-border) bg-background px-3 py-2 text-sm text-(--color-text)"}
-                value={form.notes_private ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, notes_private: e.target.value || null }))
-                }
-                placeholder={t("reset.signals.notesPlaceholder")}
-              />
-            </label>
           </div>
 
           {/* ── Save ── */}
