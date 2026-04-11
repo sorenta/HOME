@@ -50,10 +50,10 @@ function generateQuickInsight(form: ResetDailySignalsRow, locale: string): strin
       ? "Paldies! Izskatās, ka šī bija laba diena. Tavi rādītāji iedvesmo." 
       : "Thank you! Looks like a great day. Your stats are inspiring.";
   }
-  if (form.sleep_bedtime && form.sleep_bedtime < "23:00" && form.energy && form.energy >= 4) {
+  if (form.sleep_wake_time && form.sleep_wake_time >= "08:00" && form.energy && form.energy >= 4) {
     return locale === "lv"
-      ? "Agrs miers izskatās atmaksājies ar labu enerģiju. Turpini šādi!"
-      : "Early rest seems to pay off with good energy. Keep it up!";
+      ? "Lielisks miegs izskatās atmaksājies ar labu enerģiju. Turpini šādi!"
+      : "Great sleep seems to pay off with good energy. Keep it up!";
   }
   if (form.steps && form.steps > 8000) {
     return locale === "lv"
@@ -230,53 +230,53 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
 
           {/* ── Block: Sleep ── */}
           {trackMetrics.includes("sleep") && (
-            <div className="space-y-3 rounded-xl border border-(--color-surface-border) bg-background/40 p-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-(--color-secondary)">
-                {t("reset.signals.groupSleep")}
-              </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm">
-                <span className="font-medium text-(--color-text)">
-                  {t("reset.signals.sleepBedtime")}
-                </span>
-                <input
-                  type="time"
-                  className={inputCls}
-                  value={form.sleep_bedtime ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      sleep_bedtime: e.target.value || null,
-                    }))
-                  }
-                />
-              </label>
-              <label className="block text-sm">
-                <span className="font-medium text-(--color-text)">
-                  {t("reset.signals.sleepWake")}
-                </span>
-                <input
-                  type="time"
-                  className={inputCls}
-                  value={form.sleep_wake_time ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      sleep_wake_time: e.target.value || null,
-                    }))
-                  }
-                />
-              </label>
+            <div className="space-y-4 rounded-xl border border-(--color-surface-border) bg-background/40 p-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-(--color-text)">
+                    {t("reset.signals.groupSleep")}
+                  </span>
+                  <span className="text-xs text-(--color-secondary)">
+                    {form.sleep_wake_time === "05:00" ? "Ļoti slikti" : 
+                     form.sleep_wake_time === "06:00" ? "Vāji" : 
+                     form.sleep_wake_time === "07:00" ? "Vidēji" :
+                     form.sleep_wake_time === "08:00" ? "Labi" :
+                     form.sleep_wake_time === "09:00" ? "Izcili" : ""}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  {[
+                    { val: 1, wake: "05:00" },
+                    { val: 2, wake: "06:00" },
+                    { val: 3, wake: "07:00" },
+                    { val: 4, wake: "08:00" },
+                    { val: 5, wake: "09:00" }
+                  ].map(({ val, wake }) => (
+                    <button
+                      key={`sleep-${val}`}
+                      type="button"
+                      onClick={() => {
+                        hapticTap();
+                        setForm((f) => ({
+                          ...f,
+                          // Map 1-5 quality back to 4-8 hours (from midnight) for the DB schema
+                          sleep_bedtime: f.sleep_wake_time === wake ? null : "00:00",
+                          sleep_wake_time: f.sleep_wake_time === wake ? null : wake,
+                        }));
+                      }}
+                      className={[
+                        "flex h-10 flex-1 items-center justify-center rounded-xl border text-sm font-bold transition-all",
+                        form.sleep_wake_time === wake
+                          ? "border-indigo-500 bg-indigo-500/10 text-indigo-500 scale-[1.02] shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                          : "border-(--color-surface-border) bg-(--color-surface) text-(--color-secondary) hover:bg-(--color-surface-2)",
+                      ].join(" ")}
+                    >
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-(--color-secondary)">
-              {sleepMinutes != null
-                ? t("reset.signals.sleepDuration", {
-                    hours: String(Math.floor(sleepMinutes / 60)),
-                    minutes: String(sleepMinutes % 60),
-                  })
-                : t("reset.signals.sleepHint")}
-            </p>
-          </div>
           )}
 
           {/* ── Block 2: Mood & Energy ── */}
