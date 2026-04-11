@@ -485,9 +485,10 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
           </div>
         </>
       ) : (
-        <>
-          <GlassPanel className="space-y-4 border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-card)_92%,white_8%)] p-4 sm:p-5">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-6">
+          {/* TOP SECTION: Proactive AI & Core Overview */}
+          <div className="grid gap-4 lg:grid-cols-[1fr_minmax(320px,1.2fr)]">
+            <GlassPanel className="space-y-4 border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-card)_92%,white_8%)] p-5 flex flex-col justify-between">
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
                   {locale === "lv" ? "RESET pārskats" : "RESET overview"}
@@ -495,98 +496,44 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                 <h2 className="text-2xl font-semibold text-(--color-text-primary)">
                   {focusCard.title}
                 </h2>
-                <p className="max-w-2xl text-sm leading-relaxed text-(--color-text-secondary)">
+                <p className="max-w-md text-sm leading-relaxed text-(--color-text-secondary)">
                   {focusCard.body}
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={focusCard.onClick}
-                className="inline-flex shrink-0 items-center justify-center rounded-full border border-(--color-accent) bg-(--color-surface-2) px-4 py-2 text-sm font-semibold text-(--color-text-primary)"
-              >
-                {focusCard.cta}
-              </button>
-            </div>
+              <div className="pt-4 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={focusCard.onClick}
+                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-(--color-accent) bg-(--color-surface-2) px-4 py-2 text-sm font-semibold text-(--color-text-primary) shadow-sm transition hover:bg-(--color-surface-border)"
+                >
+                  {focusCard.cta}
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenQuestionnaire}
+                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-(--color-surface-border) bg-(--color-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition hover:text-(--color-text-primary)"
+                >
+                  {locale === "lv" ? "Pielāgot anketu" : "Edit questionnaire"}
+                </button>
+              </div>
+            </GlassPanel>
 
-            <ResetMoodPanel
-              scorePercent={moodScore}
-              scoreLabel={t("reset.score")}
+            <ResetAiPanel
+              mood={moodLabel}
+              moodScore={moodScore}
+              energy={todaySignals?.energy}
+              signals={aiSignals}
+              quitDays={quitPlan ? quitDays : null}
+              goals={aiGoals}
             />
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) p-3">
-                <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                  {locale === "lv" ? "Šodienas check-in" : "Today’s check-in"}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-(--color-text-primary)">
-                  {signalsLoading
-                    ? locale === "lv"
-                      ? "Ielādē..."
-                      : "Loading..."
-                    : completedSignals >= expectedSignals
-                      ? (locale === "lv" ? "Pabeigts" : "Done")
-                      : `${completedSignals}/${expectedSignals}`}
-                </p>
-                <p className="mt-1 text-xs text-(--color-text-secondary)">
-                  {hasTodayCheckIn
-                    ? locale === "lv"
-                      ? "Šodienas ritms jau ir pierakstīts." 
-                      : "Today’s rhythm is already logged."
-                    : locale === "lv"
-                      ? "Vēl nav neviena šodienas signāla." 
-                      : "No signals logged yet today."}
-                </p>
-              </div>
-
-              <div className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) p-3">
-                <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                  {t("reset.dashboard.activeGoal")}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-(--color-text-primary)">{goalLabel}</p>
-                <p className="mt-1 text-xs text-(--color-text-secondary)">{profileLabel}</p>
-              </div>
-
-              <div className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) p-3">
-                <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                  {t("reset.metrics")}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-(--color-text-primary)">
-                  {quickMetrics.length > 0 ? quickMetrics.length : 0}
-                </p>
-                <p className="mt-1 text-xs text-(--color-text-secondary)">
-                  {metricPreview || t("reset.dashboard.noMetrics")}
-                </p>
-              </div>
-
-              <div className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) p-3">
-                <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                  {t("reset.privacy")}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-(--color-text-primary)">
-                  {locale === "lv" ? "Saudzīgs slānis" : "Gentle layer"}
-                </p>
-                <p className="mt-1 text-xs text-(--color-text-secondary)">{t("reset.privacyBody")}</p>
-              </div>
-            </div>
-          </GlassPanel>
-
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            {quickActions.map((action) => (
-              <button
-                key={action.label}
-                type="button"
-                onClick={action.onClick}
-                className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) px-4 py-3 text-left transition hover:border-(--color-accent)"
-              >
-                <p className="text-sm font-semibold text-(--color-text-primary)">{action.label}</p>
-                <p className="mt-1 text-xs text-(--color-text-secondary)">{action.hint}</p>
-              </button>
-            ))}
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
-            <div className="space-y-4">
+          {/* MAIN TWO-COLUMN LAYOUT: Action (Left) vs Insight (Right) */}
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.85fr)] items-start">
+            
+            {/* LEFT COLUMN: Input & Daily Action */}
+            <div className="space-y-6">
               <div id="reset-daily-signals">
                 <ResetDailySignalsForm
                   userId={userId}
@@ -595,15 +542,47 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                 />
               </div>
 
-              <div id="reset-trends-panel">
-                <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
-              </div>
-
               {activeQuitGoals.length > 0 ? (
                 <div id="reset-quit-streak">
                   <ResetQuitStreak goals={activeQuitGoals} state={wellness} onUpdate={onUpdate} />
                 </div>
               ) : null}
+            </div>
+
+            {/* RIGHT COLUMN: Data, Trends & Tracking */}
+            <div className="space-y-6">
+              <ResetMoodPanel
+                scorePercent={moodScore}
+                scoreLabel={t("reset.score")}
+              />
+
+              {/* Status Mini-Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
+                    {locale === "lv" ? "Šodienas dati" : "Today's logs"}
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-(--color-text-primary)">
+                    {signalsLoading
+                      ? "..."
+                      : completedSignals >= expectedSignals
+                        ? (locale === "lv" ? "Pabeigts" : "Done")
+                        : `${completedSignals}/${expectedSignals}`}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
+                    {t("reset.dashboard.activeGoal")}
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-(--color-text-primary) truncate">
+                    {goalLabel}
+                  </p>
+                </div>
+              </div>
+
+              <div id="reset-trends-panel">
+                <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
+              </div>
 
               <div id="reset-body-tracking">
                 <ResetBodyTracking state={wellness} onUpdate={onUpdate} />
@@ -614,51 +593,13 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                   <ResetTrainingPlan mode={bodyMode} state={wellness} onUpdate={onUpdate} />
                 </div>
               ) : null}
-            </div>
-
-            <div className="space-y-4">
-              <GlassPanel className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
-                  {locale === "lv" ? "RESET anketa" : "RESET questionnaire"}
-                </p>
-                <p className="text-lg font-semibold text-(--color-text-primary)">{goalLabel}</p>
-                <p className="text-sm text-(--color-text-secondary)">
-                  {locale === "lv"
-                    ? `Pašreizējais ritms: ${profileLabel.toLowerCase()}, check-in ${frequencyLabel.toLowerCase()}.`
-                    : `Current rhythm: ${profileLabel.toLowerCase()}, check-ins ${frequencyLabel.toLowerCase()}.`}
-                </p>
-                <div className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) p-3">
-                  <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                    {locale === "lv" ? "Izvēlētie signāli" : "Selected signals"}
-                  </p>
-                  <p className="mt-1 text-sm text-(--color-text-primary)">
-                    {metricPreview || t("reset.dashboard.noMetrics")}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={onOpenQuestionnaire}
-                  className="inline-flex rounded-full border border-(--color-accent) bg-(--color-surface-2) px-4 py-2 text-sm font-semibold text-(--color-text-primary)"
-                >
-                  {locale === "lv" ? "Atvērt anketu" : "Open questionnaire"}
-                </button>
-              </GlassPanel>
 
               <div id="reset-health-sources">
                 <ResetHealthSourcesPanel />
               </div>
-
-              <ResetAiPanel
-                mood={moodLabel}
-                moodScore={moodScore}
-                energy={todaySignals?.energy}
-                signals={aiSignals}
-                quitDays={quitPlan ? quitDays : null}
-                goals={aiGoals}
-              />
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
