@@ -605,7 +605,7 @@ export const dictionaries: Record<
       "Samsung Health parasti pieejams caur Android Health Connect (nepieciešama native / Capacitor integrācija, nevis tīrs web).",
     "reset.aiBody":
       "Šodien mājām der mierīgāks temps: īsa pastaiga, vakariņu deleģēšana vai klusāka vakara rutīna.",
-    "reset.signals.title": "Šodienas privātie signāli",
+    "reset.signals.title": "Dienas atskaite",
     "reset.signals.intro":
       "Pēc H:0 RESET mērķa — soļi, ekrāna laiks un meditācija ietekmē tavu noskaņojumu. Partneris šos skaitļus neredz; saglabāti tikai tavā Supabase kontā (RLS). Vēlāk var pieslēgt Health / sensorus.",
     "reset.signals.groupActivity": "Aktivitāte",
@@ -1538,7 +1538,7 @@ export const dictionaries: Record<
       "Samsung Health is usually reached through Android Health Connect (needs a native / Capacitor layer, not plain web).",
     "reset.aiBody":
       "A calmer pace fits today: a short walk, delegating dinner, or a quieter evening routine.",
-    "reset.signals.title": "Today’s private signals",
+    "reset.signals.title": "Daily logs",
     "reset.signals.intro":
       "Per H:0 RESET — steps, screen time, and meditation shape your mood. Your partner does not see these numbers; stored only in your Supabase account (RLS). Health / sensors can be wired later.",
     "reset.signals.groupActivity": "Activity",
