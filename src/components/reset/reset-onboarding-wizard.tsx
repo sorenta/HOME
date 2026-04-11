@@ -155,8 +155,8 @@ export function ResetOnboardingWizard({ initial, onComplete }: Props) {
         {step === 0 && (
           <ConversationStep
             eyebrow={tr("reset.onboarding.questionnaire", "Anketa")}
-            title={tr("reset.onboarding.step0.title", "Kads ir tavs galvenais merkis?")}
-            subtitle={tr("reset.onboarding.step0.subtitle", "Izvelies virzienu, lai pielagotu RESET ieteikumus")}
+            title={tr("reset.onboarding.step0.title", "Pielāgosim šo telpu tavam ritmam")}
+            subtitle={tr("reset.onboarding.step0.subtitle", "Atzīmē to, kam šobrīd ir spēks sekot līdzi. Mēs paslēpsim visu pārējo.")}
           >
             <div className="grid gap-2 sm:grid-cols-2">
               {goalOptions.map((option) => {
@@ -240,8 +240,8 @@ export function ResetOnboardingWizard({ initial, onComplete }: Props) {
         {step === 2 && (
           <ConversationStep
             eyebrow={tr("reset.onboarding.questionnaire", "Anketa")}
-            title={tr("reset.onboarding.step2.title", "Ko velies sekot ikdiena?")}
-            subtitle={tr("reset.onboarding.step2.subtitle", "Izvelies signalus, ko redzet RESET paneli")}
+            title={tr("reset.onboarding.step2.title", "Ko atstājam tavā dienas atsaitē?")}
+            subtitle={tr("reset.onboarding.step2.subtitle", "Izvēlies tikai to, kas tev patiešām rūp.")}
           >
             <div className="flex flex-wrap gap-2">
               {metricOptions.map((metric) => {
