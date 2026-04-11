@@ -66,6 +66,7 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
   const [todaySignals, setTodaySignals] = useState<ResetDailySignalsRow | null>(null);
   const [signalsLoading, setSignalsLoading] = useState(true);
   const [signalsRefreshToken, setSignalsRefreshToken] = useState(0);
+  const [activeTab, setActiveTab] = useState<"today" | "progress" | "system">("today");
   const quickMetrics = wellness.trackMetrics;
   const quitPlan = wellness.quitPlan;
 
@@ -268,7 +269,10 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
           ? "Lieliska nedēļa! Paņem mirkli, lai apskatītu savus trendus un sagatavotos jaunai nedēļai." 
           : "Great week! Take a moment to review your trends and prep for the week ahead.",
         cta: locale === "lv" ? "Apskatīt trendus" : "View trends",
-        onClick: () => scrollToSection("reset-trends-panel"), // Need to add id to trends panel
+        onClick: () => {
+          setActiveTab("progress");
+          setTimeout(() => scrollToSection("reset-trends-panel"), 100);
+        },
       };
     }
 
@@ -283,7 +287,10 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
             ? "RESET sadaļa kļūst noderīga tikai tad, kad tajā ir šodienas ritms: noskaņojums, enerģija un daži ikdienas dati." 
             : "RESET becomes useful when today’s rhythm is present: mood, energy, and a few daily signals.",
         cta: locale === "lv" ? "Atvērt check-in" : "Open check-in",
-        onClick: () => scrollToSection("reset-daily-signals"),
+        onClick: () => {
+          setActiveTab("today");
+          setTimeout(() => scrollToSection("reset-daily-signals"), 100);
+        },
       };
     }
 
@@ -298,7 +305,10 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
             ? "Pirmajā nedēļā svarīgākais ir konsekvence. Paturi streak redzamu un vakarā pievieno īsu piezīmi sev." 
             : "Consistency matters most during the first week. Keep the streak visible and leave yourself a short note tonight.",
         cta: locale === "lv" ? "Skatīt streak" : "View streak",
-        onClick: () => scrollToSection("reset-quit-streak"),
+        onClick: () => {
+          setActiveTab("progress");
+          setTimeout(() => scrollToSection("reset-quit-streak"), 100);
+        },
       };
     }
 
@@ -313,7 +323,10 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
             ? "Ja izvēlējies svaru vai ķermeņa mērījumus, viens sākuma punkts padara progresu daudz skaidrāku jau pēc dažām dienām." 
             : "If you track weight or measurements, one baseline entry makes progress clearer within a few days.",
         cta: locale === "lv" ? "Atvērt body tracking" : "Open body tracking",
-        onClick: () => scrollToSection("reset-body-tracking"),
+        onClick: () => {
+          setActiveTab("progress");
+          setTimeout(() => scrollToSection("reset-body-tracking"), 100);
+        },
       };
     }
 
@@ -333,17 +346,26 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
       {
         label: locale === "lv" ? "Šodienas check-in" : "Today’s check-in",
         hint: locale === "lv" ? "Noskaņojums, enerģija, soļi" : "Mood, energy, steps",
-        onClick: () => scrollToSection("reset-daily-signals"),
+        onClick: () => {
+          setActiveTab("today");
+          setTimeout(() => scrollToSection("reset-daily-signals"), 100);
+        },
       },
       {
         label: locale === "lv" ? "Body tracking" : "Body tracking",
         hint: locale === "lv" ? "Svars un mērījumi" : "Weight and measurements",
-        onClick: () => scrollToSection("reset-body-tracking"),
+        onClick: () => {
+          setActiveTab("progress");
+          setTimeout(() => scrollToSection("reset-body-tracking"), 100);
+        },
       },
       {
         label: locale === "lv" ? "Veselības avoti" : "Health sources",
         hint: locale === "lv" ? "Google Fit un sensori" : "Google Fit and sensors",
-        onClick: () => scrollToSection("reset-health-sources"),
+        onClick: () => {
+          setActiveTab("system");
+          setTimeout(() => scrollToSection("reset-health-sources"), 100);
+        },
       },
       {
         label: locale === "lv" ? "Anketa" : "Questionnaire",
@@ -486,119 +508,173 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
         </>
       ) : (
         <div className="space-y-6">
-          {/* TOP SECTION: Proactive AI & Core Overview */}
-          <div className="grid gap-4 lg:grid-cols-[1fr_minmax(320px,1.2fr)]">
-            <GlassPanel className="space-y-4 border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-card)_92%,white_8%)] p-5 flex flex-col justify-between">
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
-                  {locale === "lv" ? "RESET pārskats" : "RESET overview"}
-                </p>
-                <h2 className="text-2xl font-semibold text-(--color-text-primary)">
-                  {focusCard.title}
-                </h2>
-                <p className="max-w-md text-sm leading-relaxed text-(--color-text-secondary)">
-                  {focusCard.body}
-                </p>
-              </div>
-
-              <div className="pt-4 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={focusCard.onClick}
-                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-(--color-accent) bg-(--color-surface-2) px-4 py-2 text-sm font-semibold text-(--color-text-primary) shadow-sm transition hover:bg-(--color-surface-border)"
-                >
-                  {focusCard.cta}
-                </button>
-                <button
-                  type="button"
-                  onClick={onOpenQuestionnaire}
-                  className="inline-flex shrink-0 items-center justify-center rounded-full border border-(--color-surface-border) bg-(--color-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition hover:text-(--color-text-primary)"
-                >
-                  {locale === "lv" ? "Pielāgot anketu" : "Edit questionnaire"}
-                </button>
-              </div>
-            </GlassPanel>
-
-            <ResetAiPanel
-              mood={moodLabel}
-              moodScore={moodScore}
-              energy={todaySignals?.energy}
-              signals={aiSignals}
-              quitDays={quitPlan ? quitDays : null}
-              goals={aiGoals}
-            />
+          {/* TAB NAVIGATION */}
+          <div className="flex p-1 bg-(--color-surface)/50 border border-(--color-surface-border) rounded-full w-max mx-auto mb-2 relative z-10 backdrop-blur-sm">
+            <button
+              onClick={() => setActiveTab("today")}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${
+                activeTab === "today"
+                  ? "bg-(--color-surface-2) text-(--color-text-primary) shadow-sm"
+                  : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
+              }`}
+            >
+              {locale === "lv" ? "Šodiena" : "Today"}
+            </button>
+            <button
+              onClick={() => setActiveTab("progress")}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${
+                activeTab === "progress"
+                  ? "bg-(--color-surface-2) text-(--color-text-primary) shadow-sm"
+                  : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
+              }`}
+            >
+              {locale === "lv" ? "Dinamika" : "Progress"}
+            </button>
+            <button
+              onClick={() => setActiveTab("system")}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${
+                activeTab === "system"
+                  ? "bg-(--color-surface-2) text-(--color-text-primary) shadow-sm"
+                  : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
+              }`}
+            >
+              {locale === "lv" ? "Sistēma" : "System"}
+            </button>
           </div>
 
-          {/* MAIN TWO-COLUMN LAYOUT: Action (Left) vs Insight (Right) */}
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.85fr)] items-start">
-            
-            {/* LEFT COLUMN: Input & Daily Action */}
-            <div className="space-y-6">
-              <div id="reset-daily-signals">
+          {/* TAB CONTENT: TODAY */}
+          {activeTab === "today" && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="grid gap-4 lg:grid-cols-[1fr_minmax(320px,1.2fr)]">
+                <GlassPanel className="space-y-4 border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-card)_92%,white_8%)] p-5 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
+                      {locale === "lv" ? "RESET pārskats" : "RESET overview"}
+                    </p>
+                    <h2 className="text-2xl font-semibold text-(--color-text-primary)">
+                      {focusCard.title}
+                    </h2>
+                    <p className="max-w-md text-sm leading-relaxed text-(--color-text-secondary)">
+                      {focusCard.body}
+                    </p>
+                  </div>
+                  <div className="pt-4 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={focusCard.onClick}
+                      className="inline-flex shrink-0 items-center justify-center rounded-full border border-(--color-accent) bg-(--color-surface-2) px-4 py-2 text-sm font-semibold text-(--color-text-primary) shadow-sm transition hover:bg-(--color-surface-border)"
+                    >
+                      {focusCard.cta}
+                    </button>
+                  </div>
+                </GlassPanel>
+                <ResetAiPanel
+                  mood={moodLabel}
+                  moodScore={moodScore}
+                  energy={todaySignals?.energy}
+                  signals={aiSignals}
+                  quitDays={quitPlan ? quitDays : null}
+                  goals={aiGoals}
+                />
+              </div>
+              <div id="reset-daily-signals" className="max-w-4xl mx-auto w-full">
                 <ResetDailySignalsForm
                   userId={userId}
                   trackMetrics={quickMetrics}
                   onSaved={() => setSignalsRefreshToken((value) => value + 1)}
                 />
               </div>
-
-              {activeQuitGoals.length > 0 ? (
-                <div id="reset-quit-streak">
-                  <ResetQuitStreak goals={activeQuitGoals} state={wellness} onUpdate={onUpdate} />
-                </div>
-              ) : null}
             </div>
+          )}
 
-            {/* RIGHT COLUMN: Data, Trends & Tracking */}
-            <div className="space-y-6">
-              <ResetMoodPanel
-                scorePercent={moodScore}
-                scoreLabel={t("reset.score")}
-              />
+          {/* TAB CONTENT: PROGRESS */}
+          {activeTab === "progress" && (
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.85fr)] items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
+                      {locale === "lv" ? "Šodienas dati" : "Today's logs"}
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-(--color-text-primary)">
+                      {signalsLoading
+                        ? "..."
+                        : completedSignals >= expectedSignals
+                          ? (locale === "lv" ? "Pabeigts" : "Done")
+                          : `${completedSignals}/${expectedSignals}`}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
+                      {t("reset.dashboard.activeGoal")}
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-(--color-text-primary) truncate">
+                      {goalLabel}
+                    </p>
+                  </div>
+                </div>
+                <div id="reset-trends-panel">
+                  <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
+                </div>
+                {activeQuitGoals.length > 0 ? (
+                  <div id="reset-quit-streak">
+                    <ResetQuitStreak goals={activeQuitGoals} state={wellness} onUpdate={onUpdate} />
+                  </div>
+                ) : null}
+              </div>
+              <div className="space-y-6">
+                <ResetMoodPanel
+                  scorePercent={moodScore}
+                  scoreLabel={t("reset.score")}
+                />
+                <div id="reset-body-tracking">
+                  <ResetBodyTracking state={wellness} onUpdate={onUpdate} />
+                </div>
+                {bodyMode ? (
+                  <div id="reset-training">
+                    <ResetTrainingPlan mode={bodyMode} state={wellness} onUpdate={onUpdate} />
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
 
-              {/* Status Mini-Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                    {locale === "lv" ? "Šodienas dati" : "Today's logs"}
-                  </p>
-                  <p className="mt-1 text-xl font-bold text-(--color-text-primary)">
-                    {signalsLoading
-                      ? "..."
-                      : completedSignals >= expectedSignals
-                        ? (locale === "lv" ? "Pabeigts" : "Done")
-                        : `${completedSignals}/${expectedSignals}`}
+          {/* TAB CONTENT: SYSTEM */}
+          {activeTab === "system" && (
+            <div className="max-w-2xl mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <GlassPanel className="space-y-3 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
+                  {locale === "lv" ? "Anketas iestatījumi" : "Questionnaire config"}
+                </p>
+                <div className="space-y-1">
+                  <p className="text-lg font-semibold text-(--color-text-primary)">{goalLabel}</p>
+                  <p className="text-sm text-(--color-text-secondary)">
+                    {locale === "lv"
+                      ? `Ritms: ${profileLabel.toLowerCase()}, check-in ${frequencyLabel.toLowerCase()}.`
+                      : `Rhythm: ${profileLabel.toLowerCase()}, check-ins ${frequencyLabel.toLowerCase()}.`}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                    {t("reset.dashboard.activeGoal")}
+                <div className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) p-3">
+                  <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
+                    {locale === "lv" ? "Izvēlētie signāli" : "Selected signals"}
                   </p>
-                  <p className="mt-1 text-xl font-bold text-(--color-text-primary) truncate">
-                    {goalLabel}
+                  <p className="mt-1 text-sm text-(--color-text-primary)">
+                    {metricPreview || t("reset.dashboard.noMetrics")}
                   </p>
                 </div>
-              </div>
-
-              <div id="reset-trends-panel">
-                <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
-              </div>
-
-              <div id="reset-body-tracking">
-                <ResetBodyTracking state={wellness} onUpdate={onUpdate} />
-              </div>
-
-              {bodyMode ? (
-                <div id="reset-training">
-                  <ResetTrainingPlan mode={bodyMode} state={wellness} onUpdate={onUpdate} />
-                </div>
-              ) : null}
-
+                <button
+                  type="button"
+                  onClick={onOpenQuestionnaire}
+                  className="w-full justify-center inline-flex rounded-full border border-(--color-surface-border) bg-(--color-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition hover:text-(--color-text-primary)"
+                >
+                  {locale === "lv" ? "Mainīt uzstādījumus" : "Change settings"}
+                </button>
+              </GlassPanel>
               <div id="reset-health-sources">
                 <ResetHealthSourcesPanel />
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
