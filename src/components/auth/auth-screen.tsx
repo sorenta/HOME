@@ -15,8 +15,8 @@ type Props = {
 };
 
 export function AuthScreen({ compact = false }: Props) {
-  const { t } = useI18n();
-  const [mode, setMode] = useState<Mode>("signin");
+  const { t, locale } = useI18n();
+  const [mode, setMode] = useState<Mode>("signup");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -111,13 +111,6 @@ export function AuthScreen({ compact = false }: Props) {
         const nextUserId = data.session?.user?.id ?? data.user?.id ?? null;
 
         if (nextUserId && typeof window !== "undefined") {
-          const seenKey = `majapps-auth-welcome-seen-${nextUserId}`;
-          if (!window.localStorage.getItem(seenKey)) {
-            window.localStorage.setItem(
-              `majapps-auth-welcome-pending-${nextUserId}`,
-              "true",
-            );
-          }
           window.location.assign("/");
           return;
         }
@@ -134,13 +127,6 @@ export function AuthScreen({ compact = false }: Props) {
         const nextUserId = data.user?.id ?? data.session?.user?.id ?? null;
 
         if (nextUserId && typeof window !== "undefined") {
-          const seenKey = `majapps-auth-welcome-seen-${nextUserId}`;
-          if (!window.localStorage.getItem(seenKey)) {
-            window.localStorage.setItem(
-              `majapps-auth-welcome-pending-${nextUserId}`,
-              "true",
-            );
-          }
           window.location.assign("/");
           return;
         }
@@ -164,48 +150,21 @@ export function AuthScreen({ compact = false }: Props) {
         compact ? "" : "mx-auto max-w-md",
       ].join(" ")}
     >
-      <div className="mb-5 text-center">
+      <div className="mb-8 text-center">
         <div className="flex justify-center">
           <AppMark size="md" />
         </div>
-        <h1 className="maj-auth-heading mt-2 text-3xl font-semibold">
-          {mode === "signin" ? t("auth.signin.title") : t("auth.signup.title")}
+        <h1 className="maj-auth-heading mt-6 text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          {locale === "lv"
+            ? "Miers mājās sākas šeit."
+            : "Peace at home starts here."}
         </h1>
-        <p className="maj-auth-subheading mt-2 text-sm leading-relaxed">
-          {mode === "signin" ? t("auth.signin.subtitle") : t("auth.signup.subtitle")}
+        <p className="mt-2 text-sm font-medium text-foreground/70 max-w-sm mx-auto">
+          {locale === "lv"
+            ? "Esmu H:O – jūsu digitālais asistents. Sakārtosim ikdienu kopā, lai ģimenei paliek laiks atpūtai."
+            : "I'm H:O – your digital assistant. Let's organize the daily routine together, so the family has time to relax."}
         </p>
       </div>
-
-      <div className="maj-auth-segmented mb-4 grid grid-cols-2 gap-2 rounded-2xl p-1">
-        {(["signin", "signup"] as const).map((nextMode) => (
-          <button
-            key={nextMode}
-            type="button"
-            onClick={() => {
-              setMode(nextMode);
-              setError(null);
-              setMessage(null);
-              if (nextMode === "signin") {
-                setAcceptPrivacy(false);
-              }
-            }}
-            className={[
-              "rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-              mode === nextMode
-                ? "maj-auth-segmented-active"
-                : "maj-auth-segmented-idle",
-            ].join(" ")}
-          >
-            {nextMode === "signin" ? t("auth.tabs.signin") : t("auth.tabs.signup")}
-          </button>
-        ))}
-      </div>
-
-      {mode === "signup" ? (
-        <p className="mb-4 text-center text-xs italic text-(--color-text-muted)">
-          {t("auth.signup.hint")}
-        </p>
-      ) : null}
 
       <form className="space-y-3" onSubmit={onSubmit}>
         {mode === "signup" ? (
@@ -323,6 +282,41 @@ export function AuthScreen({ compact = false }: Props) {
             {t("supabase.missing")}
           </p>
         ) : null}
+
+        <div className="mt-6 text-center text-sm text-(--color-text-secondary)">
+          {mode === "signup" ? (
+            <p>
+              {locale === "lv" ? "Tev jau ir konts? " : "Already have an account? "}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signin");
+                  setError(null);
+                  setMessage(null);
+                }}
+                className="font-bold text-primary underline-offset-2 hover:underline"
+              >
+                {locale === "lv" ? "Ienāc šeit" : "Sign in here"}
+              </button>
+            </p>
+          ) : (
+            <p>
+              {locale === "lv" ? "Nav vēl konta? " : "Don't have an account yet? "}
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signup");
+                  setError(null);
+                  setMessage(null);
+                  setAcceptPrivacy(false);
+                }}
+                className="font-bold text-primary underline-offset-2 hover:underline"
+              >
+                {locale === "lv" ? "Reģistrējies šeit" : "Sign up here"}
+              </button>
+            </p>
+          )}
+        </div>
       </form>
     </div>
   );

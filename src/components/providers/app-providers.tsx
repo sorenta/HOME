@@ -1,6 +1,5 @@
 "use client";
 
-import { AuthWelcomeModal } from "@/components/auth/auth-welcome-modal";
 import { I18nProvider } from "@/lib/i18n/i18n-context";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
 import { AuthProvider } from "./auth-provider";
@@ -25,7 +24,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
               <ProfileLoadErrorBar />
               <ThemeAmbientChrome />
               {children}
-              <AuthWelcomeModal />
               <SeasonalRewardModal />
               <SeasonalOverlays />
               <PwaProvider />

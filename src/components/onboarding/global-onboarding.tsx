@@ -5,11 +5,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
 import { loadWellnessState, saveWellnessState, type ResetWellnessV1 } from "@/lib/reset-wellness";
+import { useAuth } from "@/components/providers/auth-provider";
+import { AppSectionIcon } from "@/components/icons";
+import { useTheme } from "@/components/providers/theme-provider";
+import Image from "next/image";
 
-type StepId = "welcome" | "kitchen" | "logistics" | "reset_intro" | "reset_config" | "finish";
+type StepId = "welcome" | "dashboard" | "kitchen" | "household" | "reset_intro" | "reset_config" | "finish";
 
 export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
   const { t, locale } = useI18n();
+  const { user } = useAuth();
+  const { themeId } = useTheme();
   const [step, setStep] = useState<StepId>("welcome");
   
   // RESET Config State (Integrated into the grand tour)
@@ -42,12 +48,13 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
         onboardingProfile: {
           ...wellness.onboardingProfile,
           primaryGoal: primaryGoal as "weight" | "wellbeing" | "sleep" | "stress",
-          trackMetrics: trackMetrics as any,
+          trackMetrics: trackMetrics as string[],
         }
       });
     }
     // Mark global onboarding as complete in localStorage
-    localStorage.setItem("maj-global-tour-complete", "true");
+    const tourKey = `maj-global-tour-complete-${user?.id ?? "anon"}`;
+    localStorage.setItem(tourKey, "true");
     onComplete();
   };
 
@@ -64,18 +71,61 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 px-4 py-8 backdrop-blur-xl">
-      <div className="w-full max-w-md relative">
+    <div className={`fixed inset-0 z-[9999] pointer-events-auto flex flex-col justify-center px-4 py-8 transition-colors duration-700 ${
+      step === "welcome" ? "items-center bg-background/80 backdrop-blur-xl" : "items-center bg-background/20"
+    }`}>
+      <div className={`w-full max-w-sm relative transition-all duration-500 ${step === "welcome" ? "" : "mt-auto pb-20"}`}>
         
-        {/* H:O Assistant Avatar/Badge */}
+        {/* H:O Assistant Animated Character - Fixed Animations & Massive Pop-out */}
         <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/40 bg-primary/10 shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.3)]"
+          layout
+          initial={step === "welcome" ? { scale: 0.2, opacity: 0, y: 150 } : false}
+          animate={step === "welcome" ? "welcome" : "tour"}
+          variants={{
+            welcome: {
+              scale: 1.4,
+              opacity: 1,
+              y: 0,
+              rotate: [0, -15, 10, -10, 5, 0, 0, 0, 0], // The wave
+              transition: {
+                type: "spring",
+                bounce: 0.4,
+                duration: 1.2,
+                rotate: {
+                  duration: 2.5,
+                  repeat: Infinity,
+                  repeatDelay: 2,
+                  ease: "easeInOut"
+                }
+              }
+            },
+            tour: {
+              scale: 1,
+              opacity: 1,
+              y: [0, -8, 0], // The continuous hover
+              rotate: 0,
+              transition: {
+                y: {
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }
+            }
+          }}
+          className={`mx-auto relative flex items-center justify-center transition-all duration-700 z-50 ${
+            step === "welcome" 
+              ? "mb-12 h-72 w-72 drop-shadow-[0_40px_80px_rgba(var(--color-primary-rgb),0.6)]" 
+              : "mb-3 h-16 w-16 drop-shadow-[0_10px_20px_rgba(var(--color-primary-rgb),0.2)]"
+          }`}
         >
-          <span className="font-(family-name:--font-rajdhani) text-2xl font-bold text-primary tracking-widest">
-            H:O
-          </span>
+          <Image 
+            src="/asistenta-izskats/ho-assistant.png" 
+            alt="H:O Assistant" 
+            fill
+            className={`object-contain pointer-events-none ${step === "welcome" ? "origin-bottom" : ""}`}
+            priority
+          />
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -87,19 +137,48 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
               exit={{ opacity: 0, y: -20 }}
               className="text-center space-y-6"
             >
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                {locale === "lv" ? "Iepazīsimies." : "Let's get to know each other."}
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+                {locale === "lv" ? "Iepazīsimies?" : "Shall we get acquainted?"}
               </h1>
-              <p className="text-lg text-white/70 leading-relaxed">
+              <p className="text-lg text-foreground/70 leading-relaxed">
                 {locale === "lv" 
-                  ? "Mani sauc H:O. Esmu šeit, lai palīdzētu tev atbrīvot galvu no 100 darāmajiem mājas darbiem un sīkumiem." 
-                  : "I am H:O. I am here to help you clear your head from 100 pending household chores and details."}
+                  ? "Es esmu H:O (vari mani saukt par Haosa Organizatoru, Helpu, varbūt Haosa Olimpu... sauc kā gribi!). Esmu šeit, lai palīdzētu tev atbrīvot galvu no simtiem sīkumu un mājas darbu, kas nemitīgi rosās tavā prātā." 
+                  : "I'm H:O (feel free to call me House Organizer, Hero of Order, Helper, or maybe Haven Optimizer... call me what you like!). I'm here to help you clear your head of the hundreds of little tasks and chores constantly buzzing in your mind."}
               </p>
               <button
-                onClick={() => nextStep("kitchen")}
-                className="mt-8 w-full rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-background transition-transform active:scale-95"
+                onClick={() => nextStep("dashboard")}
+                className="mt-8 w-full rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-background transition-transform active:scale-95 shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)]"
               >
-                {locale === "lv" ? "Sākam ekskursiju" : "Start the tour"}
+                {locale === "lv" ? "Sākam ekskursiju!" : "Let's start the tour!"}
+              </button>
+            </motion.div>
+          )}
+
+          {step === "dashboard" && (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="text-center space-y-3 bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-3xl shadow-2xl relative"
+            >
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-primary/20 border-2 border-primary/30 flex items-center justify-center mb-2 text-primary shadow-[0_0_40px_rgba(var(--color-primary-rgb),0.6)]">
+                <AppSectionIcon sectionId="home" themeId={themeId} size={24} tone="active" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground">
+                {locale === "lv" ? "Tavs Jaunais Sākums" : "Your New Home"}
+              </h2>
+              <p className="text-sm text-foreground/80 leading-snug">
+                {locale === "lv"
+                  ? "Šis ir tavs galvenais vadības panelis. Te mēs vienā mirklī redzēsim svarīgākos ikdienas uzdevumus un īsceļus."
+                  : "This is your main control center. Here we'll see your most important daily tasks and shortcuts at a glance."}
+              </p>
+              
+              <button
+                onClick={() => nextStep("kitchen")}
+                className="w-full mt-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-2.5 text-sm font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
+              >
+                {locale === "lv" ? "Skaidrs. Kur tālāk?" : "Got it. Where to next?"}
               </button>
             </motion.div>
           )}
@@ -107,55 +186,55 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
           {step === "kitchen" && (
             <motion.div
               key="kitchen"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="text-center space-y-6"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="text-center space-y-3 bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-3xl shadow-2xl relative"
             >
-              <div className="mx-auto w-12 h-12 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center mb-4">
-                <span className="text-2xl">🍳</span>
+              <div className="mx-auto w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center mb-2 shadow-[0_0_30px_rgba(249,115,22,0.4)]">
+                <span className="text-lg">🍳</span>
               </div>
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-xl font-bold text-foreground">
                 {locale === "lv" ? "Gudrā Virtuve" : "Smart Kitchen"}
               </h2>
-              <p className="text-base text-white/70 leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-snug">
                 {locale === "lv"
-                  ? "Vairs nekādu 'Ko šodien ēdīsim?'. Pievieno produktus, ko nopirki, un mans AI šefpavārs sakombinēs no tiem izcilas receptes. Tukšojam ledusskapi gudri."
-                  : "No more 'What are we eating today?'. Add ingredients you bought, and my AI chef will combine them into great recipes. Let's empty the fridge smartly."}
+                  ? "Aizmirsti par 'Ko šodien ēdīsim?'. Mans AI šefpavārs sakombinēs receptes no visa, kas atrodas tavā ledusskapī."
+                  : "Forget 'What are we eating today?'. My AI chef will combine recipes from everything in your fridge."}
               </p>
               <button
-                onClick={() => nextStep("logistics")}
-                className="w-full rounded-2xl bg-white/10 border border-white/20 px-6 py-4 text-base font-medium text-white transition-all hover:bg-white/20 active:scale-95"
+                onClick={() => nextStep("household")}
+                className="w-full mt-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-2.5 text-sm font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
               >
-                {locale === "lv" ? "Skan labi. Kas tālāk?" : "Sounds good. What's next?"}
+                {locale === "lv" ? "Skan garšīgi. Kas tālāk?" : "Sounds delicious. What's next?"}
               </button>
             </motion.div>
           )}
 
-          {step === "logistics" && (
+          {step === "household" && (
             <motion.div
-              key="logistics"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="text-center space-y-6"
+              key="household"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="text-center space-y-3 bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-3xl shadow-2xl relative"
             >
-              <div className="mx-auto w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-4">
-                <span className="text-2xl">📅</span>
+              <div className="mx-auto w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-2 shadow-[0_0_30px_rgba(59,130,246,0.4)]">
+                <span className="text-lg">👨‍👩‍👧‍👦</span>
               </div>
-              <h2 className="text-2xl font-bold text-white">
-                {locale === "lv" ? "Loģistika un Sinhronizācija" : "Logistics & Sync"}
+              <h2 className="text-xl font-bold text-foreground">
+                {locale === "lv" ? "Mājsaimniecība" : "Household"}
               </h2>
-              <p className="text-base text-white/70 leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-snug">
                 {locale === "lv"
-                  ? "Iepirkumu saraksts, mājas kalendārs un aptieciņas krājumi sinhronizējas starp visiem mājiniekiem reāllaikā. Ja kāds kaut ko pievieno, tu to uzreiz redzi."
-                  : "Shopping lists, home calendar, and pharmacy stocks sync across all household members in real-time. If someone adds something, you see it instantly."}
+                  ? "Šeit mēs organizējam ģimenes budžetu, kalendāru un aptieciņu vienuviet – viss reāllaikā un sasniedzams ikvienam."
+                  : "Here we organize the family budget, calendar, and pharmacy in one place – all real-time and accessible to everyone."}
               </p>
               <button
                 onClick={() => nextStep("reset_intro")}
-                className="w-full rounded-2xl bg-white/10 border border-white/20 px-6 py-4 text-base font-medium text-white transition-all hover:bg-white/20 active:scale-95"
+                className="w-full mt-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-2.5 text-sm font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
               >
-                {locale === "lv" ? "Lieliski. Ejam tālāk" : "Great. Let's move on"}
+                {locale === "lv" ? "Lieliski. Ejam tālāk!" : "Great. Let's move on!"}
               </button>
             </motion.div>
           )}
@@ -163,25 +242,25 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
           {step === "reset_intro" && (
             <motion.div
               key="reset_intro"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="text-center space-y-6"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="text-center space-y-3 bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-3xl shadow-2xl relative"
             >
-              <div className="mx-auto w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-4">
-                <span className="text-2xl">🌿</span>
+              <div className="mx-auto w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center mb-2 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
+                <span className="text-lg">🌿</span>
               </div>
-              <h2 className="text-2xl font-bold text-white">
-                {locale === "lv" ? "Tava Privātā Telpa: RESET" : "Your Private Space: RESET"}
+              <h2 className="text-xl font-bold text-foreground">
+                {locale === "lv" ? "Tava miera osta: RESET" : "Your safe haven: RESET"}
               </h2>
-              <p className="text-base text-white/70 leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-snug">
                 {locale === "lv"
-                  ? "Visbeidzot – pati svarīgākā vieta. RESET ir modulis tikai un vienīgi tev. Šeit tu vari fiksēt savu noskaņojumu, miegu un atgūt mieru. Mājinieki tavas piezīmes neredzēs."
-                  : "Finally – the most important place. RESET is a module strictly for you. Here you can log your mood, sleep, and find peace. Household members won't see your notes."}
+                  ? "RESET ir tikai tava personīgā, privātā telpa. Šeit tu fiksē savu noskaņojumu un miegu, un atgūsti enerģiju."
+                  : "RESET is strictly your personal, private space. Here you track your mood and sleep, and regain your energy."}
               </p>
               <button
                 onClick={() => nextStep("reset_config")}
-                className="w-full rounded-2xl bg-emerald-500 px-6 py-4 text-base font-bold text-black transition-transform active:scale-95"
+                className="w-full mt-2 rounded-xl bg-emerald-500/20 border border-emerald-500/40 px-4 py-2.5 text-sm font-bold text-emerald-600 dark:text-emerald-400 transition-transform active:scale-95"
               >
                 {locale === "lv" ? "Pielāgot manu RESET" : "Customize my RESET"}
               </button>
@@ -191,21 +270,21 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
           {step === "reset_config" && (
             <motion.div
               key="reset_config"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="space-y-4 bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-3xl shadow-2xl relative"
             >
-              <h2 className="text-2xl font-bold text-white text-center">
-                {locale === "lv" ? "Ko vēlies fiksēt ikdienā?" : "What do you want to track daily?"}
+              <h2 className="text-xl font-bold text-foreground text-center">
+                {locale === "lv" ? "Kas tev ir svarīgi?" : "What is important to you?"}
               </h2>
-              <p className="text-sm text-center text-white/60">
+              <p className="text-xs text-center text-foreground/60 leading-snug">
                 {locale === "lv" 
-                  ? "Atzīmē tikai to, kas tev patiešām rūp. Mēs paslēpsim visu pārējo, lai ekrāns būtu tīrs." 
-                  : "Select only what truly matters to you. We will hide everything else to keep the screen clean."}
+                  ? "Atzīmē to, kam vēlies sekot līdzi ikdienā." 
+                  : "Select what you want to track daily."}
               </p>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {[
                   { id: "mood", icon: "😌", label: locale === "lv" ? "Noskaņojums" : "Mood" },
                   { id: "energy", icon: "⚡", label: locale === "lv" ? "Enerģija" : "Energy" },
@@ -218,13 +297,13 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
                     <button
                       key={metric.id}
                       onClick={() => toggleMetric(metric.id)}
-                      className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 transition-all ${
+                      className={`flex items-center justify-start gap-2 rounded-xl border p-2 transition-all ${
                         isActive 
-                          ? "border-emerald-500 bg-emerald-500/20 text-white" 
-                          : "border-white/10 bg-white/5 text-white/50 hover:bg-white/10"
+                          ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                          : "border-border/50 bg-background/50 text-foreground/50 hover:bg-background/80"
                       }`}
                     >
-                      <span className="text-2xl">{metric.icon}</span>
+                      <span className="text-lg">{metric.icon}</span>
                       <span className="text-xs font-semibold">{metric.label}</span>
                     </button>
                   )
@@ -234,9 +313,9 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
               <button
                 onClick={() => nextStep("finish")}
                 disabled={trackMetrics.length === 0}
-                className="w-full mt-4 rounded-2xl bg-white px-6 py-4 text-base font-bold text-black transition-transform active:scale-95 disabled:opacity-50"
+                className="w-full mt-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-bold text-background transition-transform active:scale-95 disabled:opacity-50"
               >
-                {locale === "lv" ? "Gatavs" : "Done"}
+                {locale === "lv" ? "Saglabāt" : "Save"}
               </button>
             </motion.div>
           )}
@@ -247,24 +326,24 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="text-center space-y-6"
+              className="text-center space-y-3 bg-background/95 backdrop-blur-xl border border-border/50 p-4 rounded-3xl shadow-2xl relative"
             >
-              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <div className="mx-auto w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mb-2">
+                <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white">
-                {locale === "lv" ? "Viss ir sagatavots." : "Everything is set."}
+              <h2 className="text-2xl font-bold text-foreground">
+                {locale === "lv" ? "Viss ir gatavs!" : "Everything is set!"}
               </h2>
-              <p className="text-lg text-white/70">
-                {locale === "lv" ? "Tava jaunā māja tevi gaida." : "Your new home awaits you."}
+              <p className="text-sm text-foreground/70 leading-snug">
+                {locale === "lv" ? "Tava jaunā māja ir sakārtota. Ejam iekšā!" : "Your new home is organized. Let's enter!"}
               </p>
               <button
                 onClick={handleFinish}
-                className="mt-8 w-full rounded-2xl bg-primary px-6 py-4 text-lg font-bold text-background shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.4)] transition-transform hover:scale-105 active:scale-95"
+                className="mt-2 w-full rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-background shadow-lg shadow-primary/30 transition-transform hover:scale-105 active:scale-95"
               >
-                {locale === "lv" ? "Ieiet iekšā" : "Enter"}
+                {locale === "lv" ? "Atvērt durvis" : "Open the door"}
               </button>
             </motion.div>
           )}

@@ -8,22 +8,28 @@ import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal
 import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import {
-  useResetWellness,
-  persistWellness,
+  loadWellnessState,
+  saveWellnessState,
+  defaultWellnessState,
   type ResetWellnessV1,
 } from "@/lib/reset-wellness";
 
 export default function ResetPage() {
   const { user } = useAuth();
   const { locale } = useI18n();
-  const [wellness, setWellness] = useResetWellness();
+  const [wellness, setWellness] = useState<ResetWellnessV1 | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setHydrated(true);
+    // Delay state load slightly to avoid synchronous effect cascaded render
+    setTimeout(() => {
+      const data = loadWellnessState() || defaultWellnessState();
+      setWellness(data);
+      setHydrated(true);
+    }, 0);
   }, []);
 
-  if (!hydrated) {
+  if (!hydrated || !wellness) {
     return (
       <ModuleShell
         title={locale === "lv" ? "Kā tu šodien jūties?" : "How are you feeling today?"}
@@ -62,7 +68,7 @@ export default function ResetPage() {
           }}
           onUpdate={(next) => {
             setWellness(next);
-            persistWellness(next);
+            saveWellnessState(next);
           }}
         />
       </ResetThemeLayer>

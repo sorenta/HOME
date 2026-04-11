@@ -37,11 +37,11 @@ export function BentoDashboard() {
 
   useEffect(() => {
     // Check if the user has seen the global tour
-    const tourKey = "maj-global-tour-complete";
+    const tourKey = `maj-global-tour-complete-${user?.id ?? "anon"}`;
     if (localStorage.getItem(tourKey) !== "true") {
-      setShowGlobalTour(true);
+      setTimeout(() => setShowGlobalTour(true), 0);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!householdId) return;
@@ -96,9 +96,6 @@ export function BentoDashboard() {
             <ResetMoodPanel
               scorePercent={resetScore}
               scoreLabel={t("reset.wellness.title")}
-              partnerLabel="Mājas vibrācija"
-              partnerValue="Stabila"
-              partnerHint="Visi biedri ir sinhronizēti"
             />
           ),
           cart: (

@@ -135,7 +135,7 @@ export function ResetJournal({ userId, refreshToken }: Props) {
               {/* Private Note */}
               {entry.notes_private?.trim() ? (
                 <div className="mt-2 rounded-xl bg-(--color-surface)/50 p-3 text-sm text-(--color-text-secondary) italic">
-                  "{entry.notes_private}"
+                  &quot;{entry.notes_private}&quot;
                 </div>
               ) : null}
             </div>

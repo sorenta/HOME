@@ -16,15 +16,8 @@ export default function AuthPage() {
 
       <div className="relative z-10 mx-auto flex h-full w-full max-w-md flex-col justify-center gap-8">
         
-        <div className="flex-1 flex flex-col justify-end">
-          <p className="text-center text-foreground/80 text-sm md:text-base font-medium leading-relaxed px-4 drop-shadow-sm">
-            Mājas ir tavas dvēseles un spēka balsts. Palīdzi sev un ģimenei tās
-            padarīt stiprākas un emocionāli vieglākas.
-          </p>
-        </div>
-
         {/* Galvenais autorizācijas panelis (Pielāgojas tēmai) */}
-        <div className="mb-auto w-full">
+        <div className="mb-auto w-full pt-12">
           <AuthScreen compact />
         </div>
         
