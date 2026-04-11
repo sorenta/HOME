@@ -16,6 +16,7 @@ import { CartPreview } from "@/components/kitchen/CartPreview";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { fetchShoppingItems, type ShoppingRecord } from "@/lib/kitchen";
 import { useRouter } from "next/navigation";
+import { GlobalOnboarding } from "@/components/onboarding/global-onboarding";
 
 export { ThemeBottomNav as AppBottomNav } from "@/components/navigation/theme-bottom-nav";
 
@@ -27,11 +28,20 @@ export function BentoDashboard() {
 
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [shoppingItems, setShoppingItems] = useState<ShoppingRecord[]>([]);
+  const [showGlobalTour, setShowGlobalTour] = useState(false);
 
   const householdId = profile?.household_id ?? null;
   const waterScopeId = householdId ?? (user?.id ? `personal:${user.id}` : "personal:guest");
 
   const resetScore = Math.round(Number(profile?.reset_score ?? 0));
+
+  useEffect(() => {
+    // Check if the user has seen the global tour
+    const tourKey = "maj-global-tour-complete";
+    if (localStorage.getItem(tourKey) !== "true") {
+      setShowGlobalTour(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!householdId) return;
@@ -61,47 +71,52 @@ export function BentoDashboard() {
   }, [householdId]);
 
   return (
-    <DashboardHomeLayout
-      themeId={themeId}
-      slots={{
-        header: <DashboardQuickActions />,
-        notice: (
-          <div className="space-y-6">
-            <HiddenSeasonalCollectible spotId="dashboard" />
-          </div>
-        ),
-        focus: <TodayFocus />,
-        water: (
-          <HouseholdWaterWidget 
-            scopeId={waterScopeId} 
-            members={members} 
-            currentUserId={user?.id ?? null} 
-          />
-        ),
-        metrics: (
-          <ResetMoodPanel
-            scorePercent={resetScore}
-            scoreLabel={t("reset.wellness.title")}
-            partnerLabel="Mājas vibrācija"
-            partnerValue="Stabila"
-            partnerHint="Visi biedri ir sinhronizēti"
-          />
-        ),
-        cart: (
-          <CartPreview 
-            items={shoppingItems} 
-            onOpenAll={() => router.push("/kitchen")} 
-          />
-        ),
-        reminders: (
-          <div className="space-y-3">
-            {/* Šeit vēlāk varam ielikt specifisku CalendarWidget, pagaidām placeholderis */}
-            <p className="text-xs text-(--color-text-secondary) italic">Visi šīs dienas notikumi ir sakārtoti.</p>
-          </div>
-        ),
-        householdSummary: null,
-      }}
-    >
-    </DashboardHomeLayout>
+    <>
+      {showGlobalTour && (
+        <GlobalOnboarding onComplete={() => setShowGlobalTour(false)} />
+      )}
+      <DashboardHomeLayout
+        themeId={themeId}
+        slots={{
+          header: <DashboardQuickActions />,
+          notice: (
+            <div className="space-y-6">
+              <HiddenSeasonalCollectible spotId="dashboard" />
+            </div>
+          ),
+          focus: <TodayFocus />,
+          water: (
+            <HouseholdWaterWidget 
+              scopeId={waterScopeId} 
+              members={members} 
+              currentUserId={user?.id ?? null} 
+            />
+          ),
+          metrics: (
+            <ResetMoodPanel
+              scorePercent={resetScore}
+              scoreLabel={t("reset.wellness.title")}
+              partnerLabel="Mājas vibrācija"
+              partnerValue="Stabila"
+              partnerHint="Visi biedri ir sinhronizēti"
+            />
+          ),
+          cart: (
+            <CartPreview 
+              items={shoppingItems} 
+              onOpenAll={() => router.push("/kitchen")} 
+            />
+          ),
+          reminders: (
+            <div className="space-y-3">
+              {/* Šeit vēlāk varam ielikt specifisku CalendarWidget, pagaidām placeholderis */}
+              <p className="text-xs text-(--color-text-secondary) italic">Visi šīs dienas notikumi ir sakārtoti.</p>
+            </div>
+          ),
+          householdSummary: null,
+        }}
+      >
+      </DashboardHomeLayout>
+    </>
   );
 }
