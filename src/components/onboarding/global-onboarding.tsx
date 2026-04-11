@@ -13,14 +13,14 @@ import Image from "next/image";
 type StepId = "welcome" | "dashboard" | "kitchen" | "household" | "reset_intro" | "reset_config" | "finish";
 
 export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const { user } = useAuth();
   const { themeId } = useTheme();
   const [step, setStep] = useState<StepId>("welcome");
   
   // RESET Config State (Integrated into the grand tour)
   const [wellness, setWellness] = useState<ResetWellnessV1 | null>(null);
-  const [primaryGoal, setPrimaryGoal] = useState("wellbeing");
+  const [primaryGoal] = useState("wellbeing"); // Keeping primaryGoal to read it, but removed setPrimaryGoal as it wasn't used
   const [trackMetrics, setTrackMetrics] = useState<string[]>(["mood", "energy", "sleep"]);
 
   // Block scrolling while onboarding is active and load initial state
@@ -76,23 +76,28 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
     }`}>
       <div className={`w-full max-w-sm relative transition-all duration-500 ${step === "welcome" ? "" : "mt-auto pb-20"}`}>
         
-        {/* H:O Assistant Animated Character - Fixed Animations & Massive Pop-out */}
+        {/* H:O Assistant Animated Character - Popping up from bottom */}
         <motion.div 
           layout
-          initial={step === "welcome" ? { scale: 0.2, opacity: 0, y: 150 } : false}
+          initial={step === "welcome" ? { scale: 3.5, opacity: 0, y: "100vh" } : false}
           animate={step === "welcome" ? "welcome" : "tour"}
           variants={{
             welcome: {
-              scale: 1.4,
+              scale: 3.5, // Ļoti liels mērogs, bet stabili uzstādīts jau sākumā
               opacity: 1,
-              y: 0,
-              rotate: [0, -15, 10, -10, 5, 0, 0, 0, 0], // The wave
+              y: "15vh", // Izlien no ekrāna apakšas, redzama galva un pleci
+              rotate: [0, -5, 3, -4, 2, 0, 0, 0, 0], // Nedaudz lēnāka "šūpošanās", nevis traka lidošana
               transition: {
-                type: "spring",
-                bounce: 0.4,
-                duration: 1.2,
+                y: {
+                  type: "spring",
+                  bounce: 0.2, // Nedaudz "atsitas" atnākot
+                  duration: 2.5 // Gludi iznirst 2.5 sekunžu laikā
+                },
+                opacity: {
+                  duration: 1
+                },
                 rotate: {
-                  duration: 2.5,
+                  duration: 4,
                   repeat: Infinity,
                   repeatDelay: 2,
                   ease: "easeInOut"
@@ -109,14 +114,19 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
                   duration: 3,
                   repeat: Infinity,
                   ease: "easeInOut"
+                },
+                scale: {
+                  type: "spring",
+                  bounce: 0.4,
+                  duration: 1
                 }
               }
             }
           }}
-          className={`mx-auto relative flex items-center justify-center transition-all duration-700 z-50 ${
+          className={`mx-auto relative flex items-center justify-center transition-all duration-700 ${
             step === "welcome" 
-              ? "mb-12 h-72 w-72 drop-shadow-[0_40px_80px_rgba(var(--color-primary-rgb),0.6)]" 
-              : "mb-3 h-16 w-16 drop-shadow-[0_10px_20px_rgba(var(--color-primary-rgb),0.2)]"
+              ? "z-0 mb-12 h-72 w-72 drop-shadow-[0_40px_80px_rgba(var(--color-primary-rgb),0.6)]" 
+              : "z-50 mb-3 h-16 w-16 drop-shadow-[0_10px_20px_rgba(var(--color-primary-rgb),0.2)]"
           }`}
         >
           <Image 
@@ -135,7 +145,7 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="text-center space-y-6"
+              className="text-center space-y-6 relative z-10"
             >
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
                 {locale === "lv" ? "Iepazīsimies?" : "Shall we get acquainted?"}
