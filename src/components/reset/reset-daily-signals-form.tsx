@@ -159,116 +159,107 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
         <p className="text-sm text-(--color-secondary)">{t("reset.signals.loading")}</p>
       ) : (
         <div className="space-y-4">
-          <div className="space-y-5 rounded-xl border border-(--color-surface-border) bg-background/40 p-4">
+          <div className="space-y-5 rounded-xl border border-(--color-surface-border) bg-background/40 p-4 sm:p-5">
             
             {/* ── 1. Sleep ── */}
             {trackMetrics.includes("sleep") && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-(--color-text)">
                     {t("reset.signals.groupSleep")}
                   </span>
-                  <span className="text-xs text-(--color-secondary)">
-                    {form.sleep_wake_time === "05:00" ? "Ļoti slikti" : 
+                  <span className="text-xs font-semibold text-(--color-secondary)">
+                    {!form.sleep_wake_time ? "" :
+                     form.sleep_wake_time === "05:00" ? "Ļoti slikti" : 
                      form.sleep_wake_time === "06:00" ? "Vāji" : 
                      form.sleep_wake_time === "07:00" ? "Vidēji" :
                      form.sleep_wake_time === "08:00" ? "Labi" :
                      form.sleep_wake_time === "09:00" ? "Izcili" : ""}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-1">
-                  {[
-                    { val: 1, wake: "05:00" },
-                    { val: 2, wake: "06:00" },
-                    { val: 3, wake: "07:00" },
-                    { val: 4, wake: "08:00" },
-                    { val: 5, wake: "09:00" }
-                  ].map(({ val, wake }) => (
-                    <button
-                      key={`sleep-${val}`}
-                      type="button"
-                      onClick={() => {
-                        hapticTap();
-                        setForm((f) => ({
-                          ...f,
-                          sleep_bedtime: f.sleep_wake_time === wake ? null : "00:00",
-                          sleep_wake_time: f.sleep_wake_time === wake ? null : wake,
-                        }));
-                      }}
-                      className={[
-                        "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-sm font-bold transition-all",
-                        form.sleep_wake_time === wake
-                          ? "border-indigo-500 bg-indigo-500/10 text-indigo-500 scale-105 shadow-[0_0_10px_rgba(99,102,241,0.2)]"
-                          : "border-(--color-surface-border) bg-(--color-surface) text-(--color-secondary) hover:bg-(--color-surface-2)",
-                      ].join(" ")}
-                    >
-                      {val}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-3">
+                  <span className="text-xl grayscale opacity-70">😫</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={
+                      form.sleep_wake_time === "05:00" ? 1 : 
+                      form.sleep_wake_time === "06:00" ? 2 : 
+                      form.sleep_wake_time === "07:00" ? 3 :
+                      form.sleep_wake_time === "08:00" ? 4 :
+                      form.sleep_wake_time === "09:00" ? 5 : 3
+                    }
+                    onChange={(e) => {
+                      hapticTap();
+                      const val = parseInt(e.target.value, 10);
+                      const wake = val === 1 ? "05:00" : val === 2 ? "06:00" : val === 3 ? "07:00" : val === 4 ? "08:00" : "09:00";
+                      setForm((f) => ({
+                        ...f,
+                        sleep_bedtime: "00:00",
+                        sleep_wake_time: wake,
+                      }));
+                    }}
+                    className="flex-1 h-2 bg-(--color-surface-border) rounded-full appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
+                  />
+                  <span className="text-xl">😌</span>
                 </div>
               </div>
             )}
 
             {/* ── 2. Mood ── */}
             {trackMetrics.includes("mood") && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-(--color-text)">{t("reset.signals.mood")}</span>
-                  <span className="text-xs text-(--color-secondary)">
-                    {form.mood === 1 ? "Ļoti slikti" : form.mood === 5 ? "Lieliski" : form.mood ? "Vidēji" : ""}
+                  <span className="text-xs font-semibold text-(--color-secondary)">
+                    {!form.mood ? "" : form.mood === 1 ? "Ļoti slikti" : form.mood === 5 ? "Lieliski" : "Vidēji"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button
-                      key={`mood-${n}`}
-                      type="button"
-                      onClick={() => {
-                        hapticTap();
-                        setForm((f) => ({ ...f, mood: f.mood === n ? null : n }));
-                      }}
-                      className={[
-                        "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-sm font-bold transition-all",
-                        form.mood === n
-                          ? "border-primary bg-primary/10 text-primary scale-105 shadow-[0_0_10px_var(--color-primary-soft)]"
-                          : "border-(--color-surface-border) bg-(--color-surface) text-(--color-secondary) hover:bg-(--color-surface-2)",
-                      ].join(" ")}
-                    >
-                      {n}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-3">
+                  <span className="text-xl grayscale opacity-70">😞</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={form.mood ?? 3}
+                    onChange={(e) => {
+                      hapticTap();
+                      setForm((f) => ({ ...f, mood: parseInt(e.target.value, 10) }));
+                    }}
+                    className="flex-1 h-2 bg-(--color-surface-border) rounded-full appearance-none cursor-pointer accent-primary hover:accent-primary-hover transition-all"
+                  />
+                  <span className="text-xl">😄</span>
                 </div>
               </div>
             )}
 
             {/* ── 3. Energy ── */}
             {trackMetrics.includes("mood") && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-(--color-text)">{t("reset.signals.energy")}</span>
-                  <span className="text-xs text-(--color-secondary)">
-                    {form.energy === 1 ? "Izsmelts" : form.energy === 5 ? "Pārpilns" : form.energy ? "Normāli" : ""}
+                  <span className="text-xs font-semibold text-(--color-secondary)">
+                    {!form.energy ? "" : form.energy === 1 ? "Izsmelts" : form.energy === 5 ? "Pārpilns" : "Normāli"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-1">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button
-                      key={`energy-${n}`}
-                      type="button"
-                      onClick={() => {
-                        hapticTap();
-                        setForm((f) => ({ ...f, energy: f.energy === n ? null : n }));
-                      }}
-                      className={[
-                        "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-sm font-bold transition-all",
-                        form.energy === n
-                          ? "border-amber-500 bg-amber-500/10 text-amber-500 scale-105 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
-                          : "border-(--color-surface-border) bg-(--color-surface) text-(--color-secondary) hover:bg-(--color-surface-2)",
-                      ].join(" ")}
-                    >
-                      {n}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-3">
+                  <span className="text-xl grayscale opacity-70">🔋</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    value={form.energy ?? 3}
+                    onChange={(e) => {
+                      hapticTap();
+                      setForm((f) => ({ ...f, energy: parseInt(e.target.value, 10) }));
+                    }}
+                    className="flex-1 h-2 bg-(--color-surface-border) rounded-full appearance-none cursor-pointer accent-amber-500 hover:accent-amber-400 transition-all"
+                  />
+                  <span className="text-xl">⚡</span>
                 </div>
               </div>
             )}
