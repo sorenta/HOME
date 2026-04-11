@@ -52,11 +52,24 @@ export function ResetQuitStreak({ goals, state, onUpdate }: Props) {
     return () => window.clearInterval(id);
   }, []);
 
-  const rows = useMemo(() => {
+    const rows = useMemo(() => {
     return goals.map((g) => {
       const start = new Date(g.startedAt).getTime();
       const elapsed = now - start;
-      return { goal: g, elapsed, line: formatDuration(elapsed, t) };
+      const isNewSlip = elapsed < 86400 * 1000; // Less than 1 day
+
+      let empathyMsg = "";
+      if (isNewSlip && g.lastSlipAt) {
+         empathyMsg = t("locale") === "lv" 
+           ? "Viens klupiens neizdzēš tavu progresu. Svarīgākais ir tas, ka tu turpini." 
+           : "One slip doesn't erase your progress. The most important thing is that you keep going.";
+      } else if (isNewSlip) {
+         empathyMsg = t("locale") === "lv"
+           ? "Katrs liels mērķis sākas ar pirmo dienu."
+           : "Every big goal starts with day one.";
+      }
+
+      return { goal: g, elapsed, line: formatDuration(elapsed, t), empathyMsg };
     });
   }, [goals, now, t]);
 
@@ -104,11 +117,17 @@ export function ResetQuitStreak({ goals, state, onUpdate }: Props) {
         {t("reset.wellness.quit.sectionHint")}
       </p>
       <ul className="space-y-3">
-        {rows.map(({ goal, line }) => (
+        {rows.map(({ goal, line, elapsed, empathyMsg }) => (
           <li
             key={goal.id}
-            className="rounded-2xl border border-(--color-surface-border) bg-(--color-surface)/40 px-4 py-3"
+            className="rounded-2xl border border-(--color-surface-border) bg-(--color-surface)/40 px-4 py-3 relative overflow-hidden"
           >
+            {/* Visual background progress indicator for the first 7 days to build momentum */}
+            <div 
+               className="absolute top-0 left-0 bottom-0 bg-(--color-accent-soft) transition-all duration-1000 -z-10" 
+               style={{ width: `${Math.min((elapsed / (86400 * 1000 * 7)) * 100, 100)}%` }} 
+            />
+
             <p className="text-sm font-semibold text-(--color-text)">
               {quitLabel(goal, t)}
             </p>
@@ -118,7 +137,16 @@ export function ResetQuitStreak({ goals, state, onUpdate }: Props) {
             >
               {line}
             </p>
-            <p className="mt-1 text-xs text-(--color-secondary)">
+            
+            {empathyMsg ? (
+              <div className="mt-2 rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5">
+                <p className="text-xs text-amber-700 dark:text-amber-400 font-medium flex items-center gap-2">
+                  <span className="text-base">🌱</span> {empathyMsg}
+                </p>
+              </div>
+            ) : null}
+
+            <p className="mt-2 text-xs text-(--color-secondary)">
               {t("reset.wellness.quit.since")}{" "}
               {new Date(goal.startedAt).toLocaleString()}
             </p>

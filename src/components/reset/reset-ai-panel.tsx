@@ -9,12 +9,13 @@ import { fetchHouseholdKitchenAiMeta } from "@/lib/household-kitchen-ai";
 type Props = {
   mood?: string | null;
   moodScore?: number | null;
+  energy?: number | null;
   signals?: Array<{ label: string; value: number }>;
   quitDays?: number | null;
   goals?: string[];
 };
 
-export function ResetAiPanel({ mood, moodScore, signals, quitDays, goals }: Props) {
+export function ResetAiPanel({ mood, moodScore, energy, signals, quitDays, goals }: Props) {
   const { t, locale } = useI18n();
   const { session } = useAuth();
   const [canUseAi, setCanUseAi] = useState(false);
@@ -24,6 +25,25 @@ export function ResetAiPanel({ mood, moodScore, signals, quitDays, goals }: Prop
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [encouragement, setEncouragement] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Proactive AI Context Chips based on current state
+  const contextChips = useMemo(() => {
+    const chips: string[] = [];
+    if (energy != null && energy <= 2) {
+      chips.push(locale === "lv" ? "Kā atgūt enerģiju šovakar?" : "How to recover energy tonight?");
+    }
+    if (moodScore != null && moodScore < 40) {
+      chips.push(locale === "lv" ? "Iesaki 5 minūšu miera rutīnu" : "Suggest a 5-minute peace routine");
+    }
+    if (quitDays != null && quitDays < 7) {
+      chips.push(locale === "lv" ? "Man vajag motivāciju turpināt manu streak" : "I need motivation to keep my streak");
+    }
+    if (chips.length === 0) {
+      chips.push(locale === "lv" ? "Kā saglabāt šo labo ritmu rītdienai?" : "How to keep this good rhythm for tomorrow?");
+      chips.push(locale === "lv" ? "Iesaki mierīgu vakara aktivitāti" : "Suggest a calm evening activity");
+    }
+    return chips;
+  }, [energy, moodScore, quitDays, locale]);
 
   useEffect(() => {
     let alive = true;
@@ -43,7 +63,8 @@ export function ResetAiPanel({ mood, moodScore, signals, quitDays, goals }: Prop
     };
   }, []);
 
-  async function runAdvisor() {
+  async function runAdvisor(immediatePrompt?: string) {
+    const textToSend = immediatePrompt ?? prompt;
     setError(null);
     setReply(null);
     setSuggestions([]);
@@ -63,7 +84,7 @@ export function ResetAiPanel({ mood, moodScore, signals, quitDays, goals }: Prop
         },
         body: JSON.stringify({
           locale,
-          prompt: prompt.trim() || undefined,
+          prompt: textToSend.trim() || undefined,
           mood,
           moodScore,
           signals,
@@ -104,13 +125,34 @@ export function ResetAiPanel({ mood, moodScore, signals, quitDays, goals }: Prop
   }
 
   return (
-    <div className="rounded-2xl border border-(--color-surface-border) bg-(--color-surface)/35 p-3 space-y-3">
-      <p className="text-sm font-semibold text-(--color-text)">
-        {t("reset.ai.title")}
-      </p>
-      <p className="text-xs text-(--color-secondary)">
-        {t("reset.ai.hint")}
-      </p>
+    <div className="rounded-2xl border border-(--color-surface-border) bg-(--color-surface)/35 p-4 space-y-4">
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-(--color-text)">
+          {t("reset.ai.title")}
+        </p>
+        <p className="text-xs text-(--color-secondary)">
+          {t("reset.ai.hint")}
+        </p>
+      </div>
+
+      {!reply && contextChips.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {contextChips.map((chip) => (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => {
+                setPrompt(chip);
+                void runAdvisor(chip);
+              }}
+              className="rounded-full border border-(--color-primary-soft) bg-primary/5 px-3 py-1.5 text-[0.7rem] font-medium text-primary hover:bg-primary/10 transition-colors text-left"
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+      )}
+
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
@@ -122,7 +164,7 @@ export function ResetAiPanel({ mood, moodScore, signals, quitDays, goals }: Prop
         type="button"
         disabled={loading}
         onClick={() => void runAdvisor()}
-        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-background disabled:opacity-50"
+        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-background disabled:opacity-50 transition-all active:scale-[0.98]"
       >
         {loading ? t("kitchen.ai.thinking") : t("reset.ai.run")}
       </button>

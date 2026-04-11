@@ -33,24 +33,25 @@ type Props = {
   onUpdate: (next: ResetWellnessV1) => void;
 };
 
-const TOTAL_SIGNAL_FIELDS = 7;
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function countCompletedSignals(signals: ResetDailySignalsRow | null) {
-  if (!signals) return 0;
+function countCompletedSignals(signals: ResetDailySignalsRow | null, trackMetrics: ResetTrackMetric[]) {
+  if (!signals) return { count: 0, total: trackMetrics.length };
 
-  return [
-    signals.steps,
-    signals.screen_time_minutes,
-    signals.meditation_minutes,
-    signals.sleep_bedtime && signals.sleep_wake_time ? 1 : null,
-    signals.mood,
-    signals.energy,
-    signals.notes_private?.trim() ? 1 : null,
-  ].filter((value) => value != null).length;
+  let count = 0;
+  if (trackMetrics.includes("steps") && signals.steps != null) count++;
+  if (trackMetrics.includes("mood") && signals.mood != null) count++;
+  if (trackMetrics.includes("sleep") && signals.sleep_bedtime != null && signals.sleep_wake_time != null) count++;
+  // Add 1 extra point if they filled notes (bonus)
+  if (signals.notes_private?.trim()) count++;
+
+  // Minimum total is 1 just so we don't divide by 0 if they selected nothing but weight
+  const baseTotal = trackMetrics.filter(m => m === "steps" || m === "mood" || m === "sleep").length;
+  const total = baseTotal > 0 ? baseTotal : 1; 
+
+  return { count, total };
 }
 
 function scrollToSection(id: string) {
@@ -187,8 +188,11 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
     ];
   }, [quitPlan, t, wellness.goals]);
 
-  const completedSignals = useMemo(() => countCompletedSignals(todaySignals), [todaySignals]);
-  const hasTodayCheckIn = completedSignals > 0;
+  const { count: completedSignals, total: expectedSignals } = useMemo(
+    () => countCompletedSignals(todaySignals, quickMetrics),
+    [todaySignals, quickMetrics]
+  );
+  const hasTodayCheckIn = completedSignals > 0 || (todaySignals?.mood != null);
 
   const moodScore = useMemo(() => {
     const baseMoodScore =
@@ -253,7 +257,21 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
     return [...labels];
   }, [goalLabel, metricLabel, quickMetrics, quitPlan, t]);
 
+  const todayDayOfWeek = new Date().getDay(); // 0 is Sunday
+  const isSunday = todayDayOfWeek === 0;
+
   const focusCard = useMemo(() => {
+    if (isSunday && hasTodayCheckIn) {
+      return {
+        title: locale === "lv" ? "Svētdienas kopsavilkums" : "Sunday Summary",
+        body: locale === "lv" 
+          ? "Lieliska nedēļa! Paņem mirkli, lai apskatītu savus trendus un sagatavotos jaunai nedēļai." 
+          : "Great week! Take a moment to review your trends and prep for the week ahead.",
+        cta: locale === "lv" ? "Apskatīt trendus" : "View trends",
+        onClick: () => scrollToSection("reset-trends-panel"), // Need to add id to trends panel
+      };
+    }
+
     if (!hasTodayCheckIn) {
       return {
         title:
@@ -308,7 +326,7 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
       cta: locale === "lv" ? "Atvērt anketu" : "Open questionnaire",
       onClick: onOpenQuestionnaire,
     };
-  }, [hasTodayCheckIn, lastWeight, locale, onOpenQuestionnaire, quickMetrics, quitDays, quitPlan]);
+  }, [hasTodayCheckIn, isSunday, lastWeight, locale, onOpenQuestionnaire, quickMetrics, quitDays, quitPlan]);
 
   const quickActions = useMemo(
     () => [
@@ -377,9 +395,6 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
               <ResetMoodPanel
                 scorePercent={moodScore}
                 scoreLabel={t("reset.score")}
-                partnerLabel={t("reset.partnerMood")}
-                partnerValue={moodLabel}
-                partnerHint={t("reset.partnerMoodHint")}
               />
             </GlassPanel>
 
@@ -411,10 +426,13 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                 <div id="reset-daily-signals">
                   <ResetDailySignalsForm
                     userId={userId}
+                    trackMetrics={quickMetrics}
                     onSaved={() => setSignalsRefreshToken((value) => value + 1)}
                   />
                 </div>
-                <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
+                <div id="reset-trends-panel">
+                  <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
+                </div>
               </div>
               <div className="space-y-4">
                 <div id="reset-body-tracking">
@@ -423,11 +441,11 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                 <ResetAiPanel
                   mood={moodLabel}
                   moodScore={moodScore}
+                  energy={todaySignals?.energy}
                   signals={aiSignals}
                   quitDays={quitPlan ? quitDays : null}
                   goals={aiGoals}
-                />
-              </div>
+                />              </div>
             </div>
           </div>
 
@@ -494,9 +512,6 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
             <ResetMoodPanel
               scorePercent={moodScore}
               scoreLabel={t("reset.score")}
-              partnerLabel={t("reset.partnerMood")}
-              partnerValue={moodLabel}
-              partnerHint={t("reset.partnerMoodHint")}
             />
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -509,7 +524,9 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                     ? locale === "lv"
                       ? "Ielādē..."
                       : "Loading..."
-                    : `${completedSignals}/${TOTAL_SIGNAL_FIELDS}`}
+                    : completedSignals >= expectedSignals
+                      ? (locale === "lv" ? "Pabeigts" : "Done")
+                      : `${completedSignals}/${expectedSignals}`}
                 </p>
                 <p className="mt-1 text-xs text-(--color-text-secondary)">
                   {hasTodayCheckIn
@@ -573,11 +590,14 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
               <div id="reset-daily-signals">
                 <ResetDailySignalsForm
                   userId={userId}
+                  trackMetrics={quickMetrics}
                   onSaved={() => setSignalsRefreshToken((value) => value + 1)}
                 />
               </div>
 
-              <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
+              <div id="reset-trends-panel">
+                <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
+              </div>
 
               {activeQuitGoals.length > 0 ? (
                 <div id="reset-quit-streak">
@@ -631,6 +651,7 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
               <ResetAiPanel
                 mood={moodLabel}
                 moodScore={moodScore}
+                energy={todaySignals?.energy}
                 signals={aiSignals}
                 quitDays={quitPlan ? quitDays : null}
                 goals={aiGoals}

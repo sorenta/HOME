@@ -37,6 +37,26 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
 - **Galvenie faili:** ...
 ```
 
+### [2026-04-11 15:55 Europe/Riga] RESET moduļa UX - 2. posms (Vizuālie elementi un Empātija)
+- **Ierakstu veica:** Gemini CLI (Software Engineer)
+- **Kāpēc ieraksts veikts:** Lietotāja vēlme ieviest vēl draudzīgāku un vizuālāku pieredzi.
+- **Kas izdarīts:**
+  1. "Forma bez formāluma": `<select>` dropdowni noskaņojumam un enerģijai nomainīti uz interaktīvām 1-5 pogām (slīdņiem) ar atbilstošu krāsu kodējumu un animācijām.
+  2. "Proaktīvais AI": Pievienoti viena pieskāriena "Context Chips" AI panelī. Atkarībā no dienas rādītājiem (zema enerģija, sākts atmešanas streak, u.c.), AI panelis automātiski piedāvā 2-4 gatavus jautājumus.
+  3. "Empātiski Streaks": Pievienota motivējoša ziņa `ResetQuitStreak` komponentā pirmajā dienā pēc atgriešanās ("Viens klupiens neizdzēš tavu progresu"). 
+  4. "Svētdienas kopsavilkums": Dashboard augšējais Hero panelis tagad svētdienās aicina lietotāju aplūkot savus trendus, aizstājot standarta "Turpini mierīgu ritmu" paziņojumu.
+- **Galvenie faili:** `src/components/reset/reset-dashboard.tsx`, `src/components/reset/reset-daily-signals-form.tsx`, `src/components/reset/reset-quit-streak.tsx`, `src/components/reset/reset-ai-panel.tsx`.
+
+### [2026-04-11 15:45 Europe/Riga] RESET moduļa UX un privātuma uzlabojumi
+- **Ierakstu veica:** Gemini CLI (Software Engineer)
+- **Kāpēc ieraksts veikts:** Uzlabot RESET sadaļas lietojamību, balstoties uz UX analīzi.
+- **Kas izdarīts:**
+  1. Izņemti `partnerLabel` prop no `ResetMoodPanel` (novērsts "Mājas vibrācijas" privātuma apjukums).
+  2. `ResetDailySignalsForm` padarīta dinamiska — tagad tā rāda tikai tos ievades blokus (piem., Miegs, Aktivitāte), kurus lietotājs izvēlējies savos `trackMetrics` mērķos.
+  3. Nomainīts stresa pilnais `0/7` completion indikators. Tagad tas kalkulē pabeigtību tikai pret izvēlētajiem mērķiem un, kad sasniegts, rāda "Pabeigts".
+  4. Pievienota `generateQuickInsight` funkcija: pēc "Saglabāt" nospiešanas lietotājs nekavējoties saņem nelielu kontekstuālu atziņu/uzslavu (nevis tikai "Saglabāts"), radot tūlītēju atgriezenisko saiti.
+- **Galvenie faili:** `src/components/reset/reset-dashboard.tsx`, `src/components/reset/reset-daily-signals-form.tsx`.
+
 ### [2026-04-11 15:30 Europe/Riga] Lighthouse audits un veiktspējas stabilizācija
 - **Ierakstu veica:** Gemini CLI (Software Engineer)
 - **Kāpēc ieraksts veikts:** Veiktspējas un tīkla stabilitātes uzlabošana pēc Lighthouse audita.
