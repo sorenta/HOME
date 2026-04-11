@@ -607,7 +607,7 @@ export const dictionaries: Record<
       "Šodien mājām der mierīgāks temps: īsa pastaiga, vakariņu deleģēšana vai klusāka vakara rutīna.",
     "reset.signals.title": "Dienas atskaite",
     "reset.signals.intro":
-      "Pēc H:0 RESET mērķa — soļi, ekrāna laiks un meditācija ietekmē tavu noskaņojumu. Partneris šos skaitļus neredz; saglabāti tikai tavā Supabase kontā (RLS). Vēlāk var pieslēgt Health / sensorus.",
+      "Tavi dati tiek glabāti droši un privāti. Tos redzi tikai tu un tavs AI palīgs.",
     "reset.signals.groupActivity": "Aktivitāte",
     "reset.signals.groupSleep": "Miegs",
     "reset.signals.groupFeeling": "Pašsajūta",
@@ -1540,7 +1540,7 @@ export const dictionaries: Record<
       "A calmer pace fits today: a short walk, delegating dinner, or a quieter evening routine.",
     "reset.signals.title": "Daily logs",
     "reset.signals.intro":
-      "Per H:0 RESET — steps, screen time, and meditation shape your mood. Your partner does not see these numbers; stored only in your Supabase account (RLS). Health / sensors can be wired later.",
+      "Your logs are stored securely and privately. Only you and your AI assistant have access.",
     "reset.signals.groupActivity": "Activity",
     "reset.signals.groupSleep": "Sleep",
     "reset.signals.groupFeeling": "How you feel",
