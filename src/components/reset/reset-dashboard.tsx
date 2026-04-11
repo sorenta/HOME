@@ -446,155 +446,114 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
           </div>
         </>
       ) : (
-        <div className="space-y-6">
-          {/* TAB NAVIGATION */}
-          <div className="flex p-1 bg-(--color-surface)/50 border border-(--color-surface-border) rounded-full w-max mx-auto mb-2 relative z-10 backdrop-blur-sm">
-            <button
-              onClick={() => setActiveTab("today")}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${
-                activeTab === "today"
-                  ? "bg-(--color-surface-2) text-(--color-text-primary) shadow-sm"
-                  : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
-              }`}
-            >
-              {locale === "lv" ? "Šodiena" : "Today"}
-            </button>
-            <button
-              onClick={() => setActiveTab("progress")}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${
-                activeTab === "progress"
-                  ? "bg-(--color-surface-2) text-(--color-text-primary) shadow-sm"
-                  : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
-              }`}
-            >
-              {locale === "lv" ? "Dinamika" : "Progress"}
-            </button>
-            <button
-              onClick={() => setActiveTab("system")}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-all ${
-                activeTab === "system"
-                  ? "bg-(--color-surface-2) text-(--color-text-primary) shadow-sm"
-                  : "text-(--color-text-secondary) hover:text-(--color-text-primary)"
-              }`}
-            >
-              {locale === "lv" ? "Sistēma" : "System"}
-            </button>
+        <div className="space-y-6 max-w-3xl mx-auto w-full pt-2">
+          
+          {/* Status Line */}
+          <div className="flex items-center justify-end px-2">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                {hasTodayCheckIn ? (
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                ) : (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+                  </>
+                )}
+              </span>
+              <p className="text-[10px] uppercase tracking-widest text-(--color-text-secondary)">
+                {hasTodayCheckIn 
+                  ? (locale === "lv" ? "Sinhronizēts arhīvā" : "Synced to archive")
+                  : (locale === "lv" ? "Gaida datus" : "Awaiting logs")}
+              </p>
+            </div>
           </div>
 
-          {/* TAB CONTENT: TODAY */}
-          {activeTab === "today" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl mx-auto w-full pt-2">
-              
-              {/* Ultra-compact status line */}
-              <div className="flex items-center justify-end px-2">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    {hasTodayCheckIn ? (
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                    ) : (
-                      <>
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
-                      </>
-                    )}
-                  </span>
-                  <p className="text-[10px] uppercase tracking-widest text-(--color-text-secondary)">
-                    {hasTodayCheckIn 
-                      ? (locale === "lv" ? "Sinhronizēts arhīvā" : "Synced to archive")
-                      : (locale === "lv" ? "Gaida datus" : "Awaiting logs")}
-                  </p>
-                </div>
-              </div>
+          {/* BOX 1: The Form */}
+          <div id="reset-daily-signals" className="w-full">
+            <ResetDailySignalsForm
+              userId={userId}
+              trackMetrics={quickMetrics}
+              onSaved={() => setSignalsRefreshToken((value) => value + 1)}
+            />
+          </div>
 
-              {/* The Form takes center stage */}
-              <div id="reset-daily-signals" className="w-full">
-                <ResetDailySignalsForm
-                  userId={userId}
-                  trackMetrics={quickMetrics}
-                  onSaved={() => setSignalsRefreshToken((value) => value + 1)}
-                />
-              </div>
+          {/* BOX 2: Proactive AI */}
+          <div className="pt-2">
+            <ResetAiPanel
+              mood={moodLabel}
+              moodScore={moodScore}
+              energy={todaySignals?.energy}
+              signals={aiSignals}
+              quitDays={quitPlan ? quitDays : null}
+              goals={aiGoals}
+            />
+          </div>
 
-              {/* AI is available underneath as a helper */}
-              <div className="pt-2">
-                <ResetAiPanel
-                  mood={moodLabel}
-                  moodScore={moodScore}
-                  energy={todaySignals?.energy}
-                  signals={aiSignals}
-                  quitDays={quitPlan ? quitDays : null}
-                  goals={aiGoals}
-                />
-              </div>
+          {/* BOX 3: Streaks (If any) */}
+          {activeQuitGoals.length > 0 ? (
+            <div id="reset-quit-streak">
+              <ResetQuitStreak goals={activeQuitGoals} state={wellness} onUpdate={onUpdate} />
             </div>
-          )}
+          ) : null}
 
-          {/* TAB CONTENT: PROGRESS */}
-          {activeTab === "progress" && (
-            <div className="grid gap-6 lg:grid-cols-[minmax(340px,0.85fr)_minmax(0,1.2fr)] items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="space-y-6">
-                <ResetMoodPanel
-                  scorePercent={moodScore}
-                  scoreLabel={t("reset.score")}
-                />
-                {activeQuitGoals.length > 0 ? (
-                  <div id="reset-quit-streak">
-                    <ResetQuitStreak goals={activeQuitGoals} state={wellness} onUpdate={onUpdate} />
-                  </div>
-                ) : null}
-              </div>
-              <div className="space-y-6">
-                <div id="reset-trends-panel">
-                  <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
-                </div>
-                <div id="reset-body-tracking">
-                  <ResetBodyTracking state={wellness} onUpdate={onUpdate} />
-                </div>
-                {bodyMode ? (
-                  <div id="reset-training">
-                    <ResetTrainingPlan mode={bodyMode} state={wellness} onUpdate={onUpdate} />
-                  </div>
-                ) : null}
-              </div>
+          {/* BOX 4: Trends & Analytics */}
+          <div className="grid gap-6 md:grid-cols-2 items-start">
+            <ResetMoodPanel
+              scorePercent={moodScore}
+              scoreLabel={t("reset.score")}
+            />
+            <div id="reset-trends-panel" className="w-full">
+              <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
             </div>
-          )}
+          </div>
 
-          {/* TAB CONTENT: SYSTEM */}
-          {activeTab === "system" && (
-            <div className="max-w-2xl mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <GlassPanel className="space-y-3 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
-                  {locale === "lv" ? "Anketas iestatījumi" : "Questionnaire config"}
-                </p>
+          {/* BOX 5: Body & Training */}
+          <div className="grid gap-6 md:grid-cols-2 items-start">
+            <div id="reset-body-tracking">
+              <ResetBodyTracking state={wellness} onUpdate={onUpdate} />
+            </div>
+            {bodyMode ? (
+              <div id="reset-training">
+                <ResetTrainingPlan mode={bodyMode} state={wellness} onUpdate={onUpdate} />
+              </div>
+            ) : null}
+          </div>
+
+          {/* BOX 6: Settings / System */}
+          <div className="pt-8">
+            <GlassPanel className="space-y-4 p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-lg font-semibold text-(--color-text-primary)">{goalLabel}</p>
-                  <p className="text-sm text-(--color-text-secondary)">
+                  <p className="text-sm font-semibold text-(--color-text-primary)">{goalLabel}</p>
+                  <p className="text-xs text-(--color-text-secondary)">
                     {locale === "lv"
                       ? `Ritms: ${profileLabel.toLowerCase()}, check-in ${frequencyLabel.toLowerCase()}.`
                       : `Rhythm: ${profileLabel.toLowerCase()}, check-ins ${frequencyLabel.toLowerCase()}.`}
                   </p>
                 </div>
-                <div className="rounded-(--radius-card) border border-(--color-surface-border) bg-(--color-surface) p-3">
-                  <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                    {locale === "lv" ? "Izvēlētie signāli" : "Selected signals"}
-                  </p>
-                  <p className="mt-1 text-sm text-(--color-text-primary)">
-                    {metricPreview || t("reset.dashboard.noMetrics")}
-                  </p>
-                </div>
                 <button
                   type="button"
                   onClick={onOpenQuestionnaire}
-                  className="w-full justify-center inline-flex rounded-full border border-(--color-surface-border) bg-(--color-surface) px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition hover:text-(--color-text-primary)"
+                  className="shrink-0 rounded-full border border-(--color-surface-border) bg-(--color-surface) px-4 py-2 text-xs font-medium text-(--color-text-secondary) transition hover:text-(--color-text-primary)"
                 >
                   {locale === "lv" ? "Mainīt uzstādījumus" : "Change settings"}
                 </button>
-              </GlassPanel>
-              <div id="reset-health-sources">
+              </div>
+              <div className="rounded-xl border border-(--color-surface-border) bg-background/50 p-3">
+                <p className="text-[10px] uppercase tracking-widest text-(--color-text-secondary)">
+                  {locale === "lv" ? "Izvēlētie signāli" : "Selected signals"}
+                </p>
+                <p className="mt-1 text-sm font-medium text-(--color-text-primary)">
+                  {metricPreview || t("reset.dashboard.noMetrics")}
+                </p>
+              </div>
+              <div id="reset-health-sources" className="pt-2">
                 <ResetHealthSourcesPanel />
               </div>
-            </div>
-          )}
+            </GlassPanel>
+          </div>
+
         </div>
       )}
     </div>

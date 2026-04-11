@@ -82,14 +82,9 @@ export default function ResetPage() {
 
   return (
     <ModuleShell
-      title={t("tile.reset")}
+      title={locale === "lv" ? "Kā tu šodien jūties?" : "How are you feeling today?"}
       moduleId="reset"
       sectionId="reset"
-      description={
-        locale === "lv"
-          ? "Privāts labsajūtas centrs ar mierīgu pārskatu, check-in un ritma atbalstu."
-          : "A private wellness hub with a calm overview, check-ins, and rhythm support."
-      }
     >
       <ResetThemeLayer>
         <HiddenSeasonalCollectible spotId="reset" />
