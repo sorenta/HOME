@@ -9,6 +9,7 @@ import { ResetMoodPanel } from "@/components/reset/reset-mood-panel";
 import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
 import { ResetTrendsPanel } from "@/components/reset/reset-trends-panel";
 import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
+import { ResetJournal } from "@/components/reset/reset-journal";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useTheme } from "@/components/providers/theme-provider";
@@ -353,10 +354,24 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                 )}
               </div>
 
-              <ResetMoodPanel
-                scorePercent={moodScore}
-                scoreLabel={t("reset.score")}
-              />
+              {/* Mājienu bloks Forge tēmai vai cits modulis šeit */}
+              <GlassPanel className="p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary) mb-2">
+                  {locale === "lv" ? "Mājas mikroklimats" : "Household Vibe"}
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                    <span className="text-xs font-bold text-primary">Tu</span>
+                  </div>
+                  <span className="text-sm font-medium text-white">
+                    {todaySignals?.mood != null ? (
+                      todaySignals.mood >= 4 ? (locale === "lv" ? "Lieliski" : "Great") :
+                      todaySignals.mood === 3 ? (locale === "lv" ? "Mierīgi" : "Calm") :
+                      (locale === "lv" ? "Smagi" : "Tough")
+                    ) : (locale === "lv" ? "Nav datu" : "No data")}
+                  </span>
+                </div>
+              </GlassPanel>
             </GlassPanel>
 
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -464,6 +479,11 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
               <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
             </div>
 
+            {/* BOX 2B: Journal Archive */}
+            <div id="reset-journal" className="w-full">
+              <ResetJournal userId={userId} refreshToken={signalsRefreshToken} />
+            </div>
+
             {/* BOX 3: Body & Training (Side by Side) */}
             <div className="grid gap-6 md:grid-cols-2 items-start">
               <div id="reset-body-tracking">
@@ -501,15 +521,58 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
               </div>
             </div>
 
-            {/* BOX 4: Mood Index (Now wrapped properly in a box) */}
+            {/* BOX 4: Household Vibe (replaces private mood index) */}
             <GlassPanel className="p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary) mb-2">
-                {locale === "lv" ? "Noskaņojuma indekss" : "Mood Index"}
-              </p>
-              <ResetMoodPanel
-                scorePercent={moodScore}
-                scoreLabel={t("reset.score")}
-              />
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
+                  {locale === "lv" ? "Mājas mikroklimats" : "Household Vibe"}
+                </p>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                </span>
+              </div>
+              <div className="space-y-4">
+                {/* Current user */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                      <span className="text-xs font-bold text-primary">Tu</span>
+                    </div>
+                    <span className="text-sm font-medium text-(--color-text-primary)">
+                      {todaySignals?.mood != null ? (
+                        todaySignals.mood >= 4 ? (locale === "lv" ? "Lieliski" : "Great") :
+                        todaySignals.mood === 3 ? (locale === "lv" ? "Mierīgi" : "Calm") :
+                        (locale === "lv" ? "Smagi" : "Tough")
+                      ) : (locale === "lv" ? "Nav datu" : "No data")}
+                    </span>
+                  </div>
+                  {todaySignals?.mood != null && (
+                    <div className="flex gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className={`h-1.5 w-4 rounded-full ${i < todaySignals.mood! ? 'bg-primary' : 'bg-(--color-surface-border)'}`} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Partner Placeholder (Real integration would map household members here) */}
+                <div className="flex items-center justify-between opacity-50">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-(--color-surface-2) flex items-center justify-center border border-(--color-surface-border)">
+                      <span className="text-xs font-bold text-(--color-text-secondary)">P</span>
+                    </div>
+                    <span className="text-sm font-medium text-(--color-text-secondary)">
+                      {locale === "lv" ? "Nav datu" : "No data"}
+                    </span>
+                  </div>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="h-1.5 w-4 rounded-full bg-(--color-surface-border)" />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </GlassPanel>
 
             {/* BOX 5: Proactive AI */}
