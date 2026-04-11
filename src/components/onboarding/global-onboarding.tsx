@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
-import { loadWellness, persistWellness, type ResetWellnessV1 } from "@/lib/reset-wellness";
+import { loadWellnessState, saveWellnessState, type ResetWellnessV1 } from "@/lib/reset-wellness";
 
 type StepId = "welcome" | "kitchen" | "logistics" | "reset_intro" | "reset_config" | "finish";
 
