@@ -74,28 +74,6 @@ function generateQuickInsight(form: ResetDailySignalsRow, locale: string): strin
 const inputCls =
   "mt-1 w-full rounded-xl border border-(--color-surface-border) bg-background px-3 py-2 text-sm text-(--color-text)";
 
-/* ── Info‑toggle button (?) ── */
-function InfoToggle({ text }: { text: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Info"
-        className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-(--color-surface-border) text-[10px] font-bold text-(--color-secondary) hover:bg-primary/10 transition-colors"
-      >
-        ?
-      </button>
-      {open && (
-        <p className="mt-1 text-xs leading-relaxed text-(--color-secondary) animate-in fade-in duration-200">
-          {text}
-        </p>
-      )}
-    </>
-  );
-}
-
 export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) {
   const { t, locale } = useI18n();
   const { triggerThemeActionEffect } = useThemeActionEffects();
@@ -174,11 +152,8 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
 
   return (
     <GlassPanel className="space-y-5">
-      {/* ── Header with ? info toggle ── */}
-      <div className="flex items-start gap-1">
-        <SectionHeading title={t("reset.signals.title")} />
-        <InfoToggle text={t("reset.signals.intro")} />
-      </div>
+      {/* ── Header ── */}
+      <SectionHeading title={t("reset.signals.title")} />
 
       {loading ? (
         <p className="text-sm text-(--color-secondary)">{t("reset.signals.loading")}</p>
@@ -374,12 +349,9 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
 
           {/* ── Block 3: Private notes ── */}
           <div className="space-y-3 rounded-xl border border-(--color-surface-border) bg-background/40 p-3">
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-(--color-secondary)">
-                {t("reset.signals.groupNotes")}
-              </p>
-              <InfoToggle text={t("reset.signals.notesCryptoHint")} />
-            </div>
+            <p className="text-xs font-bold uppercase tracking-widest text-(--color-secondary)">
+              {t("reset.signals.groupNotes")}
+            </p>
             <label className="block text-sm">
               <span className="font-medium text-(--color-text)">
                 {t("reset.signals.notes")}
