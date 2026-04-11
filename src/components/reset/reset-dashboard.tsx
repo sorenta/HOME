@@ -486,10 +486,7 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl mx-auto w-full pt-2">
               
               {/* Ultra-compact status line */}
-              <div className="flex items-center justify-between px-2">
-                <p className="text-xs font-medium text-(--color-text-primary)">
-                  {greetingText.split("!")[0]}!
-                </p>
+              <div className="flex items-center justify-end px-2">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
                     {hasTodayCheckIn ? (
@@ -503,7 +500,7 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                   </span>
                   <p className="text-[10px] uppercase tracking-widest text-(--color-text-secondary)">
                     {hasTodayCheckIn 
-                      ? (locale === "lv" ? "Sinhronizēts" : "Synced")
+                      ? (locale === "lv" ? "Sinhronizēts arhīvā" : "Synced to archive")
                       : (locale === "lv" ? "Gaida datus" : "Awaiting logs")}
                   </p>
                 </div>
