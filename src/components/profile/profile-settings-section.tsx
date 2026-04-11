@@ -6,7 +6,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { HouseholdCard } from "@/components/profile/household-card";
 import { ProfileHero } from "@/components/profile/profile-hero";
 import { ProfileSummary } from "@/components/profile/profile-summary";
-import { fetchMyHouseholdMembers, fetchMyHouseholdSummary, type HouseholdMember } from "@/lib/household";
+import { fetchMyHouseholdMembers, fetchMyHouseholdSummary, type HouseholdMember, type Household } from "@/lib/household";
 import { loadUserWaterMedals } from "@/lib/household-water-sync";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useTheme } from "@/components/providers/theme-provider";
@@ -40,6 +40,7 @@ export function ProfileSettingsSection() {
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [birthdayAt, setBirthdayAt] = useState("");
   const [nameDayAt, setNameDayAt] = useState("");
+  const [household, setHousehold] = useState<Household | null>(null);
   const [householdName, setHouseholdName] = useState<string | null>(null);
   const [householdMemberCount, setHouseholdMemberCount] = useState(0);
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
@@ -69,6 +70,7 @@ export function ProfileSettingsSection() {
     const loadHousehold = async () => {
       const [summary, members] = await Promise.all([fetchMyHouseholdSummary(), fetchMyHouseholdMembers()]);
       if (!alive) return;
+      setHousehold(summary);
       setHouseholdName(summary?.name ?? "");
       setHouseholdMemberCount(Number(summary?.member_count ?? 0));
       setHouseholdMembers(members);
@@ -164,7 +166,7 @@ export function ProfileSettingsSection() {
               <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Mājsaimniecības vienība</span>
             </div>
             <HouseholdCard
-              householdName={householdName}
+              household={household}
               roleLabel={role}
               members={householdMembers}
             />
@@ -196,7 +198,7 @@ export function ProfileSettingsSection() {
           />
 
           <HouseholdCard
-            householdName={householdName}
+            household={household}
             roleLabel={role}
             members={householdMembers}
           />

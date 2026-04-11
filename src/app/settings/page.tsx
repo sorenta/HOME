@@ -58,6 +58,8 @@ export default function SettingsPage() {
   const [byok, setByok] = useState<Record<AiProvider, ProviderState>>({
     gemini: { value: "", status: "idle", error: null },
     openai: { value: "", status: "idle", error: null },
+    deepseek: { value: "", status: "idle", error: null },
+    grok: { value: "", status: "idle", error: null },
   });
   const [byokMeta, setByokMeta] = useState<Awaited<ReturnType<typeof fetchHouseholdKitchenAiMeta>>>(null);
   const [settings, setSettings] = useState<LocalSettings>(readLocalSettings());
@@ -401,6 +403,8 @@ export default function SettingsPage() {
                   <div className="space-y-3">
                     {renderProviderControl("gemini", "Gemini")}
                     {renderProviderControl("openai", "OpenAI")}
+                    {renderProviderControl("deepseek", "DeepSeek")}
+                    {renderProviderControl("grok", "Grok (X.AI)")}
                   </div>
                 </div>
               </GlassPanel>
@@ -575,6 +579,8 @@ export default function SettingsPage() {
               <div className="space-y-3">
                 {renderProviderControl("gemini", "Gemini")}
                 {renderProviderControl("openai", "OpenAI")}
+                {renderProviderControl("deepseek", "DeepSeek")}
+                {renderProviderControl("grok", "Grok (X.AI)")}
               </div>
             </GlassPanel>
 

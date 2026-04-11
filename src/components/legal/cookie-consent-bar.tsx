@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/i18n-context";
+import { useAuth } from "@/components/providers/auth-provider";
 import { hapticTap } from "@/lib/haptic";
 import { PRIVACY_POLICY_VERSION } from "@/lib/legal/privacy-policy";
 import {
@@ -15,6 +16,7 @@ import {
 export function CookieConsentBar() {
   const { t } = useI18n();
   const pathname = usePathname();
+  const { user, ready: authReady } = useAuth();
   const hydrated = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -23,7 +25,31 @@ export function CookieConsentBar() {
   const [dismissed, setDismissed] = useState(false);
   const [analytics, setAnalytics] = useState(() => Boolean(readStoredConsent()?.analytics));
 
-  const visible = hydrated && !dismissed && shouldShowConsentBanner();
+  // Check if there is a pending or active welcome modal for new users
+  const [welcomePending, setWelcomePending] = useState(false);
+
+  useEffect(() => {
+    if (!hydrated || !authReady || !user) return;
+    
+    const checkWelcome = () => {
+      const pendingKey = `majapps-auth-welcome-pending-${user.id}`;
+      const seenKey = `majapps-auth-welcome-seen-${user.id}`;
+      
+      const isPending = window.localStorage.getItem(pendingKey) === "true";
+      const isSeen = window.localStorage.getItem(seenKey) === "true";
+      
+      // Ja ir pending vai ja vēl nav redzēts (un mēs esam autorizēti), 
+      // tad uzskatām, ka Welcome logs vēl ir prioritāte.
+      setWelcomePending(isPending || !isSeen);
+    };
+
+    checkWelcome();
+    // Pārbaudām ik pēc sekundes, vai statuss nav mainījies (lietotājs aizvēris logu)
+    const interval = setInterval(checkWelcome, 1000);
+    return () => clearInterval(interval);
+  }, [hydrated, authReady, user]);
+
+  const visible = hydrated && !dismissed && shouldShowConsentBanner() && !welcomePending;
 
   if (!visible || pathname?.startsWith("/auth")) {
     return null;

@@ -2,6 +2,7 @@
 
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { useI18n } from "@/lib/i18n/i18n-context";
+import { useTheme } from "@/components/providers/theme-provider";
 
 type MedalSet = {
   gold: number;

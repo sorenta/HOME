@@ -338,3 +338,21 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
   - vienadota uzvediba visos galvenajos AI endpointos (Kitchen, Finance, Reset).
 - **Statuss:** Incidenta celsana aptureta, risinajums izvietots kodbase.
 - **Galvenie faili:** `src/app/api/ai/finance/route.ts`, `src/app/api/ai/reset/route.ts`.
+
+### [2026-04-11 13:45 Europe/Riga] Vertex AI integrācija, Multi-Provider AI un Botanical rekonstrukcija
+- **Ierakstu veica:** Gemini CLI (Software Engineer)
+- **Kāpēc ieraksts veikts:** Uzlabot aplikācijas AI jaudu (Gemini 3.1 Pro), paplašināt datu bāzi un uzlabot Botanical motīva lietojamību.
+- **Kas salabots:** 
+  1. Atjaunota `.env` faila integritāte un Vertex AI autorizācija.
+  2. Novērsta `useTheme` kļūda `ProfileSummary` un salabota QR koda loģika Profilā.
+  3. Sakārtota autorizācijas modālo logu secība (Welcome -> Privacy).
+- **Kas izdarīts:** 
+  1. Ieviests Vertex AI atbalsts ar `gemini-3.1-pro` kā galveno modeli.
+  2. Pievienoti DeepSeek un Grok (X.AI) nodrošinātāji visos AI moduļos.
+  3. Pilnībā pārveidots Botanical motīvs (Tumšais stils + asimetrisks Sektoru izkārtojums).
+  4. Paplašināta Virtuves produktu vārdnīca līdz 350+ vienībām (bērnu pārtika, garšvielas, superprodukti).
+- **Ietekme:** Būtiski uzlabota aplikācijas vizuālā kvalitāte un AI funkciju precizitāte; sakārtota autorizētā lietotāja pirmā pieredze.
+- **Verifikācija:** `npm run dev`, `lint`, `build` veiksmīgi; vizuālā pārbaude ar Playwright autorizētiem testiem visos motīvos.
+- **Riska piezīmes (nebūtiski):** Botanical asimetriskais izkārtojums prasa lielāku ekrāna platumu optimālai attēlošanai (desktop mode).
+- **Galvenie faili:** `src/lib/theme-logic.ts`, `src/lib/kitchen-data.ts`, `src/app/api/ai/*/route.ts`, `src/components/dashboard/dashboard-home-layout.tsx`, `src/components/profile/household-card.tsx`.
+

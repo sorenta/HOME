@@ -158,6 +158,10 @@ export const dictionaries: Record<
       "Gemini atslēga izskatās pārāk īsa. Pārbaudi, vai esi ielicis pilnu API key.",
     "settings.byok.invalidOpenai":
       "OpenAI atslēgai jāsākas ar 'sk-' un tai jābūt pilnai.",
+    "settings.byok.invalidDeepseek":
+      "DeepSeek atslēgai jāsākas ar 'sk-' un tai jābūt pilnai.",
+    "settings.byok.invalidGrok":
+      "Grok (X.AI) atslēgai jāsākas ar 'sk-' un tai jābūt pilnai.",
     "settings.byok.verifyFailed": "Neizdevās pārbaudīt API atslēgu.",
     "settings.byok.savedDevice": "Saglabāts serverī kā",
     "settings.byok.unsaved": "Izmaiņas vēl nav pārbaudītas un saglabātas.",
@@ -1087,6 +1091,10 @@ export const dictionaries: Record<
       "This Gemini key looks too short. Make sure you pasted the full API key.",
     "settings.byok.invalidOpenai":
       "An OpenAI key must start with 'sk-' and include the full secret.",
+    "settings.byok.invalidDeepseek":
+      "A DeepSeek key must start with 'sk-' and include the full secret.",
+    "settings.byok.invalidGrok":
+      "A Grok (X.AI) key must start with 'sk-' and include the full secret.",
     "settings.byok.verifyFailed": "Could not verify the API key.",
     "settings.byok.savedDevice": "Saved on server as",
     "settings.byok.unsaved": "Changes are not verified and saved yet.",

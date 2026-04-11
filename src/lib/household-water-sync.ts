@@ -115,7 +115,12 @@ export async function loadWaterStateSynced(input: {
   });
 
   if (settleRes.error && !isMissingRelation(settleRes.error)) {
-    console.error("Failed to settle household water medals", settleRes.error);
+    console.error("Failed to settle household water medals", {
+      message: settleRes.error.message,
+      code: settleRes.error.code,
+      details: settleRes.error.details,
+      hint: settleRes.error.hint
+    });
     settleFailed = true;
   }
 

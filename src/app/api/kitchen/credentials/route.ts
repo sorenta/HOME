@@ -5,7 +5,7 @@ import { getSupabaseServerEnv } from "@/lib/supabase/env";
 export const runtime = "nodejs";
 
 type PostBody = {
-  provider?: "openai" | "gemini";
+  provider?: "openai" | "gemini" | "deepseek" | "grok";
   apiKey?: string;
 };
 
@@ -56,7 +56,8 @@ export async function POST(request: Request) {
     const provider = body.provider;
     const apiKey = body.apiKey?.trim();
 
-    if (provider !== "openai" && provider !== "gemini") {
+    const allowedProviders = ["openai", "gemini", "deepseek", "grok"];
+    if (!provider || !allowedProviders.includes(provider)) {
       return NextResponse.json({ ok: false, code: "BAD_PROVIDER" }, { status: 400 });
     }
 

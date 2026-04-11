@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { getSupabaseServerEnv } from "@/lib/supabase/env";
 import { checkRateLimit } from "@/lib/ai/rate-limit";
+import { VertexAI } from "@google-cloud/vertexai";
 
 export const runtime = "nodejs";
 
@@ -25,25 +26,72 @@ function parsePayload(raw: string) {
   if (text.startsWith("```")) {
     text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
   }
-  const parsed = JSON.parse(text) as Record<string, unknown>;
-  return {
-    reply: typeof parsed.reply === "string" ? parsed.reply : "",
-    suggestions: Array.isArray(parsed.suggestions)
-      ? parsed.suggestions.filter((x): x is string => typeof x === "string")
-      : [],
-    encouragement: typeof parsed.encouragement === "string" ? parsed.encouragement : "",
-  };
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    return {
+      reply: typeof parsed.reply === "string" ? parsed.reply : "",
+      suggestions: Array.isArray(parsed.suggestions)
+        ? parsed.suggestions.filter((x): x is string => typeof x === "string")
+        : [],
+      encouragement: typeof parsed.encouragement === "string" ? parsed.encouragement : "",
+    };
+  } catch (e) {
+    console.error("Failed to parse Reset AI JSON:", text);
+    throw e;
+  }
 }
 
-async function callOpenAI(apiKey: string, system: string, user: string) {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+async function callVertexAI(system: string, user: string) {
+  const project = process.env.GOOGLE_CLOUD_PROJECT;
+  const location = process.env.GOOGLE_CLOUD_LOCATION || "us-central1";
+
+  if (!project) {
+    return { ok: false as const, message: "Vertex AI project not configured." };
+  }
+
+  try {
+    const vertexAI = new VertexAI({ project, location });
+    const modelName = "gemini-3.1-pro"; 
+    const generativeModel = vertexAI.getGenerativeModel({
+      model: modelName,
+      generationConfig: { responseMimeType: "application/json", temperature: 0.6 },
+    });
+
+    const result = await generativeModel.generateContent({
+      contents: [{ role: "user", parts: [{ text: `${system}\n\n---\n\n${user}` }] }],
+    });
+
+    const response = result.response;
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) return { ok: false as const, message: "Empty Vertex AI response." };
+    return { ok: true as const, payload: parsePayload(text) };
+  } catch (err: any) {
+    console.error("Vertex AI Error (Reset):", err);
+    return { ok: false as const, message: err.message || "Vertex AI request failed." };
+  }
+}
+
+async function callOpenAI(apiKey: string, system: string, user: string, provider: string = "openai") {
+  let baseUrl = "https://api.openai.com/v1/chat/completions";
+  let model = "gpt-4o-mini";
+
+  if (provider === "deepseek") {
+    baseUrl = "https://api.deepseek.com/v1/chat/completions";
+    model = "deepseek-chat";
+  } else if (provider === "grok") {
+    baseUrl = "https://api.x.ai/v1/chat/completions";
+    model = "grok-1";
+  }
+
+  const res = await fetch(baseUrl, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: model,
       response_format: { type: "json_object" },
       temperature: 0.6,
       messages: [
@@ -72,7 +120,7 @@ async function callOpenAI(apiKey: string, system: string, user: string) {
 }
 
 async function getGeminiModelCandidates(apiKey: string): Promise<string[]> {
-  const preferred = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-1.5-flash-latest"];
+  const preferred = ["gemini-3.1-pro", "gemini-3.1-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-1.5-flash-latest"];
   const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
 
   try {
@@ -184,33 +232,11 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as Body;
-    // Reuse user BYOK key
-    const { data: cred, error: credErr } = await supabase
-      .from("user_kitchen_ai")
-      .select("provider, vault_secret_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (credErr?.code === "PGRST205") {
-      return NextResponse.json({ ok: false, code: "SCHEMA_MISSING" }, { status: 500 });
-    }
-
-    if (credErr || !cred?.vault_secret_id) {
-      return NextResponse.json({ ok: false, code: "NO_USER_AI" }, { status: 400 });
-    }
-
-    const { data: secretRow, error: secretErr } = await supabaseAdmin
-      .schema("vault")
-      .from("decrypted_secrets")
-      .select("decrypted_secret")
-      .eq("id", cred.vault_secret_id)
-      .maybeSingle();
-
-    const apiKey = secretRow?.decrypted_secret?.trim();
-    if (secretErr || !apiKey) {
-      return NextResponse.json({ ok: false, code: "NO_USER_AI_SECRET" }, { status: 500 });
-    }
-
+    
+    // Use Developer Credits (Vertex AI) if configured
+    const useDeveloperCredits = !!process.env.GOOGLE_CLOUD_PROJECT;
+    
+    let result;
     const locale = body.locale === "en" ? "en" : "lv";
     const userPrompt = (body.prompt ?? "").trim();
 
@@ -239,10 +265,38 @@ Never give medical advice. Focus on daily wellness habits.`;
       userPrompt ? `User question:\n${userPrompt}` : "Task: Analyze wellness data and give gentle advice.",
     ].filter(Boolean).join("\n\n");
 
-    const result =
-      cred.provider === "gemini"
-        ? await callGemini(apiKey, system, userBlock)
-        : await callOpenAI(apiKey, system, userBlock);
+    if (useDeveloperCredits) {
+      console.log(`[AI] Using Vertex AI Developer Credits (Reset) for user: ${user.id}`);
+      result = await callVertexAI(system, userBlock);
+    } else {
+      // User BYOK logic
+      const { data: cred, error: credErr } = await supabase
+        .from("user_kitchen_ai")
+        .select("provider, vault_secret_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (credErr || !cred?.vault_secret_id) {
+        return NextResponse.json({ ok: false, code: "NO_USER_AI" }, { status: 400 });
+      }
+
+      const { data: secretRow, error: secretErr } = await supabaseAdmin
+        .schema("vault")
+        .from("decrypted_secrets")
+        .select("decrypted_secret")
+        .eq("id", cred.vault_secret_id)
+        .maybeSingle();
+
+      const apiKey = secretRow?.decrypted_secret?.trim();
+      if (secretErr || !apiKey) {
+        return NextResponse.json({ ok: false, code: "NO_USER_AI_SECRET" }, { status: 500 });
+      }
+
+      result =
+        cred.provider === "gemini"
+          ? await callGemini(apiKey, system, userBlock)
+          : await callOpenAI(apiKey, system, userBlock, cred.provider);
+    }
 
     if (!result.ok) {
       return NextResponse.json({ ok: false, code: "LLM_ERROR", message: result.message }, { status: 502 });
@@ -254,3 +308,4 @@ Never give medical advice. Focus on daily wellness habits.`;
     return NextResponse.json({ ok: false, code: "INTERNAL" }, { status: 500 });
   }
 }
+

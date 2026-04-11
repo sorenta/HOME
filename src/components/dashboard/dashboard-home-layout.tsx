@@ -89,36 +89,59 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
 
   if (themeId === "botanical") {
     return (
-      <div className="maj-dash-compose maj-dash-compose--botanical">
+      <div className="maj-dash-compose maj-dash-compose--botanical space-y-6">
         {header}
-        <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">Fokuss</p>
-          <div className="maj-botanical-shelf-plate min-w-0">
-            {focus ? <div className="mb-3">{focus}</div> : null}
-            {notice}
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* KREISĀ PUSE (Lielā zona) */}
+          <div className="lg:col-span-8 space-y-6">
+            <section className="maj-botanical-hero relative overflow-hidden rounded-[2.5rem]">
+              <div className="maj-botanical-shelf-plate p-8 border-none bg-gradient-to-br from-white/[0.08] to-transparent backdrop-blur-xl">
+                {focus ? <div className="mb-8">{focus}</div> : null}
+                {notice}
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <div className="flex items-center gap-3 px-2">
+                <span className="h-px flex-1 bg-gradient-to-r from-accent/30 to-transparent" />
+                <p className="maj-botanical-shelf-label m-0">Galvenie moduļi</p>
+              </div>
+              <div className="maj-botanical-shelf-plate border-accent/10">
+                {modules}
+              </div>
+            </section>
+
+            {feed ? (
+              <section className="space-y-4">
+                <p className="maj-botanical-shelf-label px-2">Mājas dzīve</p>
+                <div className="maj-botanical-shelf-plate">{feed}</div>
+              </section>
+            ) : null}
           </div>
-        </section>
-        <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">Moduļi</p>
-          <div className="maj-botanical-shelf-plate min-w-0">{modules}</div>
-        </section>
-        <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">Ūdens un rādītāji</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="maj-botanical-shelf-plate min-w-0">{water}</div>
-            <div className="maj-botanical-shelf-plate min-w-0">{metrics}</div>
+
+          {/* LABĀ PUSE (Statistiskā zona) */}
+          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+            <section className="space-y-4">
+              <p className="maj-botanical-shelf-label px-2">Dzīvības spēks</p>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="maj-botanical-shelf-plate bg-accent/5 border-accent/20">
+                  {water}
+                </div>
+                <div className="maj-botanical-shelf-plate">
+                  {metrics}
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <p className="maj-botanical-shelf-label px-2">Mājsaimniecība</p>
+              <div className="maj-botanical-shelf-plate">
+                {householdSummary}
+              </div>
+            </section>
           </div>
-        </section>
-        <section className="maj-botanical-shelf maj-section-gap">
-          <p className="maj-botanical-shelf-label">Mājsaimniecība</p>
-          <div className="maj-botanical-shelf-plate min-w-0">{householdSummary}</div>
-        </section>
-        {feed ? (
-          <section className="maj-botanical-shelf maj-section-gap">
-            <p className="maj-botanical-shelf-label">Plūsma</p>
-            <div className="maj-botanical-shelf-plate min-w-0">{feed}</div>
-          </section>
-        ) : null}
+        </div>
       </div>
     );
   }

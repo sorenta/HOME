@@ -57,14 +57,8 @@ export function BentoDashboard() {
           </div>
         ),
         focus: <TodayFocus />,
-        householdSummary: <HouseholdOnboarding />,
-        water: (
-          <HouseholdWaterWidget
-            scopeId={waterScopeId}
-            members={members}
-            currentUserId={user?.id ?? null}
-          />
-        ),
+        householdSummary: householdId ? <HouseholdWaterWidget scopeId={waterScopeId} members={members} currentUserId={user?.id ?? null} /> : null,
+        water: null,
       }}
     >
     </DashboardHomeLayout>
