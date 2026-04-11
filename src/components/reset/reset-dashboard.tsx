@@ -261,85 +261,20 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
   const todayDayOfWeek = new Date().getDay(); // 0 is Sunday
   const isSunday = todayDayOfWeek === 0;
 
-  const focusCard = useMemo(() => {
-    if (isSunday && hasTodayCheckIn) {
-      return {
-        title: locale === "lv" ? "Svētdienas kopsavilkums" : "Sunday Summary",
-        body: locale === "lv" 
-          ? "Lieliska nedēļa! Paņem mirkli, lai apskatītu savus trendus un sagatavotos jaunai nedēļai." 
-          : "Great week! Take a moment to review your trends and prep for the week ahead.",
-        cta: locale === "lv" ? "Apskatīt trendus" : "View trends",
-        onClick: () => {
-          setActiveTab("progress");
-          setTimeout(() => scrollToSection("reset-trends-panel"), 100);
-        },
-      };
-    }
-
+  const greetingText = useMemo(() => {
+    const hour = new Date().getHours();
+    const timeGreeting = hour < 12 ? (locale === "lv" ? "Labrīt" : "Good morning") :
+                         hour < 18 ? (locale === "lv" ? "Labdien" : "Good afternoon") :
+                         (locale === "lv" ? "Labvakar" : "Good evening");
+    
     if (!hasTodayCheckIn) {
-      return {
-        title:
-          locale === "lv"
-            ? "Piefiksē šodienas privātos signālus"
-            : "Log today’s private signals",
-        body:
-          locale === "lv"
-            ? "RESET sadaļa kļūst noderīga tikai tad, kad tajā ir šodienas ritms: noskaņojums, enerģija un daži ikdienas dati." 
-            : "RESET becomes useful when today’s rhythm is present: mood, energy, and a few daily signals.",
-        cta: locale === "lv" ? "Atvērt check-in" : "Open check-in",
-        onClick: () => {
-          setActiveTab("today");
-          setTimeout(() => scrollToSection("reset-daily-signals"), 100);
-        },
-      };
+       return `${timeGreeting}! ${locale === "lv" ? "Kāds ir tavs šodienas ritms?" : "What's your rhythm today?"}`;
     }
-
-    if (quitPlan && quitDays < 7) {
-      return {
-        title:
-          locale === "lv"
-            ? "Nosargā pirmās 7 dienas"
-            : "Protect the first 7 days",
-        body:
-          locale === "lv"
-            ? "Pirmajā nedēļā svarīgākais ir konsekvence. Paturi streak redzamu un vakarā pievieno īsu piezīmi sev." 
-            : "Consistency matters most during the first week. Keep the streak visible and leave yourself a short note tonight.",
-        cta: locale === "lv" ? "Skatīt streak" : "View streak",
-        onClick: () => {
-          setActiveTab("progress");
-          setTimeout(() => scrollToSection("reset-quit-streak"), 100);
-        },
-      };
+    if (isSunday) {
+       return locale === "lv" ? "Svētdienas miers. Lieliska nedēļa!" : "Sunday calm. Great week!";
     }
-
-    if (quickMetrics.includes("weight") && lastWeight == null) {
-      return {
-        title:
-          locale === "lv"
-            ? "Pievieno pirmo ķermeņa ierakstu"
-            : "Add your first body log",
-        body:
-          locale === "lv"
-            ? "Ja izvēlējies svaru vai ķermeņa mērījumus, viens sākuma punkts padara progresu daudz skaidrāku jau pēc dažām dienām." 
-            : "If you track weight or measurements, one baseline entry makes progress clearer within a few days.",
-        cta: locale === "lv" ? "Atvērt body tracking" : "Open body tracking",
-        onClick: () => {
-          setActiveTab("progress");
-          setTimeout(() => scrollToSection("reset-body-tracking"), 100);
-        },
-      };
-    }
-
-    return {
-      title: locale === "lv" ? "Turpini mierīgu ritmu" : "Keep a calm rhythm",
-      body:
-        locale === "lv"
-          ? "Šodienas RESET jau ir kustībā. Vari pielabot anketu, pieslēgt veselības avotus vai palūgt AI īsu ieteikumu." 
-          : "Today’s RESET is already in motion. You can refine the questionnaire, connect health sources, or ask AI for a short suggestion.",
-      cta: locale === "lv" ? "Atvērt anketu" : "Open questionnaire",
-      onClick: onOpenQuestionnaire,
-    };
-  }, [hasTodayCheckIn, isSunday, lastWeight, locale, onOpenQuestionnaire, quickMetrics, quitDays, quitPlan]);
+    return `${timeGreeting}! ${locale === "lv" ? "Tavs dienas ritms ir fiksēts." : "Your daily rhythm is logged."}`;
+  }, [locale, hasTodayCheckIn, isSunday]);
 
   const quickActions = useMemo(
     () => [
@@ -398,20 +333,24 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                     STATUS: OPERATIONAL_OVERVIEW
                   </p>
                   <h2 className="text-2xl font-bold uppercase tracking-tight text-white font-(family-name:--font-rajdhani)">
-                    {focusCard.title}
+                    {greetingText}
                   </h2>
                   <p className="max-w-2xl text-sm leading-relaxed text-white/60">
-                    {focusCard.body}
+                    {hasTodayCheckIn 
+                      ? (locale === "lv" ? "Dati sinhronizēti un saglabāti arhīvā." : "Data synced and securely archived.")
+                      : (locale === "lv" ? "Sistēma gaida dienas rādītāju ievadi." : "System awaits daily input.")}
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={focusCard.onClick}
-                  className="inline-flex shrink-0 items-center justify-center rounded-sm border border-primary/30 bg-primary/10 px-4 py-2 text-[0.6rem] font-black uppercase tracking-widest text-primary hover:bg-primary/20 transition-all"
-                >
-                  [ {focusCard.cta} ]
-                </button>
+                {!hasTodayCheckIn && (
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection("reset-daily-signals")}
+                    className="inline-flex shrink-0 items-center justify-center rounded-sm border border-primary/30 bg-primary/10 px-4 py-2 text-[0.6rem] font-black uppercase tracking-widest text-primary hover:bg-primary/20 transition-all"
+                  >
+                    [ {locale === "lv" ? "Atvērt Check-in" : "Open Check-in"} ]
+                  </button>
+                )}
               </div>
 
               <ResetMoodPanel
@@ -544,30 +483,31 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
 
           {/* TAB CONTENT: TODAY */}
           {activeTab === "today" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="grid gap-4 lg:grid-cols-[1fr_minmax(320px,1.2fr)]">
-                <GlassPanel className="space-y-4 border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-card)_92%,white_8%)] p-5 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
-                      {locale === "lv" ? "RESET pārskats" : "RESET overview"}
-                    </p>
-                    <h2 className="text-2xl font-semibold text-(--color-text-primary)">
-                      {focusCard.title}
-                    </h2>
-                    <p className="max-w-md text-sm leading-relaxed text-(--color-text-secondary)">
-                      {focusCard.body}
-                    </p>
-                  </div>
-                  <div className="pt-4 flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={focusCard.onClick}
-                      className="inline-flex shrink-0 items-center justify-center rounded-full border border-(--color-accent) bg-(--color-surface-2) px-4 py-2 text-sm font-semibold text-(--color-text-primary) shadow-sm transition hover:bg-(--color-surface-border)"
-                    >
-                      {focusCard.cta}
-                    </button>
-                  </div>
-                </GlassPanel>
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-2xl mx-auto w-full">
+              
+              {/* Clean Greeting instead of a massive box */}
+              <div className="text-center space-y-3 py-6">
+                <h2 className="text-3xl font-medium text-(--color-text-primary) tracking-tight">
+                  {greetingText}
+                </h2>
+                <p className="text-(--color-text-secondary) text-sm">
+                  {!hasTodayCheckIn 
+                    ? (locale === "lv" ? "Piefiksē pāris signālus, lai saglabātu saikni ar sevi un redzētu dinamiku." : "Log a few signals to stay connected with yourself and see your progress.")
+                    : (locale === "lv" ? "Vari aprunāties ar AI asistentu vai vienkārši atpūsties." : "You can chat with the AI assistant or just rest.")}
+                </p>
+              </div>
+
+              {/* The Form takes center stage */}
+              <div id="reset-daily-signals" className="w-full">
+                <ResetDailySignalsForm
+                  userId={userId}
+                  trackMetrics={quickMetrics}
+                  onSaved={() => setSignalsRefreshToken((value) => value + 1)}
+                />
+              </div>
+
+              {/* AI is available underneath as a helper */}
+              <div className="pt-2">
                 <ResetAiPanel
                   mood={moodLabel}
                   moodScore={moodScore}
@@ -577,45 +517,17 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                   goals={aiGoals}
                 />
               </div>
-              <div id="reset-daily-signals" className="max-w-4xl mx-auto w-full">
-                <ResetDailySignalsForm
-                  userId={userId}
-                  trackMetrics={quickMetrics}
-                  onSaved={() => setSignalsRefreshToken((value) => value + 1)}
-                />
-              </div>
             </div>
           )}
 
           {/* TAB CONTENT: PROGRESS */}
           {activeTab === "progress" && (
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.85fr)] items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid gap-6 lg:grid-cols-[minmax(340px,0.85fr)_minmax(0,1.2fr)] items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                      {locale === "lv" ? "Šodienas dati" : "Today's logs"}
-                    </p>
-                    <p className="mt-1 text-xl font-bold text-(--color-text-primary)">
-                      {signalsLoading
-                        ? "..."
-                        : completedSignals >= expectedSignals
-                          ? (locale === "lv" ? "Pabeigts" : "Done")
-                          : `${completedSignals}/${expectedSignals}`}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-(--color-surface-border) bg-[color-mix(in_srgb,var(--color-surface)_70%,transparent)] p-4 backdrop-blur-md">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
-                      {t("reset.dashboard.activeGoal")}
-                    </p>
-                    <p className="mt-1 text-xl font-bold text-(--color-text-primary) truncate">
-                      {goalLabel}
-                    </p>
-                  </div>
-                </div>
-                <div id="reset-trends-panel">
-                  <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
-                </div>
+                <ResetMoodPanel
+                  scorePercent={moodScore}
+                  scoreLabel={t("reset.score")}
+                />
                 {activeQuitGoals.length > 0 ? (
                   <div id="reset-quit-streak">
                     <ResetQuitStreak goals={activeQuitGoals} state={wellness} onUpdate={onUpdate} />
@@ -623,10 +535,9 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                 ) : null}
               </div>
               <div className="space-y-6">
-                <ResetMoodPanel
-                  scorePercent={moodScore}
-                  scoreLabel={t("reset.score")}
-                />
+                <div id="reset-trends-panel">
+                  <ResetTrendsPanel userId={userId} refreshToken={signalsRefreshToken} />
+                </div>
                 <div id="reset-body-tracking">
                   <ResetBodyTracking state={wellness} onUpdate={onUpdate} />
                 </div>
