@@ -20,8 +20,12 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
   // Block scrolling while onboarding is active and load initial state
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    const data = loadWellness();
-    if (data) setWellness(data);
+    
+    // We delay the state update slightly to avoid synchronous cascading renders
+    setTimeout(() => {
+      const data = loadWellnessState();
+      if (data) setWellness(data);
+    }, 0);
     
     return () => {
       document.body.style.overflow = "auto";
@@ -32,12 +36,12 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
     hapticTap();
     // Save the integrated RESET config
     if (wellness) {
-      persistWellness({
+      saveWellnessState({
         ...wellness,
         onboardingDone: true,
         onboardingProfile: {
           ...wellness.onboardingProfile,
-          primaryGoal: primaryGoal as any,
+          primaryGoal: primaryGoal as "weight" | "wellbeing" | "sleep" | "stress",
           trackMetrics: trackMetrics as any,
         }
       });
