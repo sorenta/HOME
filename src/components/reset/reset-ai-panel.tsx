@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
