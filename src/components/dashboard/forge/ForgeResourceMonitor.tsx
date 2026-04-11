@@ -22,7 +22,7 @@ export function ForgeResourceMonitor() {
     const fetchData = async () => {
       // 1. Fetch Water Data
       const { data: waterData } = await supabase
-        .from("water_logs")
+        .from("household_water_logs")
         .select("ml")
         .eq("user_id", user.id)
         .eq("logged_on", today);
@@ -36,7 +36,7 @@ export function ForgeResourceMonitor() {
         .select("mood, energy")
         .eq("user_id", user.id)
         .eq("logged_on", today)
-        .single();
+        .maybeSingle();
 
       let wellnessPct = 0;
       if (resetData) {

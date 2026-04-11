@@ -54,16 +54,16 @@ export function ForgeSatelliteComms() {
     if (!supabase) return;
 
     const fetchNextEvent = async () => {
-      const now = new Date().toISOString();
+      const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from("calendar_events")
         .select("id, title, starts_on")
         .eq("household_id", profile.household_id)
-        .neq("kind", "meal")
-        .gte("starts_on", now)
+        .neq("event_type", "meal")
+        .gte("starts_on", today)
         .order("starts_on", { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         setNextEvent(data);

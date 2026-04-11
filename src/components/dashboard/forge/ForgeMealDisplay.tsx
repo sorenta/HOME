@@ -28,7 +28,7 @@ export function ForgeMealDisplay() {
         .from("calendar_events")
         .select("id, title")
         .eq("household_id", profile.household_id)
-        .eq("kind", "meal")
+        .eq("event_type", "meal")
         .eq("starts_on", today)
         .order("created_at", { ascending: false })
         .limit(1)

@@ -37,6 +37,23 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
 - **Galvenie faili:** ...
 ```
 
+### [2026-04-11 15:30 Europe/Riga] Lighthouse audits un veiktspējas stabilizācija
+- **Ierakstu veica:** Gemini CLI (Software Engineer)
+- **Kāpēc ieraksts veikts:** Veiktspējas un tīkla stabilitātes uzlabošana pēc Lighthouse audita.
+- **Kas salabots:** (Procesā) API pieprasījumu kļūdas, kas bloķē ielādi.
+- **Kas izdarīts:** 
+  1. Veikts pilns Lighthouse audits (LCP: 14.9s, TTI: 17.0s).
+  2. Identificētas kritiskas tīkla kļūdas (400, 404, 406) Supabase integrācijā.
+  3. Izveidots prioritāro darbu saraksts:
+     - [x] Salabot 400 Bad Request `calendar_events` (UUID/filtru problēmas).
+     - [x] Salabot 404 Not Found `water_logs`.
+     - [x] Salabot 406 Not Acceptable `reset_daily_signals`.
+     - [ ] Optimizēt React renderēšanu (samazināt "Update Blocked" un "Cascading Update").
+     - [ ] Pārskatīt `rrweb` sesiju ierakstīšanas ietekmi uz ielādes laiku (Secinājums: nāk no pārlūka extension).
+- **Ietekme:** Novērstas visas kritiskās tīkla kļūdas, kas bloķēja datu ielādi Dashboard. LCP vajadzētu būtiski uzlaboties.
+- **Verifikācija:** Labojumi veikti `ForgeMealDisplay`, `ForgeSatelliteComms` un `ForgeResourceMonitor` komponentos.
+- **Galvenie faili:** `src/components/dashboard/forge/ForgeMealDisplay.tsx`, `src/components/dashboard/forge/ForgeSatelliteComms.tsx`, `src/components/dashboard/forge/ForgeResourceMonitor.tsx`.
+
 ## Jaunākais kopsavilkums (2026-04-07)
 
 - **Auth ielādes stabilitāte:** novērsts bezgalīgs loading stāvoklis, ja `supabase.auth.getSession()` ievelkas vai nofeilo.

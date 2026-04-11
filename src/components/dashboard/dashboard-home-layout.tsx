@@ -19,6 +19,8 @@ export type DashboardHomeSlots = {
   householdPanel?: ReactNode;
   modules?: ReactNode;
   feed?: ReactNode;
+  cart?: ReactNode;
+  reminders?: ReactNode;
 };
 
 type Props = {
@@ -40,6 +42,8 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
     householdPanel = null,
     modules = null,
     feed = null,
+    cart = null,
+    reminders = null,
   } = slots;
 
   if (themeId === "forge") {
@@ -89,59 +93,72 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
 
   if (themeId === "botanical") {
     return (
-      <div className="maj-dash-compose maj-dash-compose--botanical space-y-6">
-        {header}
-        
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* KREISĀ PUSE (Lielā zona) */}
-          <div className="lg:col-span-8 space-y-6">
-            <section className="maj-botanical-hero relative overflow-hidden rounded-[2.5rem]">
-              <div className="maj-botanical-shelf-plate p-8 border-none bg-gradient-to-br from-white/[0.08] to-transparent backdrop-blur-xl">
-                {focus ? <div className="mb-8">{focus}</div> : null}
-                {notice}
-              </div>
-            </section>
+      <div className="maj-dash-compose maj-dash-compose--botanical space-y-10 pt-20 pb-12">
+        {/* Ātrā izvēlne */}
+        <div className="px-2">{header}</div>
 
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 px-2">
-                <span className="h-px flex-1 bg-gradient-to-r from-accent/30 to-transparent" />
-                <p className="maj-botanical-shelf-label m-0">Galvenie moduļi</p>
-              </div>
-              <div className="maj-botanical-shelf-plate border-accent/10">
-                {modules}
-              </div>
-            </section>
-
-            {feed ? (
-              <section className="space-y-4">
-                <p className="maj-botanical-shelf-label px-2">Mājas dzīve</p>
-                <div className="maj-botanical-shelf-plate">{feed}</div>
-              </section>
-            ) : null}
+        {/* AUDZE 01: DZĪVĪBAS KODOLS */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 px-2 opacity-60">
+            <span className="text-[0.6rem] font-black text-accent uppercase tracking-[0.3em]">Audze 01</span>
+            <div className="h-px flex-1 bg-gradient-to-r from-accent/40 to-transparent" />
+            <span className="text-[0.6rem] font-bold text-accent uppercase tracking-widest italic">Dzīvības kodols un nodoms</span>
           </div>
+          <section className="maj-botanical-hero relative overflow-hidden rounded-[2.5rem]">
+            <div className="maj-botanical-shelf-plate p-8 border-none bg-gradient-to-br from-white/[0.08] to-transparent backdrop-blur-xl">
+              {focus ? <div className="mb-8">{focus}</div> : null}
+              {notice}
+            </div>
+          </section>
+        </div>
 
-          {/* LABĀ PUSE (Statistiskā zona) */}
-          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-            <section className="space-y-4">
-              <p className="maj-botanical-shelf-label px-2">Dzīvības spēks</p>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="maj-botanical-shelf-plate bg-accent/5 border-accent/20">
-                  {water}
-                </div>
-                <div className="maj-botanical-shelf-plate">
-                  {metrics}
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <p className="maj-botanical-shelf-label px-2">Mājsaimniecība</p>
-              <div className="maj-botanical-shelf-plate">
-                {householdSummary}
-              </div>
-            </section>
+        {/* AUDZE 02: VITALITĀTE (Ūdens Izaicinājums + Labsajūta) */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 px-2 opacity-60">
+            <span className="text-[0.6rem] font-black text-accent uppercase tracking-[0.3em]">Audze 02</span>
+            <div className="h-px flex-1 bg-gradient-to-r from-accent/40 to-transparent" />
+            <span className="text-[0.6rem] font-bold text-accent uppercase tracking-widest italic">Vitalitātes mērījumi</span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-8">
+              {water}
+            </div>
+            <div className="lg:col-span-4">
+              {metrics}
+            </div>
           </div>
         </div>
+
+        {/* AUDZE 03: MĀJSAIMNIECĪBA (Grozs + Atgādinājumi) */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 px-2 opacity-60">
+            <span className="text-[0.6rem] font-black text-accent uppercase tracking-[0.3em]">Audze 03</span>
+            <div className="h-px flex-1 bg-gradient-to-r from-accent/40 to-transparent" />
+            <span className="text-[0.6rem] font-bold text-accent uppercase tracking-widest italic">Operatīvā darbība</span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-7">
+              <div className="maj-botanical-shelf-plate">
+                <p className="maj-botanical-shelf-label mb-4">Iepirkumu grozs</p>
+                {cart}
+              </div>
+            </div>
+            <div className="lg:col-span-5">
+              <div className="maj-botanical-shelf-plate">
+                <p className="maj-botanical-shelf-label mb-4">Atgādinājumi</p>
+                {reminders}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Papildus plūsma, ja nepieciešams */}
+        {feed ? (
+          <div className="space-y-4 pt-6">
+            <p className="maj-botanical-shelf-label px-2">Notikumu hronika</p>
+            <div className="maj-botanical-shelf-plate">{feed}</div>
+          </div>
+        ) : null}
       </div>
     );
   }
