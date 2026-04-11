@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { useI18n } from "@/lib/i18n/i18n-context";
+import { useTheme } from "@/components/providers/theme-provider";
 import { fetchRecentSignals, type ResetDailySignalHistoryRow } from "@/lib/reset-daily-signals";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
 
 export function ResetJournal({ userId, refreshToken }: Props) {
   const { t, locale } = useI18n();
+  const { themeId } = useTheme();
   const [history, setHistory] = useState<ResetDailySignalHistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,11 +72,17 @@ export function ResetJournal({ userId, refreshToken }: Props) {
     );
   }
 
+  let title = locale === "lv" ? "Dienasgrāmata" : "Journal";
+  if (themeId === "forge") title = locale === "lv" ? "Sistēmas žurnāls" : "System Log";
+  if (themeId === "botanical") title = locale === "lv" ? "Ikdienas piezīmes" : "Daily Notes";
+  if (themeId === "lucent") title = locale === "lv" ? "Pārdomas" : "Reflections";
+  if (themeId === "pulse") title = locale === "lv" ? "Ritma arhīvs" : "Rhythm Log";
+
   return (
     <GlassPanel className="space-y-4 p-5 sm:p-6">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
-          {locale === "lv" ? "Privātais Arhīvs" : "Private Archive"}
+          {title}
         </p>
         <span className="text-[10px] text-(--color-text-secondary)">
           {locale === "lv" ? "Pēdējās 14 dienas" : "Last 14 days"}
