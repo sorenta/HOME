@@ -607,7 +607,7 @@ export const dictionaries: Record<
       "Šodien mājām der mierīgāks temps: īsa pastaiga, vakariņu deleģēšana vai klusāka vakara rutīna.",
     "reset.signals.title": "Dienas atskaite",
     "reset.signals.intro":
-      "Tavi dati tiek glabāti droši un privāti. Tos redzi tikai tu un tavs AI palīgs.",
+      "Tavi dati tiek glabāti droši un personīgi. Tos redzi tikai tu.",
     "reset.signals.groupActivity": "Aktivitāte",
     "reset.signals.groupSleep": "Miegs",
     "reset.signals.groupFeeling": "Pašsajūta",
@@ -1540,7 +1540,7 @@ export const dictionaries: Record<
       "A calmer pace fits today: a short walk, delegating dinner, or a quieter evening routine.",
     "reset.signals.title": "Daily logs",
     "reset.signals.intro":
-      "Your logs are stored securely and privately. Only you and your AI assistant have access.",
+      "Your logs are stored securely and personally. Only you can see them.",
     "reset.signals.groupActivity": "Activity",
     "reset.signals.groupSleep": "Sleep",
     "reset.signals.groupFeeling": "How you feel",
