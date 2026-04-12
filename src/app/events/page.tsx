@@ -24,6 +24,9 @@ import {
 } from "@/lib/events-planner";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
+import { ForgeEventsLayout } from "@/components/events/layouts/forge-layout";
+import { LucentEventsLayout } from "@/components/events/layouts/lucent-layout";
+import { DefaultEventsLayout } from "@/components/events/layouts/default-layout";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useTheme } from "@/components/providers/theme-provider";
 import { UpcomingEventForge } from "@/components/events/forge/UpcomingEventForge";
@@ -439,8 +442,52 @@ export default function EventsPage() {
     setIsAddMenuOpen(true);
   }
 
-  const selectedDateLabel = formatAppDate(selectedDate, locale) ?? selectedDate;
-  const { themeId } = useTheme();
+  const layoutProps = {
+    upcomingDetails,
+    locale,
+    calendarMonth,
+    selectedDate,
+    selectedDateLabel,
+    selectedDayItems,
+    indicatorsByDate,
+    monthDays,
+    isoForDate,
+    events,
+    tasks,
+    onSelectDate: (iso: string) => {
+      setSelectedDate(iso);
+      const day = new Date(`${iso}T00:00:00`);
+      if (!Number.isNaN(day.getTime())) {
+        setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+      }
+    },
+    onShiftMonth: (offset: number) =>
+      setCalendarMonth(
+        new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + offset, 1),
+      ),
+    onGoToToday: () => {
+      const now = new Date();
+      setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+      setSelectedDate(isoForDate(now));
+    },
+    onToggleTask: (taskId: string, done: boolean) => {
+      void handleToggleTask(taskId, done);
+    },
+    onDeleteEvent: (eventId: string) => {
+      void handleDeleteEvent(eventId);
+    },
+    onDeleteTask: (taskId: string) => {
+      void handleDeleteTask(taskId);
+    },
+    onEditItem: (item: any) => {
+      const itemKind = item.kind === "task" ? "homework" : (events.find(e => e.id === item.sourceId)?.kind || "event");
+      setEditingItem(item);
+      setActiveForgeForm(itemKind);
+    },
+    onAddClick: () => setIsAddMenuOpen(true),
+    onOpenUpcoming,
+    onEditUpcoming,
+  };
 
   return (
     <ModuleShell
@@ -461,191 +508,14 @@ export default function EventsPage() {
         ) : null}
 
         {themeId === "forge" ? (
-          <div className="space-y-10">
-            {/* SECTOR 01: TEMPORAL ANALYSIS */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 px-1 opacity-40">
-                <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 01</span>
-                <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Laika analīze</span>
-              </div>
-              <GlassPanel className="p-4 bg-black/20 backdrop-blur-xl border-white/5 rounded-sm">
-                {upcomingDetails ? (
-                  <UpcomingEventForge event={upcomingDetails} />
-                ) : (
-                  <div className="py-8 text-center opacity-20 text-[0.6rem] font-black uppercase tracking-widest">
-                    Nav gaidāmu notikumu
-                  </div>
-                )}
-              </GlassPanel>
-            </div>
-
-            {/* SECTOR 02: MATRIX GRID */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 px-1 opacity-40">
-                <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 02</span>
-                <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Nedēļas skats</span>
-              </div>
-              <ForgeWeeklyGrid
-                locale={locale}
-                selectedDate={selectedDate}
-                todayIso={isoForDate(new Date())}
-                indicatorsByDate={indicatorsByDate}
-                onSelectDate={(iso) => {
-                  setSelectedDate(iso);
-                  const day = new Date(`${iso}T00:00:00`);
-                  if (!Number.isNaN(day.getTime())) {
-                    setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
-                  }
-                }}
-              />
-            </div>
-
-            {/* SECTOR 03: DAILY OPERATIONS LOG */}
-            <div className="space-y-3 pb-12">
-              <div className="flex items-center gap-3 px-1 opacity-40">
-                <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 03</span>
-                <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Dienas žurnāls</span>
-              </div>
-              <DayEventsList
-                selectedDate={selectedDate}
-                selectedDateLabel={selectedDateLabel}
-                items={selectedDayItems}
-                onToggleTask={(taskId, done) => {
-                  void handleToggleTask(taskId, done);
-                }}
-                onDeleteEvent={(eventId) => {
-                  void handleDeleteEvent(eventId);
-                }}
-                onDeleteTask={(taskId) => {
-                  void handleDeleteTask(taskId);
-                }}
-                onEditItem={(item) => {
-                  const itemKind = item.kind === "task" ? "homework" : (events.find(e => e.id === item.sourceId)?.kind || "event");
-                  setEditingItem(item);
-                  setActiveForgeForm(itemKind);
-                }}
-                onAddClick={() => setIsAddMenuOpen(true)}
-              />            </div>
-          </div>
+          <ForgeEventsLayout {...layoutProps} />
+        ) : themeId === "lucent" ? (
+          <LucentEventsLayout {...layoutProps} />
         ) : (
-          <div className="space-y-6">
-            {themeId === "lucent" ? (
-              <button 
-                onClick={() => setIsAddMenuOpen(true)}
-                className="w-full flex items-center justify-center gap-3 rounded-[2rem] bg-[#FCFBF8] dark:bg-zinc-900/90 p-4 sm:p-5 shadow-[0_10px_20px_-5px_rgba(210,200,190,0.3),inset_0_1px_2px_rgba(255,255,255,1)] dark:shadow-[0_10px_20px_-5px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.05)] border border-[#F3F0EA] dark:border-zinc-800/80 transition-all hover:scale-[1.01] active:scale-95"
-              >
-                <div className="w-8 h-8 rounded-full bg-[#FAF8F5] dark:bg-white/5 border border-white/80 dark:border-white/5 shadow-sm flex items-center justify-center text-foreground/50">
-                  +
-                </div>
-                <span className="text-sm font-semibold text-foreground/80 tracking-wide">
-                  {t("events.add")}
-                </span>
-              </button>
-            ) : (
-              <GlassPanel className="space-y-4">
-                <UpcomingEventCard
-                  event={upcomingDetails}
-                  onOpen={onOpenUpcoming}
-                  onEdit={onEditUpcoming}
-                  onCreate={() => setIsAddMenuOpen(true)}
-                />
-              </GlassPanel>
-            )}
-
-            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <GlassPanel className="space-y-4">
-                {themeId === "lucent" ? (
-                  <LucentWeeklyGrid
-                    locale={locale}
-                    selectedDate={selectedDate}
-                    todayIso={isoForDate(new Date())}
-                    indicatorsByDate={indicatorsByDate}
-                    onSelectDate={(iso) => {
-                      setSelectedDate(iso);
-                      const day = new Date(`${iso}T00:00:00`);
-                      if (!Number.isNaN(day.getTime())) {
-                        setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
-                      }
-                    }}
-                  />
-                ) : (
-                  <CalendarGrid
-                    locale={locale}
-                    calendarMonth={calendarMonth}
-                    selectedDate={selectedDate}
-                    todayIso={isoForDate(new Date())}
-                    indicatorsByDate={indicatorsByDate}
-                    onSelectDate={(iso) => {
-                      setSelectedDate(iso);
-                      const day = new Date(`${iso}T00:00:00`);
-                      if (!Number.isNaN(day.getTime())) {
-                        setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
-                      }
-                    }}
-                    onShiftMonth={(offset) =>
-                      setCalendarMonth(
-                        new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + offset, 1),
-                      )
-                    }
-                    onGoToToday={() => {
-                      const now = new Date();
-                      setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
-                      setSelectedDate(isoForDate(now));
-                    }}
-                    monthDays={monthDays}
-                  />
-                )}
-              </GlassPanel>
-
-              <GlassPanel className="space-y-4">
-                {themeId === "lucent" ? (
-                  <LucentWeekEventsList
-                    selectedDate={selectedDate}
-                    allEvents={events}
-                    allTasks={tasks}
-                    onToggleTask={(taskId, done) => {
-                      void handleToggleTask(taskId, done);
-                    }}
-                    onDeleteEvent={(eventId) => {
-                      void handleDeleteEvent(eventId);
-                    }}
-                    onDeleteTask={(taskId) => {
-                      void handleDeleteTask(taskId);
-                    }}
-                    onEditItem={(item) => {
-                      const itemKind = item.kind === "task" ? "homework" : (events.find(e => e.id === item.sourceId)?.kind || "event");
-                      setEditingItem(item as DayEntry);
-                      setActiveForgeForm(itemKind);
-                    }}
-                  />
-                ) : (
-                  <DayEventsList
-                    selectedDate={selectedDate}
-                    selectedDateLabel={selectedDateLabel}
-                    items={selectedDayItems}
-                    onToggleTask={(taskId, done) => {
-                      void handleToggleTask(taskId, done);
-                    }}
-                    onDeleteEvent={(eventId) => {
-                      void handleDeleteEvent(eventId);
-                    }}
-                    onDeleteTask={(taskId) => {
-                      void handleDeleteTask(taskId);
-                    }}
-                    onEditItem={(item) => {
-                      const itemKind = item.kind === "task" ? "homework" : (events.find(e => e.id === item.sourceId)?.kind || "event");
-                      setEditingItem(item);
-                      setActiveForgeForm(itemKind);
-                    }}
-                  />
-                )}
-              </GlassPanel>
-            </div>
-          </div>
+          <DefaultEventsLayout {...layoutProps} />
         )}
+
+        <EventAddMenu
 
         <EventAddMenu
           isOpen={isAddMenuOpen}

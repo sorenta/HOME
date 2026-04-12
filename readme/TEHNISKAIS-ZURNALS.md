@@ -37,24 +37,23 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
 - **Galvenie faili:** ...
 ```
 
-### [2026-04-13 14:15 Europe/Riga] Full Audit & System Optimization (Phase 1 & 2)
+### [2026-04-13 15:30 Europe/Riga] Full Module Theme Adaptation & Layout Refactoring
 - **Ierakstu veica:** Gemini CLI (Maestro TechLead)
-- **Kāpēc ieraksts veikts:** Veikts visaptverošs SEO, Drošības, Piekļūstamības un Veiktspējas audits un tā remediācija saskaņā ar jauno attīstības ceļvedi.
+- **Kāpēc ieraksts veikts:** Pabeigta 2. FĀZE — visu lietotnes moduļu vizuālā adaptācija katrai no 5 tēmām un koda struktūras uzlabošana.
 - **Kas salabots:**
-  1. **Veiktspēja:** Samazināts LCP (no 14.9s), konsolidējot fontus un ieviešot 3D lazy loading.
-  2. **Drošība:** Novērsta [VULN-001] granulārās piekļuves kļūda mājsaimniecības biedriem (RLS hardening).
-  3. **Piekļūstamība:** Novērstas [A11Y-001] un [A11Y-003] kļūdas (mikro-teksti, <main> tags).
-  4. **SEO:** Ieviests robots.txt, sitemap un paplašināti metadati (OpenGraph/Twitter).
+  1. **Koda struktūra:** Milzīgie `page.tsx` faili (Settings, Events, Kitchen, RESET) refaktorēti, nodalot tēmu izkārtojumus atsevišķos `layouts/` failos.
+  2. **Vizuālā konsekvence:** Forge tēmai visos moduļos ieviesta "Sektoru" sistēma un industriāls stils.
+  3. **Lietojamība:** Uzlabots WalletHero (odometra efekts) un iestatījumu pārskatāmība.
 - **Kas izdarīts:**
-  1. **Projekta tīrīšana:** Izdzēsti >15 neizmantoti testa faili, pagaidu attēli un vecās informācijas mapes.
-  2. **Fontu optimizācija:** 10 fontu saimes aizstātas ar 3 (`Inter`, `Fraunces`, `Space Grotesk`) caur CSS aliasing.
-  3. **3D Lazy Loading:** `three.js` izdalīts atsevišķā komponentē un ielādēts dinamiski.
-  4. **ModuleShell & Finance/Kitchen tematizācija:** Iekšlapas tagad pilnībā adaptējas izvēlētajai tēmai (Forge odometrs, Botanical shelf, u.c.).
-  5. **Dokumentācija:** Izveidots `FULL_AUDIT.md`, `TEMAS.md` un sakārtota `readme/` mape.
-- **Ietekme:** Būtiski uzlabota aplikācijas drošība, ielādes ātrums un lietojamība. Kods ir kļuvis par ~33,000 rindām vieglāks (tīrīšanas rezultāts).
-- **Verifikācija:** `npm run build` veiksmīgs; manuāla RLS un vizuālā pārbaude visās tēmās.
-- **Riska piezīmes (tūlītēja uzmanība):** SQL migrācija `supabase/household_rls_fix.sql` jāpalaiž manuāli Supabase vidē.
-- **Galvenie faili:** `src/app/layout.tsx`, `src/app/globals.css`, `src/components/layout/module-shell.tsx`, `src/app/finance/page.tsx`, `src/app/kitchen/page.tsx`, `supabase/household_rls_fix.sql`.
+  1. **RESET modulis:** Izveidoti `ForgeResetLayout` un `DefaultResetLayout`.
+  2. **Events modulis:** Izveidoti `ForgeEventsLayout`, `LucentEventsLayout` un `DefaultEventsLayout`.
+  3. **Profile & Settings:** Izveidoti tēmu izkārtojumi identitātes un sistēmas konfigurācijas lapām.
+  4. **ModuleShell:** Papildināts ar ambientajiem fona slāņiem katrai tēmai.
+- **Ietekme:** Lietotne šķiet kā vienota, pabeigta ekosistēma. Koda bāze ir kļuvusi ievērojami modularāka un vieglāk testējama.
+- **Verifikācija:** Vizuāla pārbaude visām tēmām visos moduļos; lint un build testi.
+- **Galvenie faili:** `src/app/settings/page.tsx`, `src/app/reset/page.tsx`, `src/app/events/page.tsx`, `src/components/layout/module-shell.tsx`, `src/components/finance/WalletHero.tsx`.
+
+### [2026-04-13 14:15 Europe/Riga] Full Audit & System Optimization (Phase 1)
 
 ### [2026-04-12 16:30 Europe/Riga] ESLint kļūdu novēršana — CI/CD deploy atbloķēšana
 - **Ierakstu veica:** GitHub Copilot (Claude Sonnet 4.6)

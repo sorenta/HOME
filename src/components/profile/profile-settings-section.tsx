@@ -6,6 +6,8 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { HouseholdCard } from "@/components/profile/household-card";
 import { ProfileHero } from "@/components/profile/profile-hero";
 import { ProfileSummary } from "@/components/profile/profile-summary";
+import { ForgeProfileLayout } from "@/components/profile/layouts/forge-layout";
+import { DefaultProfileLayout } from "@/components/profile/layouts/default-layout";
 import { fetchMyHouseholdMembers, fetchMyHouseholdSummary, type HouseholdMember, type Household } from "@/lib/household";
 import { loadUserWaterMedals } from "@/lib/household-water-sync";
 import { useI18n } from "@/lib/i18n/i18n-context";
@@ -136,80 +138,26 @@ export function ProfileSettingsSection() {
     setIsEditOpen(false);
   }
 
-  const isForge = themeId === "forge";
+  const layoutProps = {
+    displayName,
+    role,
+    email: user?.email,
+    statusText,
+    onEditProfile: () => setIsEditOpen(true),
+    household,
+    householdMembers,
+    resetScore,
+    celebrationsCount,
+    householdMemberCount,
+    medals,
+  };
 
   return (
     <div className={isForge ? "space-y-10 pt-4 pb-12" : "space-y-4"}>
       {isForge ? (
-        <>
-          {/* SECTOR 01: IDENTITY_PROFILE */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 px-1 opacity-40">
-              <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 01</span>
-              <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Identitātes profils</span>
-            </div>
-            <ProfileHero
-              displayName={displayName}
-              role={role}
-              email={user?.email}
-              statusText={statusText}
-              onEditProfile={() => setIsEditOpen(true)}
-            />
-          </div>
-
-          {/* SECTOR 02: HOUSEHOLD_UNIT */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 px-1 opacity-40">
-              <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 02</span>
-              <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Mājsaimniecības vienība</span>
-            </div>
-            <HouseholdCard
-              household={household}
-              roleLabel={role}
-              members={householdMembers}
-            />
-          </div>
-
-          {/* SECTOR 03: PERSONNEL_MANIFEST */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 px-1 opacity-40">
-              <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 03</span>
-              <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-              <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Personāla manifests</span>
-            </div>
-            <ProfileSummary
-              resetScore={resetScore}
-              celebrationsCount={celebrationsCount}
-              householdMemberCount={householdMemberCount}
-              medals={medals}
-            />
-          </div>
-        </>
+        <ForgeProfileLayout {...layoutProps} />
       ) : (
-        <>
-          <ProfileHero
-            displayName={displayName}
-            role={role}
-            email={user?.email}
-            statusText={statusText}
-            onEditProfile={() => setIsEditOpen(true)}
-          />
-
-          <HouseholdCard
-            household={household}
-            roleLabel={role}
-            members={householdMembers}
-          />
-
-          <ProfileSummary
-            resetScore={resetScore}
-            celebrationsCount={celebrationsCount}
-            householdMemberCount={householdMemberCount}
-            medals={medals}
-          />
-        </>
+        <DefaultProfileLayout {...layoutProps} />
       )}
 
       {/* EDIT MODAL */}
