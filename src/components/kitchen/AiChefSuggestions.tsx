@@ -353,8 +353,3 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
     </div>
   );
 }
-Panel>
-      )}
-    </div>
-  );
-}
