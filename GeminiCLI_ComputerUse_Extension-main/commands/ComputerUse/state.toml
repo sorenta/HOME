@@ -13,23 +13,26 @@ Args:
 Steps:
 1) capture_state(action_name={{action_name|"state"}}, result_ok={{result_ok|true}}, error_msg={{error_msg|""}})
 2) If ok=false → print error and stop.
-3) If {{prompt}} provided, run a shell one-liner to call Gemini on the saved image.
+3) If {{prompt}} provided, run Gemini on the saved image using the host shell.
 
 !{
-set -euo pipefail
-P="{{path}}"
-PROMPT="{{prompt}}"
-if [ -z "${P}" ]; then
-  echo "No screenshot path returned."
-  exit 0
-fi
+  $ErrorActionPreference = "Stop"
 
-if [ -n "${PROMPT}" ] && [ "${PROMPT}" != "None" ]; then
-  gemini -p "@${P} ${PROMPT}"
-else
-  echo "Screenshot saved at: ${P}"
-  echo "URL: {{url}}"
-fi
+  $PathValue = "{{path}}"
+  $PromptText = "{{prompt}}"
+
+  if ([string]::IsNullOrWhiteSpace($PathValue)) {
+    Write-Output "No screenshot path returned."
+    exit 0
+  }
+
+  if (-not [string]::IsNullOrWhiteSpace($PromptText) -and $PromptText -ne "None") {
+    $GeminiBin = if ($env:GEMINI_BIN) { $env:GEMINI_BIN } else { "gemini" }
+    & $GeminiBin -p "@$PathValue $PromptText"
+  } else {
+    Write-Output "Screenshot saved at: $PathValue"
+    Write-Output "URL: {{url}}"
+  }
 }
 '''
 [defaults]

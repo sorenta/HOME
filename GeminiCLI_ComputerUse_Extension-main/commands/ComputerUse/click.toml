@@ -1,4 +1,4 @@
-name = "/computerusecomputeuse:click"
+name = "/computeruse:click"
 description = "Click at coordinates"
 prompt = '''
 You have the tool: execute_action.

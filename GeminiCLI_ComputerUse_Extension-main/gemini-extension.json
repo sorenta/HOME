@@ -4,10 +4,27 @@
 "description": "Gemini Computer Use - autonomous web browsing and testing including scroll, click, type, screenshot, pdf, and more.",
 "mcpServers": {
     "computerUse": {
-      "command": "bash",
-      "args": ["${extensionPath}${/}servers${/}run.sh"]
+      "command": "cmd.exe",
+      "args": ["/c", "${extensionPath}\\servers\\run.cmd"]
     }
 },
+"commands": [
+    {"path": "commands/ComputerUse/click.toml"},
+    {"path": "commands/ComputerUse/close.toml"},
+    {"path": "commands/ComputerUse/drag.toml"},
+    {"path": "commands/ComputerUse/googleSearch.toml"},
+    {"path": "commands/ComputerUse/help.toml"},
+    {"path": "commands/ComputerUse/init.toml"},
+    {"path": "commands/ComputerUse/javascript.toml"},
+    {"path": "commands/ComputerUse/macro.toml"},
+    {"path": "commands/ComputerUse/open.toml"},
+    {"path": "commands/ComputerUse/press.toml"},
+    {"path": "commands/ComputerUse/scroll.toml"},
+    {"path": "commands/ComputerUse/search.toml"},
+    {"path": "commands/ComputerUse/state.toml"},
+    {"path": "commands/ComputerUse/type.toml"},
+    {"path": "commands/ComputerUse/wikiSearch.toml"}
+],
 "contextFileName": "GEMINI.md",
 "excludeTools": []
 }

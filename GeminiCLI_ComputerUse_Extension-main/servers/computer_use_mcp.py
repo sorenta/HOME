@@ -13,7 +13,7 @@ Notes:
 - Logs to stderr only.
 """
 
-import os, sys, time, logging
+import os, sys, time, logging, tempfile
 from pathlib import Path
 from typing import Optional, Dict, Any
 from io import BytesIO
@@ -384,7 +384,7 @@ async def capture_state(action_name: str, result_ok: bool = True, error_msg: str
 
     try:
         screenshot_bytes = await page.screenshot(type="png")
-        temp_dir = Path("/tmp/gemini_computer_use")
+        temp_dir = Path(tempfile.gettempdir()) / "gemini_computer_use"
         temp_dir.mkdir(parents=True, exist_ok=True)
         fname = f"{int(time.time() * 1000)}_{action_name}.png"
         fpath = temp_dir / fname
