@@ -117,6 +117,3 @@ export function ProfileSummary({ resetScore, celebrationsCount, householdMemberC
     </GlassPanel>
   );
 }
-nel>
-  );
-}

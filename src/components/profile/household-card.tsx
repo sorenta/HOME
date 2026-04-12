@@ -174,8 +174,3 @@ export function HouseholdCard({ household, roleLabel, members }: HouseholdCardPr
     </GlassPanel>
   );
 }
-    </div>
-      )}
-    </GlassPanel>
-  );
-}
