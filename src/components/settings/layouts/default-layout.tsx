@@ -1,9 +1,16 @@
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { ThemeToolbarIcon } from "@/components/icons";
 import { THEMES, type ThemeId } from "@/lib/theme-logic";
-import { AiProvider, AiProviderMeta } from "@/lib/ai/keys";
+import { AiProvider } from "@/lib/ai/keys";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusPill } from "@/components/ui/status-pill";
+
+const PROVIDERS: { id: AiProvider; name: string }[] = [
+  { id: "gemini", name: "Gemini" },
+  { id: "openai", name: "OpenAI" },
+  { id: "deepseek", name: "DeepSeek" },
+  { id: "grok", name: "Grok (X.AI)" },
+];
 
 type Props = {
   t: (key: string) => string;
@@ -86,7 +93,7 @@ export function DefaultSettingsLayout({
           {byokMeta && <StatusPill tone="good" label="Aktīvs" />}
         </div>
         <GlassPanel className="space-y-6 p-6">
-          {AiProviderMeta.map((p) => (
+          {PROVIDERS.map((p) => (
             <div key={p.id} className="space-y-2">
               <label className="text-xs font-bold text-(--color-text-secondary)">{p.name} API atslēga</label>
               <div className="flex gap-2">
