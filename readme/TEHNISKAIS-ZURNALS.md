@@ -3,7 +3,7 @@
 Šis ir vienīgais aktīvais tehniskais žurnāls šajā repozitorijā.  
 Visi labojumi, deploy izmaiņas un tehniskie lēmumi tiek fiksēti tikai šeit.
 
-Pēdējā atjaunināšana: 2026-04-08
+Pēdējā atjaunināšana: 2026-04-12
 
 ## Ieraksta formāts
 
@@ -36,6 +36,25 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
 - **Riska piezīmes (tūlītēja uzmanība):** ...
 - **Galvenie faili:** ...
 ```
+
+### [2026-04-12 16:30 Europe/Riga] ESLint kļūdu novēršana — CI/CD deploy atbloķēšana
+- **Ierakstu veica:** GitHub Copilot (Claude Sonnet 4.6)
+- **Kāpēc ieraksts veikts:** GitHub Actions `Deploy to Vercel` pipeline "Run Linting" solis bija neveiksmīgs ar 581 ESLint kļūdu. Deploy bija pilnībā bloķēts.
+- **Kas salabots:**
+  1. **581 kļūdas no `n8n-as-code-main/scripts/`** — `@typescript-eslint/no-require-imports`, `@typescript-eslint/no-var-requires`, `@next/next/no-assign-module-variable`. Tās radās, jo ESLint lintoja trešās puses `.cjs` build rīku skriptus kā Next.js app kodu.
+  2. **`@typescript-eslint/no-explicit-any`** — trīs API maršrutos `catch (err: any)` radīja type drošības kļūdas.
+  3. **`react-hooks/set-state-in-effect`** — false-positive kļūda `global-onboarding.tsx` komponentā (standarta SSR hydration shēma).
+- **Kas izdarīts:**
+  1. `eslint.config.mjs` — pievienots `"n8n-as-code-main/**"` pie `globalIgnores`. Tas novērš visas 500+ kļūdas no trešās puses build tooling, kas nav Next.js app kods.
+  2. `src/app/api/ai/finance/route.ts` — `catch (err: any)` → `catch (err: unknown)` ar `err instanceof Error` drošu ziņojuma ekstrakciju.
+  3. `src/app/api/ai/reset/route.ts` — tas pats `any` → `unknown` labojums.
+  4. `src/app/api/kitchen/meals/route.ts` — tas pats `any` → `unknown` labojums.
+  5. `src/components/onboarding/global-onboarding.tsx` — `eslint-disable-next-line react-hooks/set-state-in-effect` pie `setMounted(true)` (standard hydration, nevis loģikas kļūda).
+- **Ietekme:** `eslint.config.mjs`, 3× API maršruti (`api/ai/finance`, `api/ai/reset`, `api/kitchen/meals`), `onboarding/global-onboarding.tsx`.
+- **Verifikācija:** `npx eslint src` → 0 errors (17 warnings, kas nav bloķējoši). VS Code diagnostika uz visiem labotajiem failiem → `No errors found`.
+- **Riska piezīmes (nebūtiski):** 17 `no-unused-vars` warnings paliek `src/components/reset/` — tie ir warnings, nevis errors, un netraucē CI.
+- **Riska piezīmes (tūlītēja uzmanība):** Nav.
+- **Galvenie faili:** `eslint.config.mjs`, `src/app/api/ai/finance/route.ts`, `src/app/api/ai/reset/route.ts`, `src/app/api/kitchen/meals/route.ts`, `src/components/onboarding/global-onboarding.tsx`.
 
 ### [2026-04-11 15:55 Europe/Riga] RESET moduļa UX - 2. posms (Vizuālie elementi un Empātija)
 - **Ierakstu veica:** Gemini CLI (Software Engineer)

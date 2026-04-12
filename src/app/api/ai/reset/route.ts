@@ -66,9 +66,10 @@ async function callVertexAI(system: string, user: string) {
 
     if (!text) return { ok: false as const, message: "Empty Vertex AI response." };
     return { ok: true as const, payload: parsePayload(text) };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Vertex AI Error (Reset):", err);
-    return { ok: false as const, message: err.message || "Vertex AI request failed." };
+    const message = err instanceof Error ? err.message : typeof err === "string" ? err : "Vertex AI request failed.";
+    return { ok: false as const, message };
   }
 }
 

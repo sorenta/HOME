@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { hapticTap } from "@/lib/haptic";
@@ -9,6 +10,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { AppSectionIcon } from "@/components/icons";
 import { useTheme } from "@/components/providers/theme-provider";
 import Image from "next/image";
+import Spline from '@splinetool/react-spline';
 
 type StepId = "welcome" | "dashboard" | "kitchen" | "household" | "reset_intro" | "reset_config" | "finish";
 
@@ -17,14 +19,18 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
   const { user } = useAuth();
   const { themeId } = useTheme();
   const [step, setStep] = useState<StepId>("welcome");
+  const [mounted, setMounted] = useState(false);
+  const [splineLoaded, setSplineLoaded] = useState(false);
   
   // RESET Config State (Integrated into the grand tour)
   const [wellness, setWellness] = useState<ResetWellnessV1 | null>(null);
-  const [primaryGoal] = useState("wellbeing"); // Keeping primaryGoal to read it, but removed setPrimaryGoal as it wasn't used
+  const [primaryGoal] = useState("wellbeing");
   const [trackMetrics, setTrackMetrics] = useState<string[]>(["mood", "energy", "sleep"]);
 
-  // Block scrolling while onboarding is active and load initial state
+  // Block scrolling while onboarding is active, load initial state, and mark as mounted for Portal
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
     document.body.style.overflow = "hidden";
     
     // We delay the state update slightly to avoid synchronous cascading renders
@@ -70,72 +76,93 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
     );
   };
 
-  return (
-    <div className={`fixed inset-0 z-[9999] pointer-events-auto flex flex-col justify-center px-4 py-8 transition-colors duration-700 ${
-      step === "welcome" ? "items-center bg-background/80 backdrop-blur-xl" : "items-center bg-background/20"
+  if (!mounted) return null;
+
+  const content = (
+    <div className={`fixed inset-0 z-[999999] pointer-events-auto flex flex-col justify-center px-4 sm:px-8 transition-colors duration-700 ${
+      step === "welcome" ? "items-center bg-background pb-16" : "items-center bg-background/30 backdrop-blur-sm pb-20"
     }`}>
-      <div className={`w-full max-w-sm relative transition-all duration-500 ${step === "welcome" ? "" : "mt-auto pb-20"}`}>
+      <div className={`w-full max-w-sm relative transition-all duration-500 flex flex-col items-center justify-center ${step === "welcome" ? "h-auto my-auto" : "mt-auto"}`}>
         
-        {/* H:O Assistant Animated Character - Popping up from bottom */}
+        {/* H:O Assistant Animated Character */}
         <motion.div 
           layout
-          initial={step === "welcome" ? { scale: 3.5, opacity: 0, y: "100vh" } : false}
+          initial={step === "welcome" ? { scale: 0.1, opacity: 0, y: 100 } : false}
           animate={step === "welcome" ? "welcome" : "tour"}
           variants={{
             welcome: {
-              scale: 3.5, // Ļoti liels mērogs, bet stabili uzstādīts jau sākumā
+              // We rely on Spline for inner animation, just pop in the container
+              scale: [0.1, 1.2, 1],
               opacity: 1,
-              y: "15vh", // Izlien no ekrāna apakšas, redzama galva un pleci
-              rotate: [0, -5, 3, -4, 2, 0, 0, 0, 0], // Nedaudz lēnāka "šūpošanās", nevis traka lidošana
+              y: 0,
+              rotateZ: 0,
               transition: {
-                y: {
-                  type: "spring",
-                  bounce: 0.2, // Nedaudz "atsitas" atnākot
-                  duration: 2.5 // Gludi iznirst 2.5 sekunžu laikā
-                },
-                opacity: {
-                  duration: 1
-                },
-                rotate: {
-                  duration: 4,
-                  repeat: Infinity,
-                  repeatDelay: 2,
-                  ease: "easeInOut"
-                }
+                y: { type: "spring", bounce: 0.4, duration: 1.2 },
+                opacity: { duration: 0.8 },
+                scale: { times: [0, 0.6, 1], duration: 1.2, ease: "easeOut" },
               }
             },
             tour: {
               scale: 1,
               opacity: 1,
-              y: [0, -8, 0], // The continuous hover
-              rotate: 0,
+              y: [0, -8, 0],
+              rotateZ: 0,
               transition: {
-                y: {
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                },
-                scale: {
-                  type: "spring",
-                  bounce: 0.4,
-                  duration: 1
-                }
+                y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                scale: { type: "spring", bounce: 0.4, duration: 1 }
               }
             }
           }}
-          className={`mx-auto relative flex items-center justify-center transition-all duration-700 ${
+          className={`relative flex items-center justify-center transition-all duration-700 ${
             step === "welcome" 
-              ? "z-0 mb-12 h-72 w-72 drop-shadow-[0_40px_80px_rgba(var(--color-primary-rgb),0.6)]" 
+              ? "z-50 mb-6 h-64 w-64 drop-shadow-[0_20px_50px_rgba(var(--color-primary-rgb),0.5)]" 
               : "z-50 mb-3 h-16 w-16 drop-shadow-[0_10px_20px_rgba(var(--color-primary-rgb),0.2)]"
           }`}
         >
-          <Image 
-            src="/asistenta-izskats/ho-assistant.png" 
-            alt="H:O Assistant" 
-            fill
-            className={`object-contain pointer-events-none ${step === "welcome" ? "origin-bottom" : ""}`}
-            priority
-          />
+          {/* Subtle pulsating glow behind the robot in welcome step */}
+          {step === "welcome" && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.9, 1.1, 0.9] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute inset-0 bg-primary/20 rounded-full blur-2xl -z-10"
+            />
+          )}
+
+          {step === "welcome" ? (
+            <div className="w-full h-full relative cursor-grab active:cursor-grabbing overflow-hidden rounded-3xl">
+               {/* Spline Loading State (Skeleton/Spinner) */}
+               <AnimatePresence>
+                  {!splineLoaded && (
+                    <motion.div 
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-full z-10"
+                    >
+                      <div className="w-8 h-8 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
+                    </motion.div>
+                  )}
+               </AnimatePresence>
+               {/* Premium 3D interactive robot hovering (Placeholder Spline scene URL, replace with actual H:O URL when ready) */}
+               <Spline 
+                  scene="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" 
+                  onLoad={(spline) => {
+                    // Force the scene background to be fully transparent on load
+                    spline.setZoom(1);
+                    setSplineLoaded(true);
+                  }}
+                  style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
+                  className="w-full h-full bg-transparent"
+               />
+            </div>
+          ) : (
+            <Image 
+              src="/asistenta-izskats/ho-assistant.png" 
+              alt="H:O Assistant" 
+              fill
+              className="object-contain pointer-events-none"
+              priority
+            />
+          )}
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -145,19 +172,22 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="text-center space-y-6 relative z-10"
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="text-center space-y-4 relative z-10 w-full"
             >
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 {locale === "lv" ? "Iepazīsimies?" : "Shall we get acquainted?"}
               </h1>
-              <p className="text-lg text-foreground/70 leading-relaxed">
+              
+              <p className="text-base sm:text-lg text-foreground/80 leading-relaxed max-w-[280px] mx-auto">
                 {locale === "lv" 
-                  ? "Es esmu H:O (vari mani saukt par Haosa Organizatoru, Helpu, varbūt Haosa Olimpu... sauc kā gribi!). Esmu šeit, lai palīdzētu tev atbrīvot galvu no simtiem sīkumu un mājas darbu, kas nemitīgi rosās tavā prātā." 
-                  : "I'm H:O (feel free to call me House Organizer, Hero of Order, Helper, or maybe Haven Optimizer... call me what you like!). I'm here to help you clear your head of the hundreds of little tasks and chores constantly buzzing in your mind."}
+                  ? "Es esmu H:O (tavs Haosa Organizators). Es palīdzēšu atbrīvot galvu no simtiem sīkumu un mājas darbu." 
+                  : "I'm H:O (your House Organizer). I'll help you clear your head of the hundreds of little tasks."}
               </p>
+              
               <button
                 onClick={() => nextStep("dashboard")}
-                className="mt-8 w-full rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-background transition-transform active:scale-95 shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)]"
+                className="mt-6 w-full rounded-2xl bg-primary px-6 py-4 text-base font-semibold text-background transition-transform active:scale-95 shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.4)] hover:scale-105"
               >
                 {locale === "lv" ? "Sākam ekskursiju!" : "Let's start the tour!"}
               </button>
@@ -362,4 +392,6 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }

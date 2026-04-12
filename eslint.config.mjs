@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Third-party build tooling – not Next.js app code.
+    "n8n-as-code-main/**",
   ]),
 ]);
 
