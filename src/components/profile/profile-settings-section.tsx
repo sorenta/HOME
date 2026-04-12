@@ -271,8 +271,3 @@ export function ProfileSettingsSection() {
     </div>
   );
 }
-  )}
-      </AnimatePresence>
-    </div>
-  );
-}
