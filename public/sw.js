@@ -1,5 +1,5 @@
-const CACHE_NAME = "majapps-shell-v4";
-const APP_SHELL = ["/", "/manifest.json", "/favicon.ico"];
+const CACHE_NAME = "majapps-shell-v5";
+const APP_SHELL = ["/", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -28,11 +28,23 @@ function detectIosSafari() {
 
 export function PwaInstallPrompt() {
   const { t } = useI18n();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
   const [installEvent, setInstallEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const [installed, setInstalled] = useState(isStandalone);
-  const [iosBannerVisible] = useState(detectIosSafari);
+  const [installed, setInstalled] = useState(false);
+
+  useEffect(() => {
+    if (!mounted) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInstalled(isStandalone());
+  }, [mounted]);
 
   useEffect(() => {
     if (installed) {
@@ -58,12 +70,14 @@ export function PwaInstallPrompt() {
     };
   }, [installed]);
 
+  const iosBannerVisible = mounted ? detectIosSafari() : false;
+
   const mode = useMemo(() => {
-    if (installed || dismissed) return "hidden";
+    if (!mounted || installed || dismissed) return "hidden";
     if (installEvent) return "prompt";
     if (iosBannerVisible) return "ios";
     return "hidden";
-  }, [dismissed, installEvent, installed, iosBannerVisible]);
+  }, [dismissed, installEvent, installed, iosBannerVisible, mounted]);
 
   async function handleInstall() {
     if (!installEvent) return;
