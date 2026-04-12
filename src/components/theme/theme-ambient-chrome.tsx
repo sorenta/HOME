@@ -54,7 +54,7 @@ export function ThemeAmbientChrome() {
       {themeId === "hive" && (
         <>
           <div className="maj-hive-hex-ambient" />
-          <HiveBackground beeCount={5} navSelector="header" />
+          <HiveBackground beeCount={5} />
         </>
       )}
       {themeId === "hive" && (
