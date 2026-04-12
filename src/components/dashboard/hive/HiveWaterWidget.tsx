@@ -211,6 +211,4 @@ export function HiveWaterWidget({ scopeId, members, currentUserId }: Props) {
     </motion.section>
   );
 }
-);
-}
 
