@@ -491,6 +491,8 @@ export default function EventsPage() {
     onEditUpcoming,
   };
 
+  const { themeId } = useTheme();
+
   return (
     <ModuleShell
       title={themeId === "forge" ? "Mērķi un uzdevumi" : t("tile.calendarEvents")}
