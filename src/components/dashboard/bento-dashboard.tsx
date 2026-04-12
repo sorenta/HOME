@@ -96,6 +96,9 @@ export function BentoDashboard() {
             <ResetMoodPanel
               scorePercent={resetScore}
               scoreLabel={t("reset.wellness.title")}
+              partnerLabel="Grupas rādītājs"
+              partnerValue="N/A"
+              partnerHint="Dati drīzumā"
             />
           ),
           cart: (
