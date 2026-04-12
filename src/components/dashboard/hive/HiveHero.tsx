@@ -36,8 +36,7 @@ export function HiveHero() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      className={`relative overflow-hidden ${hiveStyles.hiveCard} p-6 sm:p-8 bg-black/40 border-2 border-primary/20 shadow-[0_12px_24px_rgba(251,191,36,0.06)]`}
-      style={{ clipPath: "polygon(12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px)" }}
+      className={`relative overflow-hidden ${hiveStyles.hiveCard} rounded-3xl p-6 sm:p-8 bg-[color-mix(in_srgb,var(--color-card)_85%,transparent)] backdrop-blur-md border-2 border-primary/20 shadow-[0_12px_32px_rgba(217,119,6,0.1)]`}
     >
       {/* Background amber glow */}
       <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-primary/5 pointer-events-none" />
@@ -59,14 +58,14 @@ export function HiveHero() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="text-xs font-semibold text-primary/80 uppercase tracking-widest"
+              className="text-xs font-bold text-primary/90 uppercase tracking-widest"
             >
               {greeting.main}
             </motion.p>
-            <h1 className="text-3xl sm:text-4xl font-bold text-(--color-text-primary) tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-(--color-foreground) tracking-tight">
               {displayName}
             </h1>
-            <p className="text-sm font-medium text-(--color-text-secondary)">
+            <p className="text-sm font-medium text-(--color-foreground) opacity-70">
               {greeting.sub}
             </p>
           </div>
@@ -78,10 +77,10 @@ export function HiveHero() {
               transition={{ delay: 0.2, duration: 0.7 }}
               className="flex flex-col items-end"
             >
-              <p className="text-xs font-medium text-(--color-text-secondary) mb-0.5 uppercase tracking-wide">
+              <p className="text-xs font-bold text-(--color-foreground) opacity-60 mb-0.5 uppercase tracking-wide">
                 {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
               </p>
-              <p className="text-2xl font-bold tabular-nums text-(--color-text-primary) tracking-tight">
+              <p className="text-2xl font-bold tabular-nums text-(--color-foreground) opacity-90 tracking-tight">
                 {time}
               </p>
             </motion.div>

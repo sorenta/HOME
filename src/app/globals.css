@@ -75,6 +75,15 @@
   }
 
   body {
+    /* Font Aliasing for Performance: Mapping 10 families to 3 consolidated ones */
+    --font-manrope: var(--font-inter);
+    --font-nunito: var(--font-inter);
+    --font-rajdhani: var(--font-space-grotesk);
+    --font-barlow-condensed: var(--font-space-grotesk);
+    --font-lora: var(--font-fraunces);
+    --font-laila: var(--font-fraunces);
+    --font-playfair: var(--font-fraunces);
+
     /* Izmantojam tīru CSS bez @apply sākumā */
     background-color: hsl(40 25% 97%); /* Fallback */
     background-color: hsl(var(--background));
@@ -216,7 +225,7 @@
 
   .maj-home-kicker {
     margin: 0;
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -325,7 +334,7 @@
 
   .maj-home-section-eyebrow {
     margin: 0;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -2487,7 +2496,7 @@
   }
 
   .text-caption {
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -2805,4 +2814,33 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cpolygon points='28,2 52,14 52,34 28,46 4,34 4,14' fill='none' stroke='%23D97706' stroke-width='1.2'/%3E%3C/svg%3E");
   background-size: 56px 48px;
   background-repeat: repeat;
+}
+
+/* ─── FORGE: Technical grid ambient ──────────────────────────────── */
+.maj-forge-grid-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: radial-gradient(var(--color-primary) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ─── PULSE: Halftone dots ambient ────────────────────────────────── */
+.maj-pulse-dots-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: radial-gradient(#000 1.2px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+/* ─── BOTANICAL: Organic grain/texture ambient ───────────────────── */
+.maj-botanical-grain-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }

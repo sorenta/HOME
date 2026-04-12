@@ -2,6 +2,7 @@
 
 import { useTheme } from "@/components/providers/theme-provider";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { motion, AnimatePresence } from "framer-motion";
 
 type WalletHeroProps = {
   title: string;
@@ -11,6 +12,27 @@ type WalletHeroProps = {
   expenseShare: number;
   initials: string[];
 };
+
+function OdometerDigit({ value }: { value: string }) {
+  if (isNaN(Number(value))) return <span className="px-0.5">{value}</span>;
+  
+  return (
+    <div className="relative h-[1.2em] w-[0.6em] overflow-hidden inline-flex justify-center items-center">
+      <AnimatePresence mode="popLayout">
+        <motion.span
+          key={value}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -20, opacity: 0 }}
+          transition={{ duration: 0.4, ease: "backOut" }}
+          className="font-mono tabular-nums"
+        >
+          {value}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export function WalletHero({
   title,
@@ -93,40 +115,44 @@ export function WalletHero({
           >
             {title}
           </p>
-          <p className="mt-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
-            {subtitle}
-          </p>
+          <p className="text-xs opacity-50 font-medium">{subtitle}</p>
         </div>
 
-        <div className="inline-flex items-center gap-2">
+        <div className="flex -space-x-2">
           <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold border-2 border-background"
             style={{
-              background: "color-mix(in srgb, var(--color-accent) 22%, transparent)",
-              color: "var(--color-text-primary)",
-              border: "1px solid color-mix(in srgb, var(--color-border) 56%, transparent)",
+              background: "var(--color-accent)",
+              color: "white",
             }}
           >
             {leftInitial}
           </span>
           <span
-            className="-ml-3 inline-flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold border-2 border-background"
             style={{
-              background: "color-mix(in srgb, var(--color-success) 20%, transparent)",
-              color: "var(--color-text-primary)",
-              border: "1px solid color-mix(in srgb, var(--color-border) 56%, transparent)",
+              background: "var(--color-success)",
+              color: "white",
             }}
           >
             {rightInitial}
           </span>
         </div>
       </div>
+<div className="flex items-center gap-2">
+  {themeId === "forge" ? (
+    <div className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
+      {total.split('').map((char, i) => (
+        <OdometerDigit key={i} value={char} />
+      ))}
+    </div>
+  ) : (
+    <p className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
+      {total}
+    </p>
+  )}
+</div>
 
-      <div>
-        <p className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
-          {total}
-        </p>
-      </div>
 
       <div className="space-y-1.5">
         <div

@@ -59,7 +59,7 @@ export function UrgentItemsCard({ items, onOpenAll }: UrgentItemsCardProps) {
           <p className="text-xs uppercase tracking-[0.12em]" style={{ color: "var(--color-text-secondary)" }}>
             {t("kitchen.label.urgent")}
           </p>
-          <p className="text-[0.65rem] text-(--color-text-secondary) opacity-70">
+          <p className="text-xs text-(--color-text-secondary) opacity-70">
             {t("kitchen.hint.swipeSkelet")}
           </p>
         </div>
@@ -87,7 +87,7 @@ export function UrgentItemsCard({ items, onOpenAll }: UrgentItemsCardProps) {
                 <p className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
                   {item.name}
                 </p>
-                <span className="text-[11px] uppercase" style={{ color: "var(--color-text-secondary)" }}>
+                <span className="text-xs uppercase" style={{ color: "var(--color-text-secondary)" }}>
                   {item.status}
                 </span>
               </div>

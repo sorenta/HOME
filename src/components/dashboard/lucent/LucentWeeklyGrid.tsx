@@ -93,7 +93,7 @@ export function LucentWeeklyGrid({
       <div>
         <div className="grid grid-cols-7 gap-2 sm:gap-3 mb-2">
           {WEEKDAY_LABELS[locale].map((lbl, idx) => (
-            <div key={idx} className="text-center text-[0.65rem] font-bold text-foreground/40">
+            <div key={idx} className="text-center text-xs font-bold text-foreground/40">
               {lbl}
             </div>
           ))}

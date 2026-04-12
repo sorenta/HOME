@@ -12,10 +12,10 @@ export function FinanceSavingsGoals() {
     <section className="space-y-4">
       <div className="flex items-end justify-between px-1">
         <div className="space-y-0.5">
-          <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-(--color-accent)">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-(--color-accent)">
             {t("finance.goals") || (locale === "lv" ? "Kopīgie mērķi" : "Shared goals")}
           </p>
-          <p className="text-[0.68rem] text-(--color-text-secondary)">
+          <p className="text-xs text-(--color-text-secondary)">
             {t("finance.goalsHint") || (locale === "lv" ? "Kopīgie krājumi — progress redzams visiem biedriem" : "Shared savings — progress visible to everyone")}
           </p>
         </div>

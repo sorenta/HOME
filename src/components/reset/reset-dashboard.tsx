@@ -612,7 +612,7 @@ export function ResetDashboard({ wellness, userId, onOpenQuestionnaire, onUpdate
                 </button>
               </div>
               <div className="rounded-xl border border-(--color-surface-border) bg-background/50 p-3">
-                <p className="text-[10px] uppercase tracking-widest text-(--color-text-secondary)">
+                <p className="text-xs uppercase tracking-widest text-(--color-text-secondary)">
                   {locale === "lv" ? "Sekotie signāli" : "Tracked signals"}
                 </p>
                 <p className="mt-1 text-sm font-medium text-(--color-text-primary)">

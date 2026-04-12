@@ -112,7 +112,7 @@ export function KitchenStock({ items, onDelete, onAddToCart }: Props) {
                       <span className={`text-xs font-black uppercase tracking-widest ${isForge ? 'text-white/80' : 'text-[var(--color-text-primary)]'}`}>
                         {t(`kitchen.category.${cat}`)}
                       </span>
-                      <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-black/20 opacity-40">
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/20 opacity-40">
                         {groupItems.length}
                       </span>
                     </div>
@@ -128,7 +128,7 @@ export function KitchenStock({ items, onDelete, onAddToCart }: Props) {
                         className="overflow-hidden"
                       >
                         <table className="w-full text-left border-t border-white/5">
-                          <thead className={`text-[0.55rem] font-black uppercase tracking-widest opacity-30 ${isForge ? 'bg-white/5' : 'bg-[var(--color-surface-1)]'}`}>
+                          <thead className={`text-xs font-black uppercase tracking-widest opacity-30 ${isForge ? 'bg-white/5' : 'bg-[var(--color-surface-1)]'}`}>
                             <tr>
                               <th className="px-4 py-2">{locale === "lv" ? "Nosaukums" : "Name"}</th>
                               <th className="px-4 py-2">{locale === "lv" ? "Daudzums" : "Qty"}</th>
@@ -141,7 +141,7 @@ export function KitchenStock({ items, onDelete, onAddToCart }: Props) {
                                 <td className="px-4 py-3">
                                   <p className="text-sm font-bold text-[var(--color-text-primary)]">{item.name}</p>
                                   {item.expiry_date && (
-                                    <p className="text-[0.6rem] text-amber-500 font-mono">EXP: {item.expiry_date}</p>
+                                    <p className="text-xs text-amber-500 font-mono">EXP: {item.expiry_date}</p>
                                   )}
                                 </td>
                                 <td className="px-4 py-3 text-xs font-mono opacity-60">

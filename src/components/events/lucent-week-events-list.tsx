@@ -127,7 +127,7 @@ export function LucentWeekEventsList({
                     <span className="text-xs font-bold uppercase tracking-wider text-foreground/60">
                       {day.label}
                     </span>
-                    <span className="text-[0.65rem] font-bold text-foreground/30">
+                    <span className="text-xs font-bold text-foreground/30">
                       {day.iso.split("-").slice(1).join(".")}
                     </span>
                   </div>
@@ -146,14 +146,14 @@ export function LucentWeekEventsList({
                               <p className={`text-sm font-semibold ${"done" in item && item.done ? 'line-through opacity-60' : 'text-foreground/90'}`}>
                                 {item.title}
                               </p>
-                              <p className="text-[0.65rem] font-medium text-foreground/50 mt-0.5">
+                              <p className="text-xs font-medium text-foreground/50 mt-0.5">
                                 {item.timeLabel}
                               </p>
                             </div>
                           </div>
                           
                           <span
-                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold border border-foreground/10 text-foreground/60 bg-white/50 dark:bg-black/20"
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold border border-foreground/10 text-foreground/60 bg-white/50 dark:bg-black/20"
                           >
                             {item.style === "personal" ? "🔒" : "○"}
                             {item.style === "personal" ? t("events.personal") : t("events.shared")}
@@ -161,7 +161,7 @@ export function LucentWeekEventsList({
                         </div>
                         
                         {item.note && (
-                          <p className="mt-2 text-[0.7rem] italic text-foreground/50 pl-3.5 border-l-2 border-amber-200/50 dark:border-amber-900/30">
+                          <p className="mt-2 text-xs italic text-foreground/50 pl-3.5 border-l-2 border-amber-200/50 dark:border-amber-900/30">
                             {item.note}
                           </p>
                         )}
@@ -170,7 +170,7 @@ export function LucentWeekEventsList({
                           <button
                             type="button"
                             onClick={() => onEditItem(item as any)}
-                            className="rounded-full bg-white/80 dark:bg-white/5 border border-black/5 dark:border-white/10 px-2.5 py-1 text-[0.65rem] font-bold text-foreground/70 hover:bg-black/5 transition-colors"
+                            className="rounded-full bg-white/80 dark:bg-white/5 border border-black/5 dark:border-white/10 px-2.5 py-1 text-xs font-bold text-foreground/70 hover:bg-black/5 transition-colors"
                           >
                             {t("events.edit")}
                           </button>
@@ -179,7 +179,7 @@ export function LucentWeekEventsList({
                             <button
                               type="button"
                               onClick={() => onToggleTask(item.sourceId, !Boolean(item.done))}
-                              className="rounded-full bg-white/80 dark:bg-white/5 border border-black/5 dark:border-white/10 px-2.5 py-1 text-[0.65rem] font-bold text-foreground/70 hover:bg-black/5 transition-colors"
+                              className="rounded-full bg-white/80 dark:bg-white/5 border border-black/5 dark:border-white/10 px-2.5 py-1 text-xs font-bold text-foreground/70 hover:bg-black/5 transition-colors"
                             >
                               {item.done ? t("events.markOpen") : t("events.markDone")}
                             </button>
@@ -188,7 +188,7 @@ export function LucentWeekEventsList({
                           <button
                             type="button"
                             onClick={() => (item.kind === "event" ? onDeleteEvent(item.sourceId) : onDeleteTask(item.sourceId))}
-                            className="rounded-full bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-900/30 px-2.5 py-1 text-[0.65rem] font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 transition-colors"
+                            className="rounded-full bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-900/30 px-2.5 py-1 text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 transition-colors"
                           >
                             {t("events.delete")}
                           </button>

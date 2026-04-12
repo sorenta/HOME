@@ -631,3 +631,19 @@ export function buildRootThemeCssVars(m: ThemeManifestV2): Record<string, string
 
   return out;
 }
+
+/**
+ * Returns Framer Motion transition props tailored to the theme's personality.
+ * Also useful for performance throttling based on `motion` mode.
+ */
+export function transitionForTheme(themeId: ThemeId) {
+  const m = THEMES[themeId].motion;
+  if (m === "snappy") {
+    return { type: "spring", stiffness: 400, damping: 28 };
+  }
+  if (m === "soft") {
+    return { type: "spring", stiffness: 120, damping: 35 };
+  }
+  // organic
+  return { type: "spring", stiffness: 260, damping: 20 };
+}

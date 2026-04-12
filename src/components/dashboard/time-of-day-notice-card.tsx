@@ -67,7 +67,7 @@ export function TimeOfDayNoticeCard() {
         <Link
           href="/reset"
           onClick={() => hapticTap()}
-          className="shrink-0 self-start rounded-(--radius-button) border border-(--color-border) px-2.5 py-1 font-(family-name:--font-theme-sans) text-[0.7rem] font-semibold text-(--color-text-primary) sm:mt-5"
+          className="shrink-0 self-start rounded-(--radius-button) border border-(--color-border) px-2.5 py-1 font-(family-name:--font-theme-sans) text-xs font-semibold text-(--color-text-primary) sm:mt-5"
         >
           {sleep ? t("module.reset.checkin") : t("tile.reset")}
         </Link>

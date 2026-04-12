@@ -14,18 +14,17 @@ function seededUnit(seed: number): number {
   return raw - Math.floor(raw);
 }
 
-export function HiveBackground({ beeCount = 5, navSelector, className }: Props) {
+export function HiveBackground({ beeCount = 1, navSelector, className }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const beeRefs = useRef<HTMLDivElement[]>([]);
 
-  const [effectiveCount, setEffectiveCount] = useState<number>(() => Math.max(1, Math.floor(beeCount)));
+  const [effectiveCount, setEffectiveCount] = useState<number>(1);
 
   useEffect(() => {
     function updateCount() {
       if (typeof window === "undefined") return;
-      const w = window.innerWidth;
-      const c = w < 640 ? 3 : w < 1100 ? 5 : 7;
-      setEffectiveCount(Math.max(1, Math.floor(c)));
+      // Lock to exactly 1 bee to fix performance lag issues
+      setEffectiveCount(1);
     }
     // initial
     updateCount();
@@ -49,7 +48,7 @@ export function HiveBackground({ beeCount = 5, navSelector, className }: Props) 
         baseY: 12 + ((i * 11) % 62), // percent of viewport height
         ampX: 40 + ampXRand * 80, // reduced amplitude for smoother flight
         ampY: 18 + ampYRand * 50,
-        speed: 0.15 + speedRand * 0.4, // slower, more relaxed flying
+        speed: 0.08 + speedRand * 0.15, // dramatically slower, lazy flight
         phase: phaseRand * Math.PI * 2,
         size: 16 + Math.floor(sizeRand * 24), // slightly smaller bees
       };
@@ -109,23 +108,34 @@ export function HiveBackground({ beeCount = 5, navSelector, className }: Props) 
       landingTimer = window.setInterval(() => {
         const idle = state.map((s, idx) => ({ s, idx })).filter((x) => !x.s.landed);
         if (idle.length === 0) return;
-        if (Math.random() < 0.26) {
+        if (Math.random() < 0.15) { // 15% chance to try to land instead of 60%
           const pick = idle[Math.floor(Math.random() * idle.length)];
           const idx = pick.idx;
           const el = nodes[idx];
           if (!el) return;
-          const navSelectorList = document.querySelectorAll("nav, header, button, [data-theme='hive'] .glass-panel, [role='button'], a");
-          const navEl = navSelector
-            ? document.querySelector(navSelector)
-            : navSelectorList.length > 0 ? navSelectorList[Math.floor(Math.random() * Math.min(8, navSelectorList.length))] : null;
+          const rawList = document.querySelectorAll(
+            navSelector ? navSelector : "nav, header, .bento-tile, .glass-panel, button, [role='button'], a, section, article, div.maj-dash-compose > div"
+          );
+          
+          // Filter only elements mostly in viewport
+          const vh = window.innerHeight;
+          const vw = window.innerWidth;
+          const visibleElements = Array.from(rawList).filter((el) => {
+             const r = el.getBoundingClientRect();
+             // Check if the TOP edge is generally visible since we land on the top edge
+             return r.width > 20 && r.top > 20 && r.top < vh * 0.9 && r.left >= -50 && r.left < vw;
+          });
+          
+          const navEl = visibleElements.length > 0 
+            ? visibleElements[Math.floor(Math.random() * visibleElements.length)] 
+            : null;
           
           if (!navEl) return;
           
           const rect = navEl.getBoundingClientRect();
-          // Land randomly near the edges or center of the element
-          const margin = 10;
-          const targetX = rect.left + margin + Math.random() * (Math.max(1, rect.width - margin * 2)) - state[idx].size / 2;
-          const targetY = rect.top + margin + Math.random() * (Math.max(1, rect.height - margin * 2)) - state[idx].size / 2;
+          // Target the top edge of the element, randomizing horizontal position
+          const targetX = Math.max(0, Math.min(vw - state[idx].size, rect.left + Math.random() * (rect.width - state[idx].size)));
+          const targetY = rect.top - state[idx].size * 0.45; // lower onto the border, so the legs/body overlap the card edge for 3D effect
           
           state[idx].landed = true;
           let finalScaleX = 1;
@@ -146,25 +156,36 @@ export function HiveBackground({ beeCount = 5, navSelector, className }: Props) 
             }
           }
           
-          el.style.transition = "transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)";
+          const speedMs = 3000 + Math.random() * 2000; // Slow, lazy swooping flight to land (3 to 5 seconds)
+          el.style.transition = `transform ${speedMs}ms cubic-bezier(0.34, 1.56, 0.64, 1)`;
           el.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scaleX(${finalScaleX}) rotate(${landingAngle * finalScaleX}deg)`;
           
           // Add a tiny 'wiggle' after landing by applying a short rotation animation later
-          const restingAngle = (Math.random() > 0.5 ? -1 : 1) * (20 + Math.random() * 40);
+          const restingAngle = (Math.random() * 20 - 10); // Between -10 and 10 degrees
 
           setTimeout(() => {
              if (state[idx].landed && el) {
-                el.style.transition = "transform 0.5s ease-in-out";
+                el.style.transition = "transform 1.0s ease-in-out"; // smooth wiggle into place
                 el.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scaleX(${finalScaleX}) rotate(${restingAngle * finalScaleX}deg)`;
+                // Pause wings
+                el.dataset.landed = "true";
              }
-          }, 1200);
+          }, speedMs);
 
           setTimeout(() => {
             state[idx].landed = false;
-            if (el) el.style.transition = "";
-          }, 3000 + Math.random() * 3500);
+            if (el) {
+              el.style.transition = "transform 2.0s ease-in-out"; // smooth takeoff
+              delete el.dataset.landed;
+              
+              // Clear transition completely after takeoff so math animation takes over smoothly
+              setTimeout(() => {
+                 if (el) el.style.transition = "";
+              }, 2000);
+            }
+          }, speedMs + 6000 + Math.random() * 8000); // stay landed for 6 to 14 seconds
         }
-      }, 4500) as unknown as number;
+      }, 3000) as unknown as number; // check for landings less aggressively (every 3s)
     }
 
     return () => {

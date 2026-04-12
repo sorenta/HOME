@@ -142,11 +142,11 @@ export function TodayFocus() {
   return (
     <div className="maj-focus-container w-full">
       <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="text-[0.65rem] font-black uppercase tracking-[0.2em] text-(--color-text-secondary) opacity-70">
+        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-(--color-text-secondary) opacity-70">
           {t("dashboard.focus.title")}
         </h3>
         {items.length === 0 && (
-          <span className="text-[0.65rem] font-medium text-emerald-500 animate-pulse">
+          <span className="text-xs font-medium text-emerald-500 animate-pulse">
              ● {t("dashboard.focus.allClear")}
           </span>
         )}

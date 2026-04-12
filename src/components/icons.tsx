@@ -130,6 +130,7 @@ function AppSectionGlyph({
   const accentOpacity = themeId === "pulse" ? 0.14 : 0;
   const isForge = themeId === "forge";
   const isLucent = themeId === "lucent";
+  const isHive = themeId === "hive";
 
   // Forge technical accents (corner brackets/crosshairs)
   const forgeAccents = isForge ? (
@@ -140,6 +141,14 @@ function AppSectionGlyph({
 
   switch (sectionId) {
     case "home":
+      if (isHive) return (
+        <>
+          <path d="M8 4h8l2 4H6Z" />
+          <path d="M5 9h14l2 5H3Z" />
+          <path d="M3 15h18v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3Z" />
+          <path d="M10 20v-3a2 2 0 0 1 4 0v3" />
+        </>
+      );
       if (isLucent) return (
         <>
           <path d="M4 11s3.5-5 8-8c4.5 3 8 8 8 8" />
@@ -156,6 +165,13 @@ function AppSectionGlyph({
         </>
       );
     case "calendar":
+      if (isHive) return (
+        <>
+          <path d="M12 3l7 4v10l-7 4-7-4V7Z" />
+          <path d="M8 7v-4M16 7v-4M6 10h12" />
+          <circle cx="12" cy="15" r="1.5" />
+        </>
+      );
       if (isLucent) return (
         <>
           <rect x="5" y="6" width="14" height="14" rx="4" />
@@ -181,6 +197,15 @@ function AppSectionGlyph({
         </>
       );
     case "kitchen":
+      if (isHive) return (
+        <>
+          <rect x="7" y="5" width="10" height="3" rx="1.5" />
+          <rect x="6" y="9" width="12" height="3" rx="1.5" />
+          <rect x="8" y="13" width="8" height="3" rx="1.5" />
+          <path d="M12 16v6" />
+          <path d="M12 2v3" />
+        </>
+      );
       if (isLucent) return (
         <>
           <path d="M4 12a8 8 0 0 0 16 0H4Z" />
@@ -196,6 +221,14 @@ function AppSectionGlyph({
         </>
       );
     case "finance":
+      if (isHive) return (
+        <>
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9Z" />
+          <path d="M12 3v18" />
+          <path d="M4 7.5l16 9" />
+          <path d="M4 16.5l16-9" />
+        </>
+      );
       if (isLucent) return (
         <>
           <rect x="4" y="7" width="16" height="11" rx="3.5" />
@@ -221,6 +254,12 @@ function AppSectionGlyph({
         </>
       );
     case "pharmacy":
+      if (isHive) return (
+        <>
+          <path d="M10 3h4v4l4 4.5v7L12 22l-6-3.5v-7L10 7Z" />
+          <path d="M12 11v6M9 14h6" />
+        </>
+      );
       if (isLucent) return (
         <>
           <path d="M12 20.5C12 20.5 4.5 15 4.5 8.5a4.5 4.5 0 0 1 9-3 4.5 4.5 0 0 1 9 3C22.5 15 12 20.5 12 20.5Z" />
@@ -237,6 +276,14 @@ function AppSectionGlyph({
         </>
       );
     case "reset":
+      if (isHive) return (
+        <>
+          <path d="M12 3l8 4.5v9" />
+          <path d="M12 21l-8-4.5v-9" />
+          <path d="M20 12v4.5l-4 0" />
+          <path d="M4 12v-4.5l4 0" />
+        </>
+      );
       if (isLucent) return (
         <>
           <path d="M12 3c0 5 4 9 9 9-5 0-9 4-9 9 0-5-4-9-9-9 5 0 9-4 9-9Z" />
@@ -256,6 +303,13 @@ function AppSectionGlyph({
         </>
       );
     case "profile":
+      if (isHive) return (
+        <>
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9Z" />
+          <circle cx="12" cy="10" r="2.5" />
+          <path d="M6 18c1.5-2.5 3.5-3.5 6-3.5s4.5 1 6 3.5" />
+        </>
+      );
       return (
         <>
           <circle cx="12" cy="8.5" r="3.2" />
@@ -263,12 +317,26 @@ function AppSectionGlyph({
         </>
       );
     case "settings":
+      if (isHive) return (
+        <>
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9Z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      );
       return (
         <>
           <path d="M5 7.5h8M15.5 7.5H19M10 7.5a1.5 1.5 0 1 0 0 0Zm-5 9h4M11 16.5h8M9.5 16.5a1.5 1.5 0 1 0 0 0Z" />
         </>
       );
     case "household":
+      if (isHive) return (
+        <>
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9Z" />
+          <circle cx="9" cy="10" r="2" />
+          <circle cx="15" cy="11" r="1.5" />
+          <path d="M6 17c1-2 2.5-3 3-3s2 1 3 3" />
+        </>
+      );
       return (
         <>
           <circle cx="9" cy="9" r="2.4" />
@@ -278,6 +346,12 @@ function AppSectionGlyph({
         </>
       );
     case "legal":
+      if (isHive) return (
+        <>
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9Z" />
+          <path d="m9.5 12.4 1.8 1.8 3.5-3.7" />
+        </>
+      );
       return (
         <>
           <path d="M12 4.5c2.3 1.8 4.8 2.8 7.5 3v4.6c0 3.8-2.3 6.7-7.5 8.9-5.2-2.2-7.5-5.1-7.5-8.9V7.5c2.7-.2 5.2-1.2 7.5-3Z" />

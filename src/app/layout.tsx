@@ -1,15 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import {
-  Barlow_Condensed,
   Fraunces,
   Inter,
-  Laila,
-  Lora,
-  Manrope,
-  Nunito,
-  Playfair_Display,
-  Rajdhani,
   Space_Grotesk,
 } from "next/font/google";
 import { RootShell } from "@/components/layout/root-shell";
@@ -20,33 +13,6 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin", "latin-ext"],
-});
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin", "latin-ext"],
-});
-
-const laila = Laila({
-  variable: "--font-laila",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "600"],
-});
-
-const lora = Lora({
-  variable: "--font-lora",
-  subsets: ["latin", "latin-ext"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin", "latin-ext"],
-});
-
-const barlowCondensed = Barlow_Condensed({
-  variable: "--font-barlow-condensed",
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700"],
 });
 
 const fraunces = Fraunces({
@@ -61,23 +27,14 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["400", "500", "600", "700"],
 });
 
-const nunito = Nunito({
-  variable: "--font-nunito",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-});
-
-/** FORGE UI: technical, legible, slightly condensed — industrial dashboard tone (not display). */
-const rajdhani = Rajdhani({
-  variable: "--font-rajdhani",
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700"],
-});
-
 export const metadata: Metadata = {
-  title: "H:O",
+  metadataBase: new URL("https://ho.majas.app"),
+  title: {
+    default: "H:O | Mājsaimniecības operētājsistēma",
+    template: "%s | H:O",
+  },
   description:
-    "H:O household flow for kitchen, finance, calendar, pharmacy, and RESET.",
+    "H:O ir tavs haosa organizators – vieda mājsaimniecības pārvaldība: virtuve, finanses, kalendārs un labsajūta vienuviet.",
   applicationName: "H:O",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -88,6 +45,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon",
     apple: "/apple-icon",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "H:O HomeOS",
+    title: "H:O | Mājsaimniecības operētājsistēma",
+    description: "Vieda mājsaimniecības pārvaldība miera pilnai ikdienai.",
+    locale: "lv_LV",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "H:O | Mājsaimniecības operētājsistēma",
+    description: "Vieda mājsaimniecības pārvaldība miera pilnai ikdienai.",
   },
 };
 
@@ -130,10 +99,7 @@ export default function RootLayout({
     >
       <body
         className={`
-          ${inter.variable} ${manrope.variable} ${laila.variable} 
-          ${lora.variable} ${playfair.variable} ${barlowCondensed.variable} 
-          ${fraunces.variable} ${spaceGrotesk.variable} ${nunito.variable} 
-          ${rajdhani.variable} 
+          ${inter.variable} ${fraunces.variable} ${spaceGrotesk.variable} 
           min-h-full antialiased bg-background text-(--color-text) font-(family-name:--font-theme-sans)
         `.trim()}
       >

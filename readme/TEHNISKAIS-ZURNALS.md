@@ -37,6 +37,25 @@ Katru jaunu ierakstu pievieno ar šo obligāto struktūru:
 - **Galvenie faili:** ...
 ```
 
+### [2026-04-13 14:15 Europe/Riga] Full Audit & System Optimization (Phase 1 & 2)
+- **Ierakstu veica:** Gemini CLI (Maestro TechLead)
+- **Kāpēc ieraksts veikts:** Veikts visaptverošs SEO, Drošības, Piekļūstamības un Veiktspējas audits un tā remediācija saskaņā ar jauno attīstības ceļvedi.
+- **Kas salabots:**
+  1. **Veiktspēja:** Samazināts LCP (no 14.9s), konsolidējot fontus un ieviešot 3D lazy loading.
+  2. **Drošība:** Novērsta [VULN-001] granulārās piekļuves kļūda mājsaimniecības biedriem (RLS hardening).
+  3. **Piekļūstamība:** Novērstas [A11Y-001] un [A11Y-003] kļūdas (mikro-teksti, <main> tags).
+  4. **SEO:** Ieviests robots.txt, sitemap un paplašināti metadati (OpenGraph/Twitter).
+- **Kas izdarīts:**
+  1. **Projekta tīrīšana:** Izdzēsti >15 neizmantoti testa faili, pagaidu attēli un vecās informācijas mapes.
+  2. **Fontu optimizācija:** 10 fontu saimes aizstātas ar 3 (`Inter`, `Fraunces`, `Space Grotesk`) caur CSS aliasing.
+  3. **3D Lazy Loading:** `three.js` izdalīts atsevišķā komponentē un ielādēts dinamiski.
+  4. **ModuleShell & Finance/Kitchen tematizācija:** Iekšlapas tagad pilnībā adaptējas izvēlētajai tēmai (Forge odometrs, Botanical shelf, u.c.).
+  5. **Dokumentācija:** Izveidots `FULL_AUDIT.md`, `TEMAS.md` un sakārtota `readme/` mape.
+- **Ietekme:** Būtiski uzlabota aplikācijas drošība, ielādes ātrums un lietojamība. Kods ir kļuvis par ~33,000 rindām vieglāks (tīrīšanas rezultāts).
+- **Verifikācija:** `npm run build` veiksmīgs; manuāla RLS un vizuālā pārbaude visās tēmās.
+- **Riska piezīmes (tūlītēja uzmanība):** SQL migrācija `supabase/household_rls_fix.sql` jāpalaiž manuāli Supabase vidē.
+- **Galvenie faili:** `src/app/layout.tsx`, `src/app/globals.css`, `src/components/layout/module-shell.tsx`, `src/app/finance/page.tsx`, `src/app/kitchen/page.tsx`, `supabase/household_rls_fix.sql`.
+
 ### [2026-04-12 16:30 Europe/Riga] ESLint kļūdu novēršana — CI/CD deploy atbloķēšana
 - **Ierakstu veica:** GitHub Copilot (Claude Sonnet 4.6)
 - **Kāpēc ieraksts veikts:** GitHub Actions `Deploy to Vercel` pipeline "Run Linting" solis bija neveiksmīgs ar 581 ESLint kļūdu. Deploy bija pilnībā bloķēts.

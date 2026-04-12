@@ -9,6 +9,9 @@ import { GlassPanel } from "@/components/ui/glass-panel";
 import { FinanceThemeLayer } from "@/components/finance/finance-theme-layer";
 import { LucentFinanceLayout } from "@/components/finance/layouts/lucent-layout";
 import { ForgeFinanceLayout } from "@/components/finance/layouts/forge-layout";
+import { PulseFinanceLayout } from "@/components/finance/layouts/pulse-layout";
+import { BotanicalFinanceLayout } from "@/components/finance/layouts/botanical-layout";
+import { HiveFinanceLayout } from "@/components/finance/layouts/hive-layout";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useTheme } from "@/components/providers/theme-provider";
@@ -254,6 +257,12 @@ export default function FinancePage() {
 
         {themeId === "forge" ? (
           <ForgeFinanceLayout {...layoutProps} />
+        ) : themeId === "pulse" ? (
+          <PulseFinanceLayout {...layoutProps} />
+        ) : themeId === "botanical" ? (
+          <BotanicalFinanceLayout {...layoutProps} />
+        ) : themeId === "hive" ? (
+          <HiveFinanceLayout {...layoutProps} />
         ) : (
           <LucentFinanceLayout {...layoutProps} />
         )}

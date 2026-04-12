@@ -11,6 +11,11 @@ import { SavedRecipes } from "@/components/kitchen/SavedRecipes";
 import { fetchHouseholdKitchenAiMeta } from "@/lib/household-kitchen-ai";
 import { KitchenHeader } from "@/components/kitchen/KitchenHeader";
 import { KitchenItemForm } from "@/components/kitchen/kitchen-item-form";
+import { ForgeKitchenLayout } from "@/components/kitchen/layouts/forge-layout";
+import { BotanicalKitchenLayout } from "@/components/kitchen/layouts/botanical-layout";
+import { PulseKitchenLayout } from "@/components/kitchen/layouts/pulse-layout";
+import { HiveKitchenLayout } from "@/components/kitchen/layouts/hive-layout";
+import { DefaultKitchenLayout } from "@/components/kitchen/layouts/default-layout";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useThemeActionEffects } from "@/components/theme/theme-action-effects";
@@ -153,11 +158,82 @@ export default function KitchenPage() {
     }
   }, [loading, householdId, searchParams, handleAddCart]);
 
-  const urgentInventory = normalInventory
-      .filter((item) => item.status === "expiring" || item.status === "low_stock" || Boolean(item.expiry_date))
-      .slice(0, 5);
+  const layoutProps = {
+    normalInventory,
+    urgentInventory,
+    expiringToday,
+    shopping,
+    hasServerByok,
+    onAddClick: () => setIsAddFormOpen(true),
+    onDeleteInventory: (id: string) => {
+      void runKitchenAction(async () => {
+        await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
+      }, t("kitchen.quickAction.move.done"));
+    },
+    onAddToCart: (name: string, category: string | null) => {
+      void runKitchenAction(async () => {
+        await addShoppingItem({
+          householdId: householdId!,
+          title: name,
+          quantity: 1,
+          category
+        });
+      }, t("kitchen.quickAction.addCart.done"), { kind: "add", label: name });
+    },
+    onBought: (id: string) => {
+      const item = shopping.find(i => i.id === id);
+      void runKitchenAction(
+        async () => {
+          await moveShoppingItemToInventory({ householdId: householdId!, itemId: id });
+        },
+        t("kitchen.quickAction.move.done"),
+        { kind: "done", label: item?.title || "" },
+        () => setShopping(prev => prev.filter(i => i.id !== id))
+      );
+    },
+    onDeleteShopping: (id: string) => {
+      void runKitchenAction(async () => {
+        await deleteShoppingItem({ householdId: householdId!, itemId: id });
+      }, t("kitchen.quickAction.move.done"));
+    },
+    onPinMeal: async (name: string) => {
+      if (!householdId) return;
+      const today = new Date().toISOString().split("T")[0];
+      const response = await addPlannerEventSynced({
+        householdId,
+        userId: profile?.id ?? null,
+        title: `Vakariņas: ${name}`,
+        date: today,
+        style: "shared",
+        kind: "meal"
+      });
+      if (response.ok) {
+        triggerThemeActionEffect({ kind: "save", label: name });
+      }
+    },
+    onSaveRecipe: (title: string, instructions: string, metadata: any) => {
+      let fullText = instructions ? `${title}\n\n${instructions}` : title;
+      if (metadata?.cooking_time || metadata?.temperature) {
+        fullText += `\n\n---`;
+        if (metadata.cooking_time) fullText += `\n⏱️ ${metadata.cooking_time}`;
+        if (metadata.temperature) fullText += `\n🌡️ ${metadata.temperature}`;
+      }
+      if (metadata?.source_url) fullText += `\n\n🔗 ${metadata.source_url}`;
+      if (metadata?.image_url) fullText += `\n\n🖼️ ${metadata.image_url}`;
 
-  const isForge = themeId === "forge";
+      void runKitchenAction(async () => {
+        await addKitchenInventoryItem({
+          householdId: householdId!,
+          name: fullText,
+          category: "recipe",
+          quantity: 1
+        });
+      }, t("kitchen.saved"), { kind: "save", label: "Recepte" });
+    },
+    runKitchenAction,
+    householdId,
+    locale
+  };
 
   return (
     <ModuleShell
@@ -168,286 +244,19 @@ export default function KitchenPage() {
     >
       <KitchenThemeLayer>
         <div className="space-y-10 pt-4 pb-12">
-          {isForge ? (
-            <>
-              {/* SECTOR 01: INVENTORY_LOGISTICS */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 px-1 opacity-40">
-                  <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 01</span>
-                  <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                  <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Krājumu loģistika</span>
-                </div>
-                
-                <KitchenHeader 
-                  cartCount={shopping.filter(i => i.status === "open").length}
-                  onAddClick={() => setIsAddFormOpen(true)}
-                  onCartClick={() => {
-                    const cartEl = document.getElementById("shopping-cart-section");
-                    cartEl?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                />
-
-                {expiringToday.length > 0 && (
-                  <div className="border border-red-500/20 bg-red-500/5 p-4 font-mono">
-                    <div className="flex items-center gap-3">
-                      <span className="text-primary animate-pulse text-lg">⚠️</span>
-                      <div className="flex-1">
-                        <p className="text-[0.6rem] font-black uppercase tracking-widest text-primary">KRITISKS_STATUSS: TERMIŅI</p>
-                        <p className="text-[0.55rem] text-white/60 uppercase">
-                          {expiringToday.map(i => i.name).join(", ")}
-                        </p>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          void runKitchenAction(async () => {
-                            for (const item of expiringToday) {
-                              await deleteKitchenInventoryItem({ householdId: householdId!, itemId: item.id });
-                            }
-                          }, t("kitchen.quickAction.move.done"));
-                        }}
-                        className="border border-primary px-3 py-1 text-[0.5rem] font-black uppercase text-primary hover:bg-primary/10 transition-all"
-                      >
-                        IZLIETOTS
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <KitchenStock
-                  items={normalInventory}
-                  onDelete={(id) => {
-                    void runKitchenAction(async () => {
-                      await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
-                    }, t("kitchen.quickAction.move.done"));
-                  }}
-                  onAddToCart={(name, category) => {
-                    void runKitchenAction(async () => {
-                      await addShoppingItem({
-                        householdId: householdId!,
-                        title: name,
-                        quantity: 1,
-                        category
-                      });
-                    }, t("kitchen.quickAction.addCart.done"), { kind: "add", label: name });
-                  }}
-                />
-              </div>
-
-              {/* SECTOR 02: PROCUREMENT_OPERATIONS */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 px-1 opacity-40">
-                  <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 02</span>
-                  <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                  <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Iepirkumu operācijas</span>
-                </div>
-                <ShoppingCart
-                  id="shopping-cart-section"
-                  items={shopping.filter(i => i.status === "open")}
-                  onBought={(id) => {
-                    const item = shopping.find(i => i.id === id);
-                    void runKitchenAction(
-                      async () => {
-                        await moveShoppingItemToInventory({ householdId: householdId!, itemId: id });
-                      },
-                      t("kitchen.quickAction.move.done"),
-                      { kind: "done", label: item?.title || "" },
-                      () => setShopping(prev => prev.filter(i => i.id !== id))
-                    );
-                  }}
-                  onDelete={(id) => {
-                    void runKitchenAction(async () => {
-                      await deleteShoppingItem({ householdId: householdId!, itemId: id });
-                    }, t("kitchen.quickAction.move.done"));
-                  }}
-                />
-              </div>
-
-              {/* SECTOR 03: INTELLIGENCE_UNIT */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 px-1 opacity-40">
-                  <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 03</span>
-                  <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-                  <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">Intelekta vienība</span>
-                </div>
-                <AiChefSuggestions
-                  inventory={normalInventory}
-                  urgentItems={urgentInventory}
-                  hasByok={hasServerByok}
-                  onAddToCart={(name) => {
-                    void runKitchenAction(async () => {
-                      await addShoppingItem({
-                        householdId: householdId!,
-                        title: name,
-                        quantity: 1
-                      });
-                    }, t("kitchen.quickAction.addCart.done"), { kind: "add", label: name });
-                  }}
-                  onPinMeal={async (name) => {
-                    if (!householdId) return;
-                    const today = new Date().toISOString().split("T")[0];
-                    const response = await addPlannerEventSynced({
-                      householdId,
-                      userId: profile?.id ?? null,
-                      title: `Vakariņas: ${name}`,
-                      date: today,
-                      style: "shared",
-                      kind: "meal"
-                    });
-                    if (response.ok) {
-                      triggerThemeActionEffect({ kind: "save", label: name });
-                    }
-                  }}
-                  onSaveRecipe={(title, instructions, metadata) => {
-                    let fullText = instructions ? `${title}\n\n${instructions}` : title;
-                    if (metadata?.cooking_time || metadata?.temperature) {
-                      fullText += `\n\n---`;
-                      if (metadata.cooking_time) fullText += `\n⏱️ ${metadata.cooking_time}`;
-                      if (metadata.temperature) fullText += `\n🌡️ ${metadata.temperature}`;
-                    }
-                    if (metadata?.source_url) fullText += `\n\n🔗 ${metadata.source_url}`;
-                    if (metadata?.image_url) fullText += `\n\n🖼️ ${metadata.image_url}`;
-
-                    void runKitchenAction(async () => {
-                      await addKitchenInventoryItem({
-                        householdId: householdId!,
-                        name: fullText,
-                        category: "recipe",
-                        quantity: 1
-                      });
-                    }, t("kitchen.saved"), { kind: "save", label: "Recepte" });
-                  }}
-                />
-              </div>
-            </>
+          {themeId === "forge" ? (
+            <ForgeKitchenLayout {...layoutProps} />
+          ) : themeId === "botanical" ? (
+            <BotanicalKitchenLayout {...layoutProps} />
+          ) : themeId === "pulse" ? (
+            <PulseKitchenLayout {...layoutProps} />
+          ) : themeId === "hive" ? (
+            <HiveKitchenLayout {...layoutProps} />
           ) : (
-            <div className="space-y-6">
-              <KitchenHeader 
-                cartCount={shopping.filter(i => i.status === "open").length}
-                onAddClick={() => setIsAddFormOpen(true)}
-                onCartClick={() => {
-                  const cartEl = document.getElementById("shopping-cart-section");
-                  cartEl?.scrollIntoView({ behavior: "smooth" });
-                }}
-              />
-
-              {expiringToday.length > 0 && (
-                <GlassPanel className="border-amber-500/50 bg-amber-500/5">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">⚠️</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-[var(--color-text-primary)]">
-                        {locale === "lv" ? "Derīguma termiņš beidzas šodien!" : "Expires today!"}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">
-                        {expiringToday.map(i => i.name).join(", ")}. {locale === "lv" ? "Vai jau izlietoji?" : "Did you use it already?"}
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        void runKitchenAction(async () => {
-                          for (const item of expiringToday) {
-                            await deleteKitchenInventoryItem({ householdId: householdId!, itemId: item.id });
-                          }
-                        }, t("kitchen.quickAction.move.done"));
-                      }}
-                      className="px-3 py-1 text-[0.6rem] font-black uppercase tracking-widest bg-amber-500 text-white rounded-full"
-                    >
-                      {locale === "lv" ? "JĀ, IZLIETOJU" : "YES, USED IT"}
-                    </button>
-                  </div>
-                </GlassPanel>
-              )}
-
-              <KitchenStock
-                items={normalInventory}
-                onDelete={(id) => {
-                  void runKitchenAction(async () => {
-                    await deleteKitchenInventoryItem({ householdId: householdId!, itemId: id });
-                  }, t("kitchen.quickAction.move.done"));
-                }}
-                onAddToCart={(name, category) => {
-                  void runKitchenAction(async () => {
-                    await addShoppingItem({
-                      householdId: householdId!,
-                      title: name,
-                      quantity: 1,
-                      category
-                    });
-                  }, t("kitchen.quickAction.addCart.done"), { kind: "add", label: name });
-                }}
-              />
-
-              <ShoppingCart
-                id="shopping-cart-section"
-                items={shopping.filter(i => i.status === "open")}
-                onBought={(id) => {
-                  const item = shopping.find(i => i.id === id);
-                  void runKitchenAction(
-                    async () => {
-                      await moveShoppingItemToInventory({ householdId: householdId!, itemId: id });
-                    },
-                    t("kitchen.quickAction.move.done"),
-                    { kind: "done", label: item?.title || "" },
-                    () => setShopping(prev => prev.filter(i => i.id !== id))
-                  );
-                }}
-                onDelete={(id) => {
-                  void runKitchenAction(async () => {
-                    await deleteShoppingItem({ householdId: householdId!, itemId: id });
-                  }, t("kitchen.quickAction.move.done"));
-                }}
-              />
-
-              <AiChefSuggestions
-                inventory={normalInventory}
-                urgentItems={urgentInventory}
-                hasByok={hasServerByok}
-                onAddToCart={(name) => {
-                  void runKitchenAction(async () => {
-                    await addShoppingItem({
-                      householdId: householdId!,
-                      title: name,
-                      quantity: 1
-                    });
-                  }, t("kitchen.quickAction.addCart.done"), { kind: "add", label: name });
-                }}
-                onPinMeal={async (name) => {
-                  if (!householdId) return;
-                  const today = new Date().toISOString().split("T")[0];
-                  const response = await addPlannerEventSynced({
-                    householdId,
-                    userId: profile?.id ?? null,
-                    title: `Vakariņas: ${name}`,
-                    date: today,
-                    style: "shared",
-                    kind: "meal"
-                  });
-                  if (response.ok) {
-                    triggerThemeActionEffect({ kind: "save", label: name });
-                  }
-                }}
-                onSaveRecipe={(title, instructions, metadata) => {
-                  let fullText = instructions ? `${title}\n\n${instructions}` : title;
-                  if (metadata?.cooking_time || metadata?.temperature) {
-                    fullText += `\n\n---`;
-                    if (metadata.cooking_time) fullText += `\n⏱️ ${metadata.cooking_time}`;
-                    if (metadata.temperature) fullText += `\n🌡️ ${metadata.temperature}`;
-                  }
-                  if (metadata?.source_url) fullText += `\n\n🔗 ${metadata.source_url}`;
-                  if (metadata?.image_url) fullText += `\n\n🖼️ ${metadata.image_url}`;
-
-                  void runKitchenAction(async () => {
-                    await addKitchenInventoryItem({
-                      householdId: householdId!,
-                      name: fullText,
-                      category: "recipe",
-                      quantity: 1
-                    });
-                  }, t("kitchen.saved"), { kind: "save", label: "Recepte" });
-                }}
-              />
-            </div>
+            <DefaultKitchenLayout {...layoutProps} />
           )}
+
+          <div className={`pt-6 border-t opacity-90 ${isForge ? 'border-white/5' : 'border-[var(--color-border)]'}`}>
 
           <div className={`pt-6 border-t opacity-90 ${isForge ? 'border-white/5' : 'border-[var(--color-border)]'}`}>
             <SavedRecipes

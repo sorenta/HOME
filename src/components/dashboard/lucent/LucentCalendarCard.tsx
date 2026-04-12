@@ -118,22 +118,22 @@ export function LucentCalendarCard() {
           {d > 0 && (
             <div className="flex flex-col items-center gap-1">
               <span className="text-2xl font-light text-foreground/80">{d}</span>
-              <span className="text-[0.65rem] font-semibold text-foreground/40 uppercase tracking-widest">Dienas</span>
+              <span className="text-xs font-semibold text-foreground/40 uppercase tracking-widest">Dienas</span>
             </div>
           )}
           {h > 0 && (
             <div className="flex flex-col items-center gap-1">
               <span className="text-2xl font-light text-foreground/80">{h}</span>
-              <span className="text-[0.65rem] font-semibold text-foreground/40 uppercase tracking-widest">Stund</span>
+              <span className="text-xs font-semibold text-foreground/40 uppercase tracking-widest">Stund</span>
             </div>
           )}
           <div className="flex flex-col items-center gap-1">
             <span className="text-2xl font-medium text-primary drop-shadow-[0_2px_8px_rgba(var(--color-primary-rgb),0.3)]">{m.toString().padStart(2, '0')}</span>
-            <span className="text-[0.65rem] font-semibold text-foreground/40 uppercase tracking-widest">Min</span>
+            <span className="text-xs font-semibold text-foreground/40 uppercase tracking-widest">Min</span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <span className="text-2xl font-light text-foreground/50">{s.toString().padStart(2, '0')}</span>
-            <span className="text-[0.65rem] font-semibold text-foreground/40 uppercase tracking-widest">Sek</span>
+            <span className="text-xs font-semibold text-foreground/40 uppercase tracking-widest">Sek</span>
           </div>
         </div>
       </div>

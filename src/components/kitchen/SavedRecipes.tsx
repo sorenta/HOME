@@ -90,15 +90,15 @@ export function SavedRecipes({ items, onDelete }: Props) {
                     </div>
                   )}
                   <div className="flex-1 min-w-0 space-y-1">
-                    <h4 className={`font-bold pr-10 leading-tight group-hover:text-primary transition-colors truncate uppercase ${isForge ? 'text-[0.7rem] tracking-tight' : ''}`}>{title}</h4>
-                    <p className={`opacity-70 line-clamp-2 leading-relaxed whitespace-pre-wrap italic ${isForge ? 'text-[0.6rem] uppercase' : 'text-xs'}`}>
+                    <h4 className={`font-bold pr-10 leading-tight group-hover:text-primary transition-colors truncate uppercase ${isForge ? 'text-xs tracking-tight' : ''}`}>{title}</h4>
+                    <p className={`opacity-70 line-clamp-2 leading-relaxed whitespace-pre-wrap italic ${isForge ? 'text-xs uppercase' : 'text-xs'}`}>
                       {instructions.trim() || (locale === "lv" ? "Skatīt gatavošanas gaitu..." : "View cooking steps...")}
                     </p>
                   </div>
                 </div>
 
                 <div className={`mt-4 flex items-center justify-between pt-3 border-t ${isForge ? 'border-white/5' : 'border-[var(--color-border)]/10'}`}>
-                  <span className={`font-black uppercase tracking-widest text-primary ${isForge ? 'text-[0.55rem]' : 'text-[0.6rem]'}`}>
+                  <span className={`font-black uppercase tracking-widest text-primary ${isForge ? 'text-xs' : 'text-xs'}`}>
                     {locale === "lv" ? "Skatīt pilnu →" : "View full →"}
                   </span>
                   
@@ -114,7 +114,7 @@ export function SavedRecipes({ items, onDelete }: Props) {
                     }`}
                     title={locale === "lv" ? "Dzēst recepti" : "Delete recipe"}
                   >
-                    <span className="text-[0.6rem]">✕</span>
+                    <span className="text-xs">✕</span>
                   </button>
                 </div>
               </motion.li>

@@ -255,7 +255,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
             </p>
             <button
               onClick={handleFetchAi}
-              className="px-2 py-1 text-[0.55rem] font-black uppercase border border-[var(--color-border)] rounded-full hover:bg-[var(--color-surface-2)]"
+              className="px-2 py-1 text-xs font-black uppercase border border-[var(--color-border)] rounded-full hover:bg-[var(--color-surface-2)]"
             >
               🔄
             </button>
@@ -289,10 +289,10 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
 
                     <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2 opacity-60">
                       {idea.cooking_time && (
-                        <span className="text-[0.65rem] flex items-center gap-1">⏱️ {idea.cooking_time}</span>
+                        <span className="text-xs flex items-center gap-1">⏱️ {idea.cooking_time}</span>
                       )}
                       {idea.temperature && (
-                        <span className="text-[0.65rem] flex items-center gap-1">🌡️ {idea.temperature}</span>
+                        <span className="text-xs flex items-center gap-1">🌡️ {idea.temperature}</span>
                       )}
                     </div>
 
@@ -303,7 +303,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
                     {idea.source_url && (
                       <div className="mt-2">
                         {idea.source_url === "AI-ORIGINAL" ? (
-                          <span className="text-[0.6rem] font-black uppercase text-primary/60 italic">
+                          <span className="text-xs font-black uppercase text-primary/60 italic">
                             ✨ {locale === "lv" ? "AI oriģinālrecepte" : "AI Original Recipe"}
                           </span>
                         ) : (
@@ -311,7 +311,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
                             href={idea.source_url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[0.65rem] font-bold text-primary hover:underline"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
                             onClick={(e) => e.stopPropagation()}
                           >
                             🔗 {locale === "lv" ? "Skatīt avotu" : "View source"}
@@ -324,7 +324,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
                 
                 {idea.missing && idea.missing.length > 0 && (
                   <div className="mt-1 pt-2 border-t border-[var(--color-border)] opacity-80 flex flex-wrap items-center gap-2">
-                    <span className="text-[0.6rem] font-bold uppercase py-1 text-[var(--color-text-secondary)]">
+                    <span className="text-xs font-bold uppercase py-1 text-[var(--color-text-secondary)]">
                       {locale === "lv" ? "Grozam:" : "To buy:"}
                     </span>
                     {idea.missing.map(item => (
@@ -334,7 +334,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
                           e.stopPropagation();
                           onAddToCart(item);
                         }}
-                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-[0.6rem] font-black transition-all ${
+                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-black transition-all ${
                           isForge 
                             ? 'bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20' 
                             : 'bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)]'
@@ -349,6 +349,11 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
             ))}
           </ul>
         </GlassPanel>
+      )}
+    </div>
+  );
+}
+Panel>
       )}
     </div>
   );

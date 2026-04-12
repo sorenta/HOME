@@ -30,7 +30,7 @@ function ActionPill({ action }: { action: ActionItem }) {
       }}
     >
       <span
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px]"
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs"
         style={{
           background: "color-mix(in srgb, var(--color-primary) 18%, transparent)",
           color: "var(--color-text-primary)",

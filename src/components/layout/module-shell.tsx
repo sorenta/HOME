@@ -154,19 +154,28 @@ export function ModuleShell({
         {requireAuth ? <RequireAuth>{children}</RequireAuth> : children}
       </motion.div>
 
-      {/* 3. Theme-specific decorative/content zones */}
-      <div aria-hidden className="relative z-0">
-        {themeId === "forge" ? (
-          <div className="maj-forge-control-deck" />
-        ) : themeId === "botanical" ? (
-          <div className="maj-botanical-shelf" />
-        ) : themeId === "pulse" ? (
-          <div className="maj-pulse-hero-band" />
-        ) : themeId === "lucent" ? (
-          <div className="maj-lucent-stack" />
-        ) : themeId === "hive" ? (
-          <div className="maj-hive-metrics-honey" />
-        ) : null}
+      {/* 3. Theme-specific decorative/content zones & Ambient layers */}
+      <div aria-hidden className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Ambient Layers */}
+        {themeId === "hive" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-hive-hex-ambient" />}
+        {themeId === "forge" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-forge-grid-ambient" />}
+        {themeId === "pulse" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-pulse-dots-ambient" />}
+        {themeId === "botanical" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-botanical-grain-ambient" />}
+        
+        {/* Decorative Zones */}
+        <div className="relative h-full w-full">
+          {themeId === "forge" ? (
+            <div className="maj-forge-control-deck sticky bottom-0" />
+          ) : themeId === "botanical" ? (
+            <div className="maj-botanical-shelf sticky bottom-0" />
+          ) : themeId === "pulse" ? (
+            <div className="maj-pulse-hero-band sticky bottom-0" />
+          ) : themeId === "lucent" ? (
+            <div className="maj-lucent-stack sticky bottom-0" />
+          ) : themeId === "hive" ? (
+            <div className="maj-hive-metrics-honey sticky bottom-0" />
+          ) : null}
+        </div>
       </div>
     </div>
   );

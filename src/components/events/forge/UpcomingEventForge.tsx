@@ -29,7 +29,7 @@ function OdometerGroup({ value, label }: { value: number, label: string }) {
       <div className="flex gap-0.5">
         {digits.map((d, i) => <OdometerDigit key={i} value={d} />)}
       </div>
-      <span className="text-[0.4rem] font-black text-white/20 uppercase tracking-tighter">{label}</span>
+      <span className="text-xs font-black text-white/20 uppercase tracking-tighter">{label}</span>
     </div>
   );
 }

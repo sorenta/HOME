@@ -1,9 +1,9 @@
 .hiveBgContainer {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 100;
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hiveHexagon {
@@ -15,7 +15,7 @@
 }
 
 .hiveOctagon {
-  clip-path: polygon(29% 0%, 71% 0%, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0% 71%, 0% 29%);
+  clip-path: polygon(29.289% 0%, 70.711% 0%, 100% 29.289%, 100% 70.711%, 70.711% 100%, 29.289% 100%, 0% 70.711%, 0% 29.289%);
 }
 
 .beeRoot {
@@ -23,7 +23,12 @@
   will-change: transform;
   pointer-events: none;
   transform-origin: center center;
-  z-index: 10;
+  z-index: 50;
+}
+
+.beeRoot[data-landed="true"] .wingTop,
+.beeRoot[data-landed="true"] .wingBottom {
+  animation: none !important;
 }
 
 .beeSvg {

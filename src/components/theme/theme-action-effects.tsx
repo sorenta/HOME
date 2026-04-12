@@ -222,7 +222,7 @@ function HiveActionOverlay({ effect }: { effect: ThemeActionEffect }) {
           className="relative rounded-[1.25rem] border-2 border-amber-500/70 bg-[rgba(255,248,220,0.96)] px-4 py-3 shadow-[0_10px_28px_rgba(245,184,0,0.18)]"
         >
           <div className="absolute -left-2 top-3 h-3 w-3 rounded-full bg-amber-400/70 blur-[1px]" />
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
             {effect.kind === "done" ? "Pienests stropam" : "Jauna zīmīte"}
           </p>
           <p className="mt-1 max-w-[11rem] text-sm font-semibold text-(--color-text-primary)">
@@ -284,3 +284,4 @@ export function useThemeActionEffects() {
   }
   return ctx;
 }
+

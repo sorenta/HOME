@@ -152,12 +152,12 @@ export function HouseholdWaterWidget({ scopeId, members, currentUserId }: Props)
     <section className="maj-panel-lite maj-section-gap relative z-10 px-3 py-3 sm:px-3.5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <p className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-(--color-text-secondary)">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-(--color-text-secondary)">
             {t("water.widget.eyebrow")}
           </p>
           <h2 className="maj-theme-section-title mt-0.5">{t("water.widget.title")}</h2>
         </div>
-        <span className="text-[0.68rem] font-medium text-(--color-text-secondary)">
+        <span className="text-xs font-medium text-(--color-text-secondary)">
           {t("water.widget.localNote")}
         </span>
       </div>

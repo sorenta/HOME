@@ -110,7 +110,7 @@ export function ShoppingCart({ id, items, onBought, onDelete }: Props) {
                       <span className={`text-xs font-black uppercase tracking-widest ${isForge ? 'text-white/80' : 'text-[var(--color-text-primary)]'}`}>
                         {t(`kitchen.category.${cat}`)}
                       </span>
-                      <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-black/20 opacity-40">
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-black/20 opacity-40">
                         {groupItems.length}
                       </span>
                     </div>
@@ -126,7 +126,7 @@ export function ShoppingCart({ id, items, onBought, onDelete }: Props) {
                         className="overflow-hidden"
                       >
                         <table className="w-full text-left border-t border-white/5">
-                          <thead className={`text-[0.55rem] font-black uppercase tracking-widest opacity-30 ${isForge ? 'bg-white/5' : 'bg-[var(--color-surface-1)]'}`}>
+                          <thead className={`text-xs font-black uppercase tracking-widest opacity-30 ${isForge ? 'bg-white/5' : 'bg-[var(--color-surface-1)]'}`}>
                             <tr>
                               <th className="px-4 py-2">{locale === "lv" ? "Produkts" : "Product"}</th>
                               <th className="px-4 py-2">{locale === "lv" ? "Daudzums" : "Qty"}</th>
@@ -146,7 +146,7 @@ export function ShoppingCart({ id, items, onBought, onDelete }: Props) {
                                   <div className="flex justify-end gap-6 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                       onClick={() => onBought(item.id)}
-                                      className={`px-4 py-2 text-[0.55rem] font-black uppercase tracking-widest transition-all ${
+                                      className={`px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${
                                         isForge 
                                           ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/20 rounded-sm' 
                                           : 'bg-emerald-500 text-white rounded-full hover:bg-emerald-600'

@@ -21,7 +21,7 @@ export function MetricCard({ label, value, hint, children, variant = "default" }
           {value}
         </p>
         {hint ? (
-          <p className="mt-0.5 text-[0.65rem] text-(--color-secondary)">{hint}</p>
+          <p className="mt-0.5 text-xs text-(--color-secondary)">{hint}</p>
         ) : null}
       </div>
     );

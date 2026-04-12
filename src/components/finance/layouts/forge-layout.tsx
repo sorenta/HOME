@@ -63,11 +63,11 @@ export function ForgeFinanceLayout({
       {/* SECTOR 02: OBLIGATIONS */}
       <div className="space-y-3">
         <div className="flex items-center gap-3 px-1 opacity-40">
-          <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">
+          <span className="text-xs font-black text-primary uppercase tracking-[0.4em]">
             Sektors 02
           </span>
           <div className="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent" />
-          <span className="text-[0.5rem] font-bold text-white uppercase tracking-widest">
+          <span className="text-xs font-bold text-white uppercase tracking-widest">
             Maksājumu saistības
           </span>
         </div>

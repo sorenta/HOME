@@ -5,13 +5,32 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import hiveStyles from "@/components/theme/hive.module.css";
-import { CalendarIcon } from "@heroicons/react/24/outline";
 
 type NextEvent = {
   id: string;
   title: string;
   starts_on: string;
 };
+
+function CalendarOutlineIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 10h18" />
+    </svg>
+  );
+}
 
 export function HiveCalendarCard() {
   const { profile } = useAuth();
@@ -103,7 +122,7 @@ export function HiveCalendarCard() {
       <div className="relative z-10 flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 flex items-center justify-center bg-primary/20 border border-primary/30 text-primary" style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}>
-            <CalendarIcon className="w-6 h-6" />
+            <CalendarOutlineIcon className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs font-bold text-primary/70 uppercase tracking-widest mb-1">Nākamais notikums</p>

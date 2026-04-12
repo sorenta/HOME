@@ -84,7 +84,7 @@ export function ResetJournal({ userId, refreshToken }: Props) {
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--color-text-secondary)">
           {title}
         </p>
-        <span className="text-[10px] text-(--color-text-secondary)">
+        <span className="text-xs text-(--color-text-secondary)">
           {locale === "lv" ? "Pēdējās 14 dienas" : "Last 14 days"}
         </span>
       </div>

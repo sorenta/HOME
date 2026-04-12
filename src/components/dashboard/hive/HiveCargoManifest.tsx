@@ -6,7 +6,25 @@ import { fetchShoppingItems, type ShoppingRecord } from "@/lib/kitchen";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import hiveStyles from "@/components/theme/hive.module.css";
-import { ShoppingCartIcon } from "@heroicons/react/24/outline";
+
+function ShoppingCartOutlineIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="20" r="1" />
+      <circle cx="18" cy="20" r="1" />
+      <path d="M3 4h2l2.4 10.2A2 2 0 0 0 9.35 16H18a2 2 0 0 0 1.94-1.5L21 8H7" />
+    </svg>
+  );
+}
 
 export function HiveCargoManifest() {
   const { profile } = useAuth();
@@ -51,7 +69,7 @@ export function HiveCargoManifest() {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 flex items-center justify-center bg-primary/20 border border-primary/30 text-primary" style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}>
-              <ShoppingCartIcon className="w-5 h-5" />
+              <ShoppingCartOutlineIcon className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-(--color-text-primary) tracking-tight">

@@ -14,7 +14,7 @@ function InfoToggle({ text }: { text: string }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Info"
-        className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-(--color-surface-border) text-[10px] font-bold text-(--color-secondary) hover:bg-primary/10 transition-colors"
+        className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-(--color-surface-border) text-xs font-bold text-(--color-secondary) hover:bg-primary/10 transition-colors"
       >
         ?
       </button>

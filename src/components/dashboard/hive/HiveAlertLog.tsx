@@ -4,7 +4,6 @@ import { useI18n } from "@/lib/i18n/i18n-context";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import hiveStyles from "@/components/theme/hive.module.css";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 type Alert = {
   time: string;
@@ -12,6 +11,25 @@ type Alert = {
   message: string;
   href: string;
 };
+
+function AlertTriangleIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+      <path d="M12 9v4" />
+      <path d="M12 17h.01" />
+    </svg>
+  );
+}
 
 export function HiveAlertLog() {
   const { locale } = useI18n();
@@ -36,7 +54,7 @@ export function HiveAlertLog() {
       <div className="relative z-10 flex flex-col gap-4">
          <div className="flex items-center gap-3 border-b border-primary/20 pb-3">
            <div className="w-10 h-10 flex items-center justify-center bg-primary/20 border border-primary/30 text-primary" style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}>
-             <ExclamationTriangleIcon className="w-5 h-5" />
+             <AlertTriangleIcon className="w-5 h-5" />
            </div>
            <div>
              <h2 className="text-base font-semibold text-(--color-text-primary) tracking-tight">

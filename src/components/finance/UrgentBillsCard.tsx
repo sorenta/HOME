@@ -76,7 +76,7 @@ export function UrgentBillsCard({
                     {item.ownerLabel ? ` · ${item.ownerLabel}` : ""}
                   </p>
                 </div>
-                <span className="text-[11px] uppercase" style={{ color: "var(--color-text-secondary)" }}>
+                <span className="text-xs uppercase" style={{ color: "var(--color-text-secondary)" }}>
                   {payingBillId === item.id ? "Maksa..." : "Pavelc ->"}
                 </span>
               </div>

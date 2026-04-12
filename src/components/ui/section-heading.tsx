@@ -12,7 +12,7 @@ export function SectionHeading({ eyebrow, title, detail }: Props) {
         <h2 className="maj-theme-section-title mt-1">{title}</h2>
       </div>
       {detail ? (
-        <span className="rounded-(--radius-chip) border border-(--color-border) px-2.5 py-1 font-(family-name:--font-theme-sans) text-[0.68rem] text-(--color-text-secondary)">
+        <span className="rounded-(--radius-chip) border border-(--color-border) px-2.5 py-1 font-(family-name:--font-theme-sans) text-xs text-(--color-text-secondary)">
           {detail}
         </span>
       ) : null}

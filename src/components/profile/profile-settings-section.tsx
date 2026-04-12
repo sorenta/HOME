@@ -290,36 +290,40 @@ export function ProfileSettingsSection() {
                 </div>
 
                 {editMessage && (
-                  <p className={`text-[0.6rem] font-bold uppercase ${editTone === 'critical' ? 'text-red-500' : 'text-emerald-500'}`}>
-                    {editMessage}
-                  </p>
+                <p className={`text-xs font-bold uppercase ${editTone === 'critical' ? 'text-red-500' : 'text-emerald-500'}`}>
+                  {editMessage}
+                </p>
                 )}
 
                 <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => setIsEditOpen(false)}
-                    className={`flex-1 py-3 text-[0.65rem] font-black uppercase tracking-widest transition-all ${
-                      isForge ? 'border border-white/10 text-white/40 hover:bg-white/5' : 'text-[var(--color-text-secondary)] hover:opacity-70'
-                    }`}
-                  >
-                    {t("nav.back")}
-                  </button>
-                  <button
-                    onClick={saveProfileDetails}
-                    disabled={savingProfile || !displayNameInput.trim()}
-                    className={`flex-1 py-3 text-[0.65rem] font-black uppercase tracking-widest transition-all shadow-lg disabled:opacity-30 ${
-                      isForge 
-                        ? 'bg-primary text-white shadow-[0_0_20px_rgba(225,29,46,0.4)] hover:bg-primary/80 rounded-sm' 
-                        : 'bg-[var(--color-button-primary)] text-[var(--color-button-primary-text)] rounded-full'
-                    }`}
-                  >
-                    {savingProfile ? '...' : t("events.form.save")}
+                <button
+                  onClick={() => setIsEditOpen(false)}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-widest transition-all ${
+                    isForge ? 'border border-white/10 text-white/40 hover:bg-white/5' : 'text-[var(--color-text-secondary)] hover:opacity-70'
+                  }`}
+                >
+                  {t("nav.back")}
+                </button>
+                <button
+                  onClick={saveProfileDetails}
+                  disabled={savingProfile || !displayNameInput.trim()}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-widest transition-all shadow-lg disabled:opacity-30 ${
+                    isForge 
+                      ? 'bg-primary text-white shadow-[0_0_20px_rgba(225,29,46,0.4)] hover:bg-primary/80 rounded-sm' 
+                      : 'bg-[var(--color-button-primary)] text-[var(--color-button-primary-text)] rounded-full'
+                  }`}
+                >                    {savingProfile ? '...' : t("events.form.save")}
                   </button>
                 </div>
               </div>
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
+    </div>
+  );
+}
+  )}
       </AnimatePresence>
     </div>
   );

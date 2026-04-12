@@ -44,10 +44,10 @@ export function ProfileHero({ displayName, role, email, statusText, onEditProfil
     return (
       <GlassPanel className="p-0 overflow-hidden font-mono">
         <div className="border-b border-white/5 bg-white/5 px-4 py-3 flex items-center justify-between">
-          <h2 className="text-[0.6rem] font-black uppercase tracking-[0.2em] text-white/80">Personāla_ID</h2>
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/80">Personāla_ID</h2>
           <button
             onClick={onEditProfile}
-            className="text-[0.55rem] font-black uppercase tracking-widest text-primary hover:underline"
+            className="text-xs font-black uppercase tracking-widest text-primary hover:underline"
           >
             [ EDIT_DATA ]
           </button>
@@ -63,14 +63,14 @@ export function ProfileHero({ displayName, role, email, statusText, onEditProfil
 
             <div className="min-w-0 flex-1 py-1">
               <h2 className="truncate text-lg font-black tracking-tight text-white uppercase">{displayName}</h2>
-              <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.2em] text-primary">{role}</p>
-              {email ? <p className="mt-1 truncate text-[0.55rem] text-white/40 uppercase">{email}</p> : null}
+              <p className="mt-1 text-xs font-black uppercase tracking-[0.2em] text-primary">{role}</p>
+              {email ? <p className="mt-1 truncate text-xs text-white/40 uppercase">{email}</p> : null}
             </div>
           </div>
 
           <div className="border border-white/5 bg-black/20 px-4 py-3">
-            <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest mb-1">OPERACIONĀLAIS_STATUSS</p>
-            <p className="text-[0.65rem] text-white/80 leading-relaxed uppercase">
+            <p className="text-xs font-black text-primary uppercase tracking-widest mb-1">OPERACIONĀLAIS_STATUSS</p>
+            <p className="text-xs text-white/80 leading-relaxed uppercase">
               {statusText}
             </p>
           </div>

@@ -13,7 +13,7 @@ export function ThemeAmbientChrome() {
   }
 
   return (
-    <div className="maj-theme-ambient-shell" aria-hidden>
+    <div className="maj-theme-ambient-shell" aria-hidden style={{ zIndex: 100 }}>
       <div className="maj-theme-ambient-glow" />
       <div className="maj-theme-ambient-glow maj-theme-ambient-glow--secondary" />
       <div className="maj-theme-ambient-grain" />
@@ -54,7 +54,7 @@ export function ThemeAmbientChrome() {
       {themeId === "hive" && (
         <>
           <div className="maj-hive-hex-ambient" />
-          <HiveBackground beeCount={5} />
+          <HiveBackground beeCount={1} />
         </>
       )}
       {themeId === "hive" && (

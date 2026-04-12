@@ -10,6 +10,7 @@ import { subscribeHouseholdActivity } from "@/lib/household-activity";
 import { DashboardHomeLayout } from "@/components/dashboard/dashboard-home-layout";
 import { HouseholdWaterWidget } from "@/components/dashboard/household-water-widget";
 import { LucentWaterWidget } from "@/components/dashboard/lucent/LucentWaterWidget";
+import { HiveWaterWidget } from "@/components/dashboard/hive/HiveWaterWidget";
 import { TodayFocus } from "@/components/dashboard/today-focus";
 import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
 import { ResetMoodPanel } from "@/components/reset/reset-mood-panel";
@@ -75,6 +76,12 @@ export function BentoDashboard() {
           focus: <TodayFocus />,
           water: themeId === "lucent" ? (
             <LucentWaterWidget
+              scopeId={waterScopeId}
+              members={members}
+              currentUserId={user?.id ?? null}
+            />
+          ) : themeId === "hive" ? (
+            <HiveWaterWidget
               scopeId={waterScopeId}
               members={members}
               currentUserId={user?.id ?? null}

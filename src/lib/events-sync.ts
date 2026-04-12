@@ -58,10 +58,6 @@ function isMissingRelation(error: unknown) {
   return message.includes("does not exist") || message.includes("could not find");
 }
 
-function hasLocalPlannerData(events: PlannerEvent[], tasks: PlannerTask[]) {
-  return events.length > 0 || tasks.length > 0;
-}
-
 const CALENDAR_EVENT_SELECT = "id, title, starts_on, visibility, event_type" as const;
 
 async function loadCalendarEventRows(

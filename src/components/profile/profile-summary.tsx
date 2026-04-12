@@ -52,13 +52,13 @@ export function ProfileSummary({ resetScore, celebrationsCount, householdMemberC
           <div className="border border-white/5 bg-black/20 p-3">
             <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest mb-3">ACHIEVEMENT_LOG</p>
             <div className="flex flex-wrap gap-3">
-              <span className="flex items-center gap-2 text-[0.6rem] font-bold text-white/60">
+              <span className="flex items-center gap-2 text-xs font-bold text-white/60">
                 <span className="text-lg">🥇</span> {medals.gold}
               </span>
-              <span className="flex items-center gap-2 text-[0.6rem] font-bold text-white/60">
+              <span className="flex items-center gap-2 text-xs font-bold text-white/60">
                 <span className="text-lg">🥈</span> {medals.silver}
               </span>
-              <span className="flex items-center gap-2 text-[0.6rem] font-bold text-white/60">
+              <span className="flex items-center gap-2 text-xs font-bold text-white/60">
                 <span className="text-lg">🥉</span> {medals.bronze}
               </span>
             </div>
@@ -83,29 +83,29 @@ export function ProfileSummary({ resetScore, celebrationsCount, householdMemberC
 
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-(--radius-card) border border-(--color-border) bg-[color-mix(in_srgb,var(--color-surface)_84%,transparent)] p-3">
-          <p className="text-[11px] uppercase tracking-[0.12em] text-(--color-text-secondary)">RESET</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">RESET</p>
           <p className="mt-1 text-xl font-black text-(--color-text-primary)">{resetScore}%</p>
         </div>
         <div className="rounded-(--radius-card) border border-(--color-border) bg-[color-mix(in_srgb,var(--color-surface)_84%,transparent)] p-3">
-          <p className="text-[11px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
+          <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
             {locale === "lv" ? "Medaļas" : "Medals"}
           </p>
           <p className="mt-1 text-xl font-black text-(--color-text-primary)">{totalMedals}</p>
         </div>
         <div className="rounded-(--radius-card) border border-(--color-border) bg-[color-mix(in_srgb,var(--color-surface)_84%,transparent)] p-3">
-          <p className="text-[11px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
+          <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
             {locale === "lv" ? "Svarīgie datumi" : "Special dates"}
           </p>
           <p className="mt-1 text-xl font-black text-(--color-text-primary)">{celebrationsCount}</p>
         </div>
         <div className="rounded-(--radius-card) border border-(--color-border) bg-[color-mix(in_srgb,var(--color-surface)_84%,transparent)] p-3">
-          <p className="text-[11px] uppercase tracking-[0.12em] text-(--color-text-secondary)">Household</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">Household</p>
           <p className="mt-1 text-xl font-black text-(--color-text-primary)">{householdMemberCount}</p>
         </div>
       </div>
 
       <div className="rounded-(--radius-card) border border-(--color-border) bg-[color-mix(in_srgb,var(--color-surface)_84%,transparent)] p-3">
-        <p className="text-[11px] uppercase tracking-[0.12em] text-(--color-text-secondary)">
+        <p className="text-xs uppercase tracking-[0.12em] text-(--color-text-secondary)">
           {locale === "lv" ? "Medaļas" : "Medals"}
         </p>
         <div className="mt-2 flex flex-wrap gap-2 text-sm">
@@ -115,5 +115,8 @@ export function ProfileSummary({ resetScore, celebrationsCount, householdMemberC
         </div>
       </div>
     </GlassPanel>
+  );
+}
+nel>
   );
 }

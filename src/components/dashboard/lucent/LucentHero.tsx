@@ -39,12 +39,13 @@ export function LucentHero() {
     >
       {/* Soft, slow "Morning slumber" pulse gradient in the background - enhanced shadows */}
       <motion.div 
-        animate={{ 
+        whileInView={{ 
           scale: [1, 1.05, 1],
           opacity: [0.4, 0.7, 0.4],
           x: [0, 20, 0], // Subtle wind drift
           y: [0, -10, 0]
         }}
+        viewport={{ margin: "100px" }}
         transition={{ 
           duration: 12, 
           repeat: Infinity,
@@ -53,12 +54,13 @@ export function LucentHero() {
         className="absolute -top-24 -right-24 w-72 h-72 bg-primary/30 rounded-full blur-[80px] pointer-events-none" 
       />
       <motion.div 
-        animate={{ 
+        whileInView={{ 
           scale: [1, 1.1, 1],
           opacity: [0.3, 0.6, 0.3],
           x: [0, -30, 0], // Subtle wind drift
           y: [0, 15, 0]
         }}
+        viewport={{ margin: "100px" }}
         transition={{ 
           duration: 15, 
           repeat: Infinity,
@@ -70,10 +72,11 @@ export function LucentHero() {
       
       {/* Wind particle lines sweeping across */}
       <motion.div
-        animate={{
+        whileInView={{
           x: ["-100%", "200%"],
           opacity: [0, 0.3, 0]
         }}
+        viewport={{ margin: "100px" }}
         transition={{
           duration: 8,
           repeat: Infinity,
@@ -83,10 +86,11 @@ export function LucentHero() {
         className="absolute top-1/4 left-0 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none rotate-3"
       />
       <motion.div
-        animate={{
+        whileInView={{
           x: ["-100%", "200%"],
           opacity: [0, 0.2, 0]
         }}
+        viewport={{ margin: "100px" }}
         transition={{
           duration: 11,
           repeat: Infinity,

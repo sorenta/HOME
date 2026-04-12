@@ -67,7 +67,7 @@ export function KitchenHeader({ cartCount, onAddClick, onCartClick }: Props) {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className={`absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[0.65rem] font-black shadow-lg ${
+            className={`absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-black shadow-lg ${
               isForge ? "bg-primary text-white" : "bg-red-500 text-white"
             }`}
           >

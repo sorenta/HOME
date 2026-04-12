@@ -54,10 +54,10 @@ export function HouseholdCard({ household, roleLabel, members }: HouseholdCardPr
     return (
       <GlassPanel className="p-0 overflow-hidden font-mono">
         <div className="border-b border-white/5 bg-white/5 px-4 py-3 flex justify-between items-center">
-          <h2 className="text-[0.6rem] font-black uppercase tracking-[0.2em] text-white/80">Vienības_Sastāvs</h2>
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-white/80">Vienības_Sastāvs</h2>
           <button 
             onClick={() => setShowQr(!showQr)}
-            className="text-[0.55rem] font-black text-primary border border-primary/30 px-2 py-0.5 rounded-sm hover:bg-primary/10 transition-all"
+            className="text-xs font-black text-primary border border-primary/30 px-2 py-0.5 rounded-sm hover:bg-primary/10 transition-all"
           >
             [ {showQr ? "AIZVĒRT_QR" : "UZAICINĀT_BIEDRU"} ]
           </button>
@@ -68,18 +68,18 @@ export function HouseholdCard({ household, roleLabel, members }: HouseholdCardPr
               <div className="p-2 bg-white rounded-sm shadow-[0_0_20px_rgba(225,29,46,0.3)]">
                 <QRCodeSVG value={inviteUrl} size={140} level="H" />
               </div>
-              <p className="text-[0.55rem] text-center text-white/40 uppercase tracking-widest max-w-[200px]">
+              <p className="text-xs text-center text-white/40 uppercase tracking-widest max-w-[200px]">
                 Skenējiet šo kodu ar citu ierīci, lai pievienotos vienībai
               </p>
             </div>
           ) : (
             <>
               <div className="border-l-2 border-primary pl-4 py-1">
-                <p className="text-[0.5rem] font-black text-primary uppercase tracking-widest mb-1">MĀJSAIMNIECĪBA</p>
+                <p className="text-xs font-black text-primary uppercase tracking-widest mb-1">MĀJSAIMNIECĪBA</p>
                 <h3 className="text-sm font-bold text-white uppercase tracking-tight">
                   {householdName || "SISTĒMAS_TELPA"}
                 </h3>
-                <p className="text-[0.55rem] text-white/40 uppercase mt-1">LOMA: {roleLabel}</p>
+                <p className="text-xs text-white/40 uppercase mt-1">LOMA: {roleLabel}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
@@ -91,13 +91,13 @@ export function HouseholdCard({ household, roleLabel, members }: HouseholdCardPr
                       className="flex items-center gap-3 border border-white/5 bg-black/20 px-3 py-2 rounded-sm"
                     >
                       <span
-                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center bg-black/40 text-[0.6rem] font-bold text-primary border border-primary/20"
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center bg-black/40 text-xs font-bold text-primary border border-primary/20"
                         style={avatarStyle}
                       >
                         {initialsFromName(name)}
                       </span>
-                      <span className="truncate text-[0.65rem] font-black text-white/80 uppercase tracking-tight">{name}</span>
-                      <span className="ml-auto text-[0.5rem] text-primary/40 animate-pulse">●</span>
+                      <span className="truncate text-xs font-black text-white/80 uppercase tracking-tight">{name}</span>
+                      <span className="ml-auto text-xs text-primary/40 animate-pulse">●</span>
                     </div>
                   );
                 })}
@@ -170,6 +170,11 @@ export function HouseholdCard({ household, roleLabel, members }: HouseholdCardPr
             );
           })}
         </div>
+      )}
+    </GlassPanel>
+  );
+}
+    </div>
       )}
     </GlassPanel>
   );

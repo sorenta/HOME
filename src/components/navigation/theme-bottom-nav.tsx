@@ -39,8 +39,8 @@ export function ThemeBottomNav() {
     wrapperClass += "bottom-4 w-[calc(100%-2rem)] bg-gradient-to-br from-white/95 to-[#FAF8F5]/95 dark:from-zinc-900/95 dark:to-zinc-950/95 backdrop-blur-md border border-white/80 dark:border-white/10 rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(220,210,200,0.4)] dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4)]";
     innerClass += "px-2 py-2 gap-1";
   } else if (themeId === "hive") {
-    wrapperClass += "bottom-0 bg-background border-t-4 border-border shadow-[0_-4px_10px_rgba(0,0,0,0.05)]";
-    innerClass += "px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 gap-1";
+    wrapperClass += "bottom-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent backdrop-blur-[2px] border-none shadow-none pointer-events-none";
+    innerClass += "px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-8 gap-2 pointer-events-auto justify-center max-w-sm mx-auto";
   } else if (themeId === "pulse") {
     wrapperClass += "bottom-4 w-[calc(100%-2rem)] bg-background border-4 border-black shadow-[6px_6px_0px_#000] rounded-xl";
     innerClass += "px-2 py-2 gap-1";
@@ -59,8 +59,14 @@ export function ThemeBottomNav() {
           const active = isActive(item.href);
           
           // 2. BĀZES POGAS DIZAINS
-          let itemClass = "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 text-[0.65rem] font-bold transition-all duration-300 ";
+          let itemClass = "flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl py-2 transition-all duration-300 ";
           
+          if (themeId === "hive") {
+            itemClass += "flex-none w-14 h-14 p-0 justify-center gap-0 "; // fixed square for perfect octagon
+          } else {
+            itemClass += "flex-1 text-xs font-bold "; // standard flex
+          }
+
           // 3. AKTĪVĀS POGAS TĒMAS ODZIŅA
           if (active) {
             if (themeId === "lucent") itemClass += "bg-[#FAF8F5] dark:bg-zinc-800 text-amber-800 dark:text-amber-300 scale-105 font-bold shadow-[0_8px_16px_-6px_rgba(220,210,200,0.6)] dark:shadow-none border border-white/80 dark:border-white/5";
@@ -69,7 +75,11 @@ export function ThemeBottomNav() {
             else if (themeId === "forge") itemClass += "text-primary bg-black/50 shadow-inner scale-105";
             else if (themeId === "botanical") itemClass += "organic-shape bg-primary text-primary-foreground scale-110";
           } else {
-            itemClass += "text-foreground/50 font-medium hover:text-foreground/80 hover:bg-foreground/5";
+            if (themeId === "hive") {
+              itemClass += "text-foreground/60 font-medium hover:text-foreground hover:bg-foreground/5 ";
+            } else {
+              itemClass += "text-foreground/50 font-medium hover:text-foreground/80 hover:bg-foreground/5 ";
+            }
           }
 
           return (
@@ -92,16 +102,18 @@ export function ThemeBottomNav() {
                 </div>
               )}
 
-              <span className="relative z-10 mb-0.5 flex min-h-6 items-center justify-center leading-none" aria-hidden>
+              <span className="relative z-10 flex min-h-6 items-center justify-center leading-none" aria-hidden>
                 <AppSectionIcon
                   sectionId={item.sectionId}
                   themeId={themeId}
-                  size={active ? 24 : 22}
+                  size={active ? (themeId === "hive" ? 28 : 24) : 22}
                   tone={active ? "active" : "inactive"}
-                  className={active ? "scale-105" : ""}
+                  className={active && themeId !== "hive" ? "scale-105" : ""}
                 />
               </span>
-              <span className="max-w-full truncate px-1">{item.label}</span>
+              {!(themeId === "hive" && active) && (
+                <span className="max-w-full truncate px-1 text-[0.75rem]">{item.label}</span>
+              )}
             </Link>
           );
         })}

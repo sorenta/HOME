@@ -17,9 +17,9 @@ export function RootShell({ children }: { children: React.ReactNode }) {
     <>
       <div className="relative isolate mx-auto flex min-h-full max-w-lg flex-col">
         <GlobalCornerActions />
-        <div className="relative z-10 flex min-h-[100dvh] flex-1 flex-col">
+        <main id="main-content" className="relative z-10 flex min-h-[100dvh] flex-1 flex-col">
           {children}
-        </div>
+        </main>
         <ThemeSwitcher />
       </div>
       <ThemeBottomNav />
