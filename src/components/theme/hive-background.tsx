@@ -47,11 +47,11 @@ export function HiveBackground({ beeCount = 5, navSelector, className }: Props) 
         id: i,
         baseX: 8 + (i * (84 / count)), // percent of viewport width
         baseY: 12 + ((i * 11) % 62), // percent of viewport height
-        ampX: 40 + ampXRand * 140,
-        ampY: 18 + ampYRand * 72,
-        speed: 0.35 + speedRand * 0.9,
+        ampX: 40 + ampXRand * 80, // reduced amplitude for smoother flight
+        ampY: 18 + ampYRand * 50,
+        speed: 0.15 + speedRand * 0.4, // slower, more relaxed flying
         phase: phaseRand * Math.PI * 2,
-        size: 22 + Math.floor(sizeRand * 36),
+        size: 16 + Math.floor(sizeRand * 24), // slightly smaller bees
       };
     });
   }, [effectiveCount]);
@@ -88,10 +88,17 @@ export function HiveBackground({ beeCount = 5, navSelector, className }: Props) 
           const b = state[i];
           if (!el || !b) continue;
           if (b.landed) continue;
-          const x = (b.baseX / 100) * vw() + Math.sin(time * b.speed + b.phase) * b.ampX;
-          const y = (b.baseY / 100) * vh() + Math.sin(time * (b.speed * 0.95) + b.phase * 1.22) * b.ampY;
-          const rotate = Math.sin(time * b.speed + b.phase) * 12;
-          el.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg)`;
+          const x = (b.baseX / 100) * vw() + Math.sin(time * b.speed + b.phase) * b.ampX + Math.sin(time * b.speed * 2.3) * (b.ampX * 0.3);
+          const y = (b.baseY / 100) * vh() + Math.sin(time * (b.speed * 0.85) + b.phase * 1.22) * b.ampY + Math.cos(time * b.speed * 1.7) * (b.ampY * 0.4);
+          
+          // More natural rotation that follows the movement direction
+          const dx = Math.cos(time * b.speed + b.phase) * b.ampX * b.speed;
+          const rotate = (dx / (b.ampX * b.speed)) * 15 + Math.sin(time * b.speed * 3) * 5; // lean into turns + slight wobble
+          
+          // Flip the bee horizontally depending on movement direction
+          const scaleX = dx < 0 ? -1 : 1;
+          
+          el.style.transform = `translate3d(${x}px, ${y}px, 0) scaleX(${scaleX}) rotate(${rotate * scaleX}deg)`;
         }
         raf = requestAnimationFrame(animate);
       }
@@ -107,22 +114,57 @@ export function HiveBackground({ beeCount = 5, navSelector, className }: Props) 
           const idx = pick.idx;
           const el = nodes[idx];
           if (!el) return;
+          const navSelectorList = document.querySelectorAll("nav, header, button, [data-theme='hive'] .glass-panel, [role='button'], a");
           const navEl = navSelector
             ? document.querySelector(navSelector)
-            : document.querySelector("nav, header, .site-nav, .topbar");
+            : navSelectorList.length > 0 ? navSelectorList[Math.floor(Math.random() * Math.min(8, navSelectorList.length))] : null;
+          
           if (!navEl) return;
+          
           const rect = navEl.getBoundingClientRect();
-          const targetX = rect.left + rect.width / 2 - state[idx].size / 2;
-          const targetY = rect.top + rect.height / 2 - state[idx].size / 2;
+          // Land randomly near the edges or center of the element
+          const margin = 10;
+          const targetX = rect.left + margin + Math.random() * (Math.max(1, rect.width - margin * 2)) - state[idx].size / 2;
+          const targetY = rect.top + margin + Math.random() * (Math.max(1, rect.height - margin * 2)) - state[idx].size / 2;
+          
           state[idx].landed = true;
-          el.style.transition = "transform 900ms cubic-bezier(.22,.9,.26,1)";
-          el.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) rotate(0deg)`;
+          let finalScaleX = 1;
+          let landingAngle = 0;
+          if (el.style.transform) {
+            const currentTransform = el.style.transform;
+            const match = currentTransform.match(/translate3d\(([^p]+)px,\s*([^p]+)px/);
+            if (match && match.length >= 3) {
+              const cx = parseFloat(match[1]);
+              const cy = parseFloat(match[2]);
+              
+              // Determine direction vector
+              const dx = targetX - cx;
+              const dy = targetY - cy;
+              
+              landingAngle = Math.atan2(dy, Math.abs(dx)) * (180 / Math.PI);
+              finalScaleX = dx < 0 ? -1 : 1;
+            }
+          }
+          
+          el.style.transition = "transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)";
+          el.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scaleX(${finalScaleX}) rotate(${landingAngle * finalScaleX}deg)`;
+          
+          // Add a tiny 'wiggle' after landing by applying a short rotation animation later
+          const restingAngle = (Math.random() > 0.5 ? -1 : 1) * (20 + Math.random() * 40);
+
+          setTimeout(() => {
+             if (state[idx].landed && el) {
+                el.style.transition = "transform 0.5s ease-in-out";
+                el.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scaleX(${finalScaleX}) rotate(${restingAngle * finalScaleX}deg)`;
+             }
+          }, 1200);
+
           setTimeout(() => {
             state[idx].landed = false;
-            el.style.transition = "";
-          }, 2800 + Math.random() * 2400);
+            if (el) el.style.transition = "";
+          }, 3000 + Math.random() * 3500);
         }
-      }, 4200) as unknown as number;
+      }, 4500) as unknown as number;
     }
 
     return () => {

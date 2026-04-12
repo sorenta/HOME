@@ -22,7 +22,8 @@
   position: absolute;
   will-change: transform;
   pointer-events: none;
-  transform-origin: center;
+  transform-origin: center center;
+  z-index: 10;
 }
 
 .beeSvg {
