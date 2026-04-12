@@ -156,11 +156,20 @@ export function ModuleShell({
 
       {/* 3. Theme-specific decorative/content zones & Ambient layers */}
       <div aria-hidden className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Ambient Layers */}
-        {themeId === "hive" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-hive-hex-ambient" />}
-        {themeId === "forge" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-forge-grid-ambient" />}
+        {/* Ambient Layers with Surprise Elements */}
+        {themeId === "hive" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-hive-hex-ambient maj-hive-pulse" />
+        )}
+        {themeId === "forge" && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-forge-grid-ambient" />
+            <div className="maj-forge-scanline" />
+          </>
+        )}
         {themeId === "pulse" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-pulse-dots-ambient" />}
-        {themeId === "botanical" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-botanical-grain-ambient" />}
+        {themeId === "botanical" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-botanical-grain-ambient maj-botanical-drift" />
+        )}
         
         {/* Decorative Zones */}
         <div className="relative h-full w-full">

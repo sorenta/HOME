@@ -242,6 +242,34 @@ function HiveActionOverlay({ effect }: { effect: ThemeActionEffect }) {
   );
 }
 
+function LucentActionOverlay({ effect }: { effect: ThemeActionEffect }) {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-9998 overflow-hidden flex items-center justify-center">
+      <motion.div
+        key={effect.id}
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 1.1, y: -20 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative px-8 py-4 rounded-[2.5rem] bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_20px_50px_rgba(184,150,106,0.15)]"
+      >
+        {/* Soft floating orbs inside the notification */}
+        <motion.div 
+          animate={{ x: [0, 10, 0], y: [0, -5, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-4 -right-4 w-12 h-12 bg-primary/20 rounded-full blur-xl"
+        />
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-1 text-center">
+          {effect.kind === "done" ? "Pabeigts" : "Saglabāts"}
+        </p>
+        <p className="text-sm font-medium text-foreground/80 tracking-tight text-center">
+          {effect.label}
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
 export function ThemeActionEffectsProvider({ children }: { children: React.ReactNode }) {
   const { themeId } = useTheme();
   const [effect, setEffect] = useState<ThemeActionEffect | null>(null);
@@ -272,6 +300,7 @@ export function ThemeActionEffectsProvider({ children }: { children: React.React
         {effect && themeId === "hive" ? <HiveActionOverlay key={effect.id} effect={effect} /> : null}
         {effect && themeId === "forge" ? <ForgeActionOverlay key={effect.id} effect={effect} /> : null}
         {effect && themeId === "botanical" ? <BotanicalActionOverlay key={effect.id} effect={effect} /> : null}
+        {effect && themeId === "lucent" ? <LucentActionOverlay key={effect.id} effect={effect} /> : null}
       </AnimatePresence>
     </ThemeActionEffectsContext.Provider>
   );
