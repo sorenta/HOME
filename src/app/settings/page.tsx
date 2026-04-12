@@ -84,16 +84,41 @@ export default function SettingsPage() {
     if (!key) return;
 
     setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "testing" } }));
-    const result = await validateProviderKey(provider, key);
+    
+    // 1. Local validation
+    const localError = validateProviderKey(provider, key);
+    if (localError) {
+      setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "error", error: t(`settings.byok.error.${localError}`) } }));
+      return;
+    }
 
-    if (result.ok) {
-      await upsertHouseholdKitchenAi({ provider, key });
-      const nextMeta = await fetchHouseholdKitchenAiMeta();
-      setByokMeta(nextMeta);
-      setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "idle", value: "" } }));
-      hapticTap();
-    } else {
-      setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "error", error: result.message } }));
+    // 2. Server-side verification (Authenticated)
+    try {
+      const supabase = getBrowserClient();
+      const { data: { session } } = await supabase!.auth.getSession();
+      
+      const res = await fetch("/api/ai/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({ provider, key })
+      });
+
+      const result = await res.json();
+
+      if (result.ok) {
+        await upsertHouseholdKitchenAi({ provider, key });
+        const nextMeta = await fetchHouseholdKitchenAiMeta();
+        setByokMeta(nextMeta);
+        setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "idle", value: "" } }));
+        hapticTap();
+      } else {
+        setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "error", error: result.message } }));
+      }
+    } catch {
+      setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "error", error: "Connection error" } }));
     }
   }
 

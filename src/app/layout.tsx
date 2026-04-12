@@ -8,6 +8,7 @@ import {
 import { RootShell } from "@/components/layout/root-shell";
 import { AppProviders } from "@/components/providers/app-providers";
 import { THEMES, DEFAULT_THEME, buildRootThemeCssVars } from "@/lib/theme-logic";
+import { JsonLd } from "@/components/seo/JsonLd";
 import "./globals.css";
 
 const inter = Inter({
@@ -97,6 +98,9 @@ export default function RootLayout({
       style={rootStyle}
       suppressHydrationWarning
     >
+      <head>
+        <JsonLd />
+      </head>
       <body
         className={`
           ${inter.variable} ${fraunces.variable} ${spaceGrotesk.variable} 

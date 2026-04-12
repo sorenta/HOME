@@ -516,8 +516,6 @@ export default function EventsPage() {
         )}
 
         <EventAddMenu
-
-        <EventAddMenu
           isOpen={isAddMenuOpen}
           onClose={() => setIsAddMenuOpen(false)}
           onSelect={(kind) => {

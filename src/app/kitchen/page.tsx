@@ -3,13 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { ModuleShell } from "@/components/layout/module-shell";
 import { KitchenThemeLayer } from "@/components/kitchen/kitchen-theme-layer";
-import { GlassPanel } from "@/components/ui/glass-panel";
-import { KitchenStock } from "@/components/kitchen/KitchenStock";
-import { ShoppingCart } from "@/components/kitchen/ShoppingCart";
-import { AiChefSuggestions } from "@/components/kitchen/AiChefSuggestions";
 import { SavedRecipes } from "@/components/kitchen/SavedRecipes";
 import { fetchHouseholdKitchenAiMeta } from "@/lib/household-kitchen-ai";
-import { KitchenHeader } from "@/components/kitchen/KitchenHeader";
 import { KitchenItemForm } from "@/components/kitchen/kitchen-item-form";
 import { ForgeKitchenLayout } from "@/components/kitchen/layouts/forge-layout";
 import { BotanicalKitchenLayout } from "@/components/kitchen/layouts/botanical-layout";
@@ -76,6 +71,10 @@ export default function KitchenPage() {
     const today = new Date().toISOString().split("T")[0];
     return item.expiry_date === today;
   });
+
+  const urgentInventory = normalInventory
+    .filter((item) => item.status === "expiring" || item.status === "low_stock" || Boolean(item.expiry_date))
+    .slice(0, 5);
 
   const loadKitchenData = useCallback(async (signal?: AbortSignal) => {
     if (!householdId) {
@@ -235,6 +234,8 @@ export default function KitchenPage() {
     locale
   };
 
+  const isForge = themeId === "forge";
+
   return (
     <ModuleShell
       title={t("tile.kitchen")}
@@ -255,8 +256,6 @@ export default function KitchenPage() {
           ) : (
             <DefaultKitchenLayout {...layoutProps} />
           )}
-
-          <div className={`pt-6 border-t opacity-90 ${isForge ? 'border-white/5' : 'border-[var(--color-border)]'}`}>
 
           <div className={`pt-6 border-t opacity-90 ${isForge ? 'border-white/5' : 'border-[var(--color-border)]'}`}>
             <SavedRecipes

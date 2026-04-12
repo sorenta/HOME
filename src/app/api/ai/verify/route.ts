@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { type AiProvider, validateProviderKey } from "@/lib/ai/keys";
+import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export const runtime = "nodejs";
 
@@ -66,6 +68,23 @@ async function verifyOpenAI(key: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    // 1. Session Check (Security Lock)
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) {
+      return NextResponse.json({ ok: false, message: "Authentication required." }, { status: 401 });
+    }
+
+    const env = getSupabasePublicEnv();
+    const supabase = createClient(env.url, env.publishableKey);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json({ ok: false, message: "Invalid session." }, { status: 401 });
+    }
+
+    // 2. Continue with original logic
     const body = (await request.json()) as VerifyBody;
     const provider = body.provider;
     const key = body.key?.trim() ?? "";
