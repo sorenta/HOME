@@ -60,7 +60,7 @@ export function DefaultSettingsLayout({
               >
                 <ThemeToolbarIcon themeId={id} size={32} tone={themeId === id ? "active" : "inactive"} />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-(--color-text-secondary)">
-                  {THEMES[id].name}
+                  {t(THEMES[id].labelKey)}
                 </span>
               </button>
             ))}
@@ -90,7 +90,7 @@ export function DefaultSettingsLayout({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <SectionHeading title={t("settings.byok.title")} />
-          {byokMeta && <StatusPill tone="good" label="Aktīvs" />}
+          {byokMeta && <StatusPill tone="good">Aktīvs</StatusPill>}
         </div>
         <GlassPanel className="space-y-6 p-6">
           {PROVIDERS.map((p) => (

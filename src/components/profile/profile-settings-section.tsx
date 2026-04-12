@@ -54,6 +54,7 @@ export function ProfileSettingsSection() {
   const displayName =
     profile?.display_name ?? user?.user_metadata.display_name ?? user?.email?.split("@")[0] ?? "";
   const role = profile?.role_label ?? t("profile.roleFallback");
+  const isForge = themeId === "forge";
   const resetScore = Math.round(Number(profile?.reset_score ?? 0));
   const celebrationsCount = Number(Boolean(birthdayAt)) + Number(Boolean(nameDayAt));
   const statusText = t("profile.statusText", { score: String(resetScore) });

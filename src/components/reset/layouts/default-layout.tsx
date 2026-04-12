@@ -7,7 +7,8 @@ import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
 import { ResetAiPanel } from "@/components/reset/reset-ai-panel";
 import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
 import { ResetHealthSourcesPanel } from "@/components/reset/reset-health-sources-panel";
-import type { ResetWellnessV1, ResetDailySignalsRow } from "@/lib/reset-wellness";
+import type { ResetWellnessV1 } from "@/lib/reset-wellness";
+import type { ResetDailySignalsRow } from "@/lib/reset-daily-signals";
 
 type Props = {
   locale: "lv" | "en";

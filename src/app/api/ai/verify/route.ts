@@ -77,6 +77,9 @@ export async function POST(request: NextRequest) {
     }
 
     const env = getSupabasePublicEnv();
+    if (!env) {
+      return NextResponse.json({ ok: false, message: "Missing Supabase configuration." }, { status: 500 });
+    }
     const supabase = createClient(env.url, env.publishableKey);
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 

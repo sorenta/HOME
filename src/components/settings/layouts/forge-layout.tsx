@@ -63,7 +63,7 @@ export function ForgeSettingsLayout({
                 }`}
               >
                 <ThemeToolbarIcon themeId={id} size={24} tone={themeId === id ? "active" : "inactive"} />
-                <span className="text-[0.5rem] font-black uppercase tracking-tighter">{THEMES[id].name}</span>
+                <span className="text-[0.5rem] font-black uppercase tracking-tighter">{t(THEMES[id].labelKey)}</span>
               </button>
             ))}
           </div>

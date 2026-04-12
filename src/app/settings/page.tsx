@@ -109,7 +109,7 @@ export default function SettingsPage() {
       const result = await res.json();
 
       if (result.ok) {
-        await upsertHouseholdKitchenAi({ provider, key });
+        await upsertHouseholdKitchenAi({ provider, apiKey: key });
         const nextMeta = await fetchHouseholdKitchenAiMeta();
         setByokMeta(nextMeta);
         setByok(prev => ({ ...prev, [provider]: { ...prev[provider], status: "idle", value: "" } }));

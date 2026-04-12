@@ -4,7 +4,8 @@ import { ResetTrendsPanel } from "@/components/reset/reset-trends-panel";
 import { ResetBodyTracking } from "@/components/reset/reset-body-tracking";
 import { ResetAiPanel } from "@/components/reset/reset-ai-panel";
 import { ResetHealthSourcesPanel } from "@/components/reset/reset-health-sources-panel";
-import type { ResetWellnessV1, ResetDailySignalsRow } from "@/lib/reset-wellness";
+import type { ResetWellnessV1 } from "@/lib/reset-wellness";
+import type { ResetDailySignalsRow } from "@/lib/reset-daily-signals";
 
 type Props = {
   greetingText: string;
