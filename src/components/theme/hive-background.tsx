@@ -194,12 +194,40 @@ export function HiveBackground({ beeCount = 5, navSelector, className }: Props) 
           }}
         >
           <svg className={styles.beeSvg} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden>
+            <defs>
+              <clipPath id={`abdomenClip-${b.id}`}>
+                <ellipse cx="26" cy="32" rx="14" ry="10" />
+              </clipPath>
+            </defs>
             <g>
-              <ellipse cx="32" cy="34" rx="10" ry="14" fill="#1f1f1f" opacity="0.92" />
-              <ellipse cx="32" cy="30" rx="9" ry="12" fill="#ffd54a" />
-              <path d="M22 28c6 2 20 2 26 0v6c-6 2-20 2-26 0z" fill="#000" opacity="0.85" />
-              <path className={styles.wing} d="M18 18c8-8 18-8 28 0c-8 12-28 12-28 0z" fill="rgba(255,255,255,0.86)" />
-              <path className={styles.wing} d="M46 16c-8-8-18-8-28 0c8 12 28 12 28 0z" fill="rgba(255,255,255,0.86)" />
+              {/* Stinger */}
+              <polygon points="8,32 14,29 14,35" fill="#1f1f1f" />
+              
+              {/* Abdomen with stripes */}
+              <ellipse cx="26" cy="32" rx="14" ry="10" fill="#ffd54a" />
+              <g clipPath={`url(#abdomenClip-${b.id})`}>
+                <rect x="16" y="20" width="4" height="24" fill="#1f1f1f" />
+                <rect x="24" y="20" width="4" height="24" fill="#1f1f1f" />
+                <rect x="32" y="20" width="4" height="24" fill="#1f1f1f" />
+              </g>
+              
+              {/* Thorax */}
+              <circle cx="40" cy="32" r="8" fill="#1f1f1f" />
+              
+              {/* Head */}
+              <circle cx="49" cy="32" r="5" fill="#ffd54a" />
+              
+              {/* Eyes */}
+              <circle cx="51" cy="29" r="1.5" fill="#1f1f1f" />
+              <circle cx="51" cy="35" r="1.5" fill="#1f1f1f" />
+              
+              {/* Antennae */}
+              <path d="M 52 28 Q 56 23 59 25" fill="none" stroke="#1f1f1f" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M 52 36 Q 56 41 59 39" fill="none" stroke="#1f1f1f" strokeWidth="1.5" strokeLinecap="round" />
+              
+              {/* Wings */}
+              <path className={styles.wingTop} d="M 40 28 Q 20 5, 22 20 Q 30 28, 40 28 Z" fill="rgba(255,255,255,0.8)" stroke="#e0e0e0" strokeWidth="1" />
+              <path className={styles.wingBottom} d="M 40 36 Q 20 59, 22 44 Q 30 36, 40 36 Z" fill="rgba(255,255,255,0.8)" stroke="#e0e0e0" strokeWidth="1" />
             </g>
           </svg>
         </div>

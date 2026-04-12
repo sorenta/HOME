@@ -32,17 +32,28 @@
   height: 100%;
 }
 
-.wing {
-  transform-origin: 50% 50%;
+.wingTop {
+  transform-origin: bottom right;
   transform-box: fill-box;
-  animation: wingFlap 380ms linear infinite;
+  animation: flapTop 30ms linear infinite alternate;
   opacity: 0.95;
 }
 
-@keyframes wingFlap {
-  0%   { transform: rotate(-6deg) scaleY(1); }
-  50%  { transform: rotate(6deg) scaleY(0.95); }
-  100% { transform: rotate(-6deg) scaleY(1); }
+.wingBottom {
+  transform-origin: top right;
+  transform-box: fill-box;
+  animation: flapBottom 30ms linear infinite alternate;
+  opacity: 0.95;
+}
+
+@keyframes flapTop {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(-50deg); }
+}
+
+@keyframes flapBottom {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(50deg); }
 }
 
 .hiveCard {
@@ -105,6 +116,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .beeRoot { animation: none !important; }
-  .wing { animation: none !important; }
+  .wingTop, .wingBottom { animation: none !important; }
   .drip { animation: none !important; opacity: 0; }
 }
