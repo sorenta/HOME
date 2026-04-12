@@ -17,6 +17,8 @@
     "@google-cloud/api-gateway": "^4.2.1",
     "@google-cloud/vertexai": "^1.11.0",
     "@google/genai": "^1.49.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.12.81",
     "@supabase/ssr": "^0.10.0",
@@ -28,7 +30,8 @@
     "qr-scanner": "^1.4.2",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "three": "^0.183.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

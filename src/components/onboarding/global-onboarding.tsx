@@ -54,7 +54,7 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
         onboardingProfile: {
           ...wellness.onboardingProfile,
           primaryGoal: primaryGoal as "weight" | "wellbeing" | "sleep" | "stress",
-          trackMetrics: trackMetrics as string[],
+          trackMetrics: trackMetrics as ResetTrackMetric[],
         }
       });
     }
@@ -394,4 +394,6 @@ export function GlobalOnboarding({ onComplete }: { onComplete: () => void }) {
   );
 
   return createPortal(content, document.body);
+}
+t.body);
 }
