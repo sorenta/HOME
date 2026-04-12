@@ -159,12 +159,12 @@ export default function PharmacyPage() {
     }
   }
 
-  function statusTone(status: string): "success" | "warning" | "error" | "neutral" {
+  function statusTone(status: string): "good" | "warn" | "critical" | "neutral" {
     switch (status) {
-      case "ok": return "success";
+      case "ok": return "good";
       case "low_stock":
-      case "expiring": return "warning";
-      case "expired": return "error";
+      case "expiring": return "warn";
+      case "expired": return "critical";
       default: return "neutral";
     }
   }
