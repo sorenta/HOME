@@ -36,7 +36,7 @@ export function ThemeBottomNav() {
   let innerClass = "flex items-center justify-between ";
 
   if (themeId === "lucent") {
-    wrapperClass += "bottom-4 w-[calc(100%-2rem)] bg-card/60 backdrop-blur-xl border border-border/50 rounded-[2rem] shadow-theme";
+    wrapperClass += "bottom-4 w-[calc(100%-2rem)] bg-gradient-to-br from-white/95 to-[#FAF8F5]/95 dark:from-zinc-900/95 dark:to-zinc-950/95 backdrop-blur-md border border-white/80 dark:border-white/10 rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(220,210,200,0.4)] dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4)]";
     innerClass += "px-2 py-2 gap-1";
   } else if (themeId === "hive") {
     wrapperClass += "bottom-0 bg-background border-t-4 border-border shadow-[0_-4px_10px_rgba(0,0,0,0.05)]";
@@ -63,13 +63,13 @@ export function ThemeBottomNav() {
           
           // 3. AKTĪVĀS POGAS TĒMAS ODZIŅA
           if (active) {
-            if (themeId === "lucent") itemClass += "bg-primary/20 text-foreground shadow-inner scale-105";
+            if (themeId === "lucent") itemClass += "bg-[#FAF8F5] dark:bg-zinc-800 text-amber-800 dark:text-amber-300 scale-105 font-bold shadow-[0_8px_16px_-6px_rgba(220,210,200,0.6)] dark:shadow-none border border-white/80 dark:border-white/5";
             else if (themeId === "hive") itemClass += `${hiveStyles.hiveOctagon} bg-primary text-primary-foreground scale-110 shadow-md`;
             else if (themeId === "pulse") itemClass += "bg-primary text-primary-foreground border-2 border-black shadow-[2px_2px_0px_#000] -translate-y-1";
             else if (themeId === "forge") itemClass += "text-primary bg-black/50 shadow-inner scale-105";
             else if (themeId === "botanical") itemClass += "organic-shape bg-primary text-primary-foreground scale-110";
           } else {
-            itemClass += "text-foreground/60 hover:text-foreground hover:bg-foreground/5";
+            itemClass += "text-foreground/50 font-medium hover:text-foreground/80 hover:bg-foreground/5";
           }
 
           return (
@@ -80,6 +80,10 @@ export function ThemeBottomNav() {
               className={`${itemClass} relative group`}
               aria-current={active ? "page" : undefined}
             >
+              {/* Lucent: Soft glowing dot above the active icon */}
+              {themeId === "lucent" && active && (
+                <div className="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-amber-500/80 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+              )}
               {/* Forge: Neon beam behind active icon */}
               {themeId === "forge" && active && (
                 <div className="absolute inset-0 z-0 flex items-center justify-center">

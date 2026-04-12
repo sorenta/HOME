@@ -164,21 +164,18 @@ export function DayEventsList({
               style={{
                 borderColor: "var(--color-border)",
                 borderRadius: "var(--radius-md)",
-                background: "color-mix(in srgb, var(--color-card) 75%, transparent)",
                 color: "color-mix(in srgb, var(--color-foreground) 70%, transparent)",
               }}
             >
               {t("events.noRecordsForDay")}
             </div>
-          ) : (
+            ) : (
             items.map((item) => (
               <article
                 key={item.id}
-                className="rounded-theme border p-3"
+                className="rounded-theme p-3 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                 style={{
-                  borderColor: "var(--color-border)",
                   borderRadius: "var(--radius-md)",
-                  background: "color-mix(in srgb, var(--color-card) 80%, transparent)",
                 }}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -192,7 +189,7 @@ export function DayEventsList({
                       {item.title}
                     </p>
                     <p className="mt-1 text-xs" style={{ color: "color-mix(in srgb, var(--color-foreground) 70%, transparent)" }}>
-                      {item.timeLabel} · {item.typeLabel}
+                      {item.timeLabel}
                     </p>
                   </div>
                   <span

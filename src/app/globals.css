@@ -2739,15 +2739,13 @@
   }
 
   :root[data-theme="lucent"] .maj-module-content--lucent {
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(248,244,238,0.48) 100%);
-    border-radius: 36px;
-    border: 1px solid rgba(184,150,106,0.22);
-    padding: 1rem;
-    box-shadow:
-      0 16px 48px rgba(100,80,60,0.07),
-      inset 0 1px 0 rgba(255,255,255,0.72);
-    backdrop-filter: blur(8px);
+    /* Mīksti integrējam galveno lapas saturu, atceļot lieko dubulto kartiņas izskatu */
+    background: transparent !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
   }
 
   /* Lucent decorative zone — pearl shimmer line */

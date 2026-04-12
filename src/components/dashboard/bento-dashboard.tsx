@@ -9,6 +9,7 @@ import { fetchMyHouseholdMembers, type HouseholdMember } from "@/lib/household";
 import { subscribeHouseholdActivity } from "@/lib/household-activity";
 import { DashboardHomeLayout } from "@/components/dashboard/dashboard-home-layout";
 import { HouseholdWaterWidget } from "@/components/dashboard/household-water-widget";
+import { LucentWaterWidget } from "@/components/dashboard/lucent/LucentWaterWidget";
 import { TodayFocus } from "@/components/dashboard/today-focus";
 import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
 import { ResetMoodPanel } from "@/components/reset/reset-mood-panel";
@@ -16,7 +17,6 @@ import { CartPreview } from "@/components/kitchen/CartPreview";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { fetchShoppingItems, type ShoppingRecord } from "@/lib/kitchen";
 import { useRouter } from "next/navigation";
-import { GlobalOnboarding } from "@/components/onboarding/global-onboarding";
 
 export { ThemeBottomNav as AppBottomNav } from "@/components/navigation/theme-bottom-nav";
 
@@ -28,20 +28,11 @@ export function BentoDashboard() {
 
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [shoppingItems, setShoppingItems] = useState<ShoppingRecord[]>([]);
-  const [showGlobalTour, setShowGlobalTour] = useState(false);
 
   const householdId = profile?.household_id ?? null;
   const waterScopeId = householdId ?? (user?.id ? `personal:${user.id}` : "personal:guest");
 
   const resetScore = Math.round(Number(profile?.reset_score ?? 0));
-
-  useEffect(() => {
-    // Check if the user has seen the global tour
-    const tourKey = `maj-global-tour-complete-${user?.id ?? "anon"}`;
-    if (localStorage.getItem(tourKey) !== "true") {
-      setTimeout(() => setShowGlobalTour(true), 0);
-    }
-  }, [user?.id]);
 
   useEffect(() => {
     if (!householdId) return;
@@ -72,9 +63,6 @@ export function BentoDashboard() {
 
   return (
     <>
-      {showGlobalTour && (
-        <GlobalOnboarding onComplete={() => setShowGlobalTour(false)} />
-      )}
       <DashboardHomeLayout
         themeId={themeId}
         slots={{
@@ -85,11 +73,17 @@ export function BentoDashboard() {
             </div>
           ),
           focus: <TodayFocus />,
-          water: (
-            <HouseholdWaterWidget 
-              scopeId={waterScopeId} 
-              members={members} 
-              currentUserId={user?.id ?? null} 
+          water: themeId === "lucent" ? (
+            <LucentWaterWidget
+              scopeId={waterScopeId}
+              members={members}
+              currentUserId={user?.id ?? null}
+            />
+          ) : (
+            <HouseholdWaterWidget
+              scopeId={waterScopeId}
+              members={members}
+              currentUserId={user?.id ?? null}
             />
           ),
           metrics: (
@@ -102,9 +96,9 @@ export function BentoDashboard() {
             />
           ),
           cart: (
-            <CartPreview 
-              items={shoppingItems} 
-              onOpenAll={() => router.push("/kitchen")} 
+            <CartPreview
+              items={shoppingItems}
+              onOpenAll={() => router.push("/kitchen")}
             />
           ),
           reminders: (

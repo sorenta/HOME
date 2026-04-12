@@ -7,7 +7,9 @@ import { GlassPanel } from "@/components/ui/glass-panel";
 import { HiddenSeasonalCollectible } from "@/components/seasonal/hidden-seasonal-collectible";
 import { UpcomingEventCard } from "@/components/events/upcoming-event-card";
 import { CalendarGrid } from "@/components/events/calendar-grid";
+import { LucentWeeklyGrid } from "@/components/dashboard/lucent/LucentWeeklyGrid";
 import { DayEventsList, type DayEntry } from "@/components/events/day-events-list";
+import { LucentWeekEventsList } from "@/components/events/lucent-week-events-list";
 import { EventAddMenu } from "@/components/events/event-add-menu";
 import { formatAppDate } from "@/lib/date-format";
 import { getBrowserClient } from "@/lib/supabase/client";
@@ -257,7 +259,7 @@ export default function EventsPage() {
     setFormError(null);
 
     const style: PlannerEvent["style"] =
-      kind === "personal" ? "personal" : "shared";
+      (kind === "shared" || kind === "homework") ? "shared" : "personal";
 
     const targetDate = date || selectedDate;
 
@@ -434,7 +436,6 @@ export default function EventsPage() {
     if (!Number.isNaN(day.getTime())) {
       setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
     }
-    setFormError(t("events.quickAddEditOpened"));
     setIsAddMenuOpen(true);
   }
 
@@ -531,67 +532,118 @@ export default function EventsPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <GlassPanel className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--color-accent)" }}>
-                {t("events.hero")}
-              </p>
-              <UpcomingEventCard
-                event={upcomingDetails}
-                onOpen={onOpenUpcoming}
-                onEdit={onEditUpcoming}
-                onCreate={() => setIsAddMenuOpen(true)}
-              />
-            </GlassPanel>
+            {themeId === "lucent" ? (
+              <button 
+                onClick={() => setIsAddMenuOpen(true)}
+                className="w-full flex items-center justify-center gap-3 rounded-[2rem] bg-[#FCFBF8] dark:bg-zinc-900/90 p-4 sm:p-5 shadow-[0_10px_20px_-5px_rgba(210,200,190,0.3),inset_0_1px_2px_rgba(255,255,255,1)] dark:shadow-[0_10px_20px_-5px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.05)] border border-[#F3F0EA] dark:border-zinc-800/80 transition-all hover:scale-[1.01] active:scale-95"
+              >
+                <div className="w-8 h-8 rounded-full bg-[#FAF8F5] dark:bg-white/5 border border-white/80 dark:border-white/5 shadow-sm flex items-center justify-center text-foreground/50">
+                  +
+                </div>
+                <span className="text-sm font-semibold text-foreground/80 tracking-wide">
+                  {t("events.add")}
+                </span>
+              </button>
+            ) : (
+              <GlassPanel className="space-y-4">
+                <UpcomingEventCard
+                  event={upcomingDetails}
+                  onOpen={onOpenUpcoming}
+                  onEdit={onEditUpcoming}
+                  onCreate={() => setIsAddMenuOpen(true)}
+                />
+              </GlassPanel>
+            )}
 
-            <GlassPanel className="space-y-4">
-              <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                <CalendarGrid
-                  locale={locale}
-                  calendarMonth={calendarMonth}
-                  selectedDate={selectedDate}
-                  todayIso={isoForDate(new Date())}
-                  indicatorsByDate={indicatorsByDate}
-                  onSelectDate={(iso) => {
-                    setSelectedDate(iso);
-                    const day = new Date(`${iso}T00:00:00`);
-                    if (!Number.isNaN(day.getTime())) {
-                      setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+              <GlassPanel className="space-y-4">
+                {themeId === "lucent" ? (
+                  <LucentWeeklyGrid
+                    locale={locale}
+                    selectedDate={selectedDate}
+                    todayIso={isoForDate(new Date())}
+                    indicatorsByDate={indicatorsByDate}
+                    onSelectDate={(iso) => {
+                      setSelectedDate(iso);
+                      const day = new Date(`${iso}T00:00:00`);
+                      if (!Number.isNaN(day.getTime())) {
+                        setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+                      }
+                    }}
+                  />
+                ) : (
+                  <CalendarGrid
+                    locale={locale}
+                    calendarMonth={calendarMonth}
+                    selectedDate={selectedDate}
+                    todayIso={isoForDate(new Date())}
+                    indicatorsByDate={indicatorsByDate}
+                    onSelectDate={(iso) => {
+                      setSelectedDate(iso);
+                      const day = new Date(`${iso}T00:00:00`);
+                      if (!Number.isNaN(day.getTime())) {
+                        setCalendarMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+                      }
+                    }}
+                    onShiftMonth={(offset) =>
+                      setCalendarMonth(
+                        new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + offset, 1),
+                      )
                     }
-                  }}
-                  onShiftMonth={(offset) =>
-                    setCalendarMonth(
-                      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + offset, 1),
-                    )
-                  }
-                  onGoToToday={() => {
-                    const now = new Date();
-                    setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
-                    setSelectedDate(isoForDate(now));
-                  }}
-                  monthDays={monthDays}
-                />
+                    onGoToToday={() => {
+                      const now = new Date();
+                      setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+                      setSelectedDate(isoForDate(now));
+                    }}
+                    monthDays={monthDays}
+                  />
+                )}
+              </GlassPanel>
 
-                <DayEventsList
-                  selectedDate={selectedDate}
-                  selectedDateLabel={selectedDateLabel}
-                  items={selectedDayItems}
-                  onToggleTask={(taskId, done) => {
-                    void handleToggleTask(taskId, done);
-                  }}
-                  onDeleteEvent={(eventId) => {
-                    void handleDeleteEvent(eventId);
-                  }}
-                  onDeleteTask={(taskId) => {
-                    void handleDeleteTask(taskId);
-                  }}
-                  onEditItem={(item) => {
-                    const itemKind = item.kind === "task" ? "homework" : (events.find(e => e.id === item.sourceId)?.kind || "event");
-                    setEditingItem(item);
-                    setActiveForgeForm(itemKind);
-                  }}
-                />
-              </div>
-            </GlassPanel>
+              <GlassPanel className="space-y-4">
+                {themeId === "lucent" ? (
+                  <LucentWeekEventsList
+                    selectedDate={selectedDate}
+                    allEvents={events}
+                    allTasks={tasks}
+                    onToggleTask={(taskId, done) => {
+                      void handleToggleTask(taskId, done);
+                    }}
+                    onDeleteEvent={(eventId) => {
+                      void handleDeleteEvent(eventId);
+                    }}
+                    onDeleteTask={(taskId) => {
+                      void handleDeleteTask(taskId);
+                    }}
+                    onEditItem={(item) => {
+                      const itemKind = item.kind === "task" ? "homework" : (events.find(e => e.id === item.sourceId)?.kind || "event");
+                      setEditingItem(item as DayEntry);
+                      setActiveForgeForm(itemKind);
+                    }}
+                  />
+                ) : (
+                  <DayEventsList
+                    selectedDate={selectedDate}
+                    selectedDateLabel={selectedDateLabel}
+                    items={selectedDayItems}
+                    onToggleTask={(taskId, done) => {
+                      void handleToggleTask(taskId, done);
+                    }}
+                    onDeleteEvent={(eventId) => {
+                      void handleDeleteEvent(eventId);
+                    }}
+                    onDeleteTask={(taskId) => {
+                      void handleDeleteTask(taskId);
+                    }}
+                    onEditItem={(item) => {
+                      const itemKind = item.kind === "task" ? "homework" : (events.find(e => e.id === item.sourceId)?.kind || "event");
+                      setEditingItem(item);
+                      setActiveForgeForm(itemKind);
+                    }}
+                  />
+                )}
+              </GlassPanel>
+            </div>
           </div>
         )}
 

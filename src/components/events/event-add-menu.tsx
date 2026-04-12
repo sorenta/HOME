@@ -79,6 +79,77 @@ export function EventAddMenu({ isOpen, onClose, onSelect }: Props) {
     );
   }
 
+  // Lucent icons and colors - delicate, cozy icons with ultra-soft pastel washes
+  const getLucentIcon = (kind: EventKind) => {
+    switch (kind) {
+      case "reminder": return { icon: "🕰️", bg: "bg-amber-50/50 dark:bg-amber-900/10", border: "border-amber-100/50 dark:border-amber-800/20" };
+      case "birthday": return { icon: "🧁", bg: "bg-rose-50/50 dark:bg-rose-900/10", border: "border-rose-100/50 dark:border-rose-800/20" };
+      case "nameday": return { icon: "🌸", bg: "bg-fuchsia-50/50 dark:bg-fuchsia-900/10", border: "border-fuchsia-100/50 dark:border-fuchsia-800/20" };
+      case "homework": return { icon: "🧺", bg: "bg-emerald-50/50 dark:bg-emerald-900/10", border: "border-emerald-100/50 dark:border-emerald-800/20" };
+      case "personal": return { icon: "☕", bg: "bg-sky-50/50 dark:bg-sky-900/10", border: "border-sky-100/50 dark:border-sky-800/20" };
+      case "shared": return { icon: "🏡", bg: "bg-orange-50/50 dark:bg-orange-900/10", border: "border-orange-100/50 dark:border-orange-800/20" };
+      default: return { icon: "📝", bg: "bg-[#FCFBF8] dark:bg-zinc-800/40", border: "border-[#E8E4DF] dark:border-zinc-700/40" };
+    }
+  };
+
+  if (themeId === "lucent") {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="absolute inset-0 bg-black/10 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="relative w-full max-w-md bg-gradient-to-br from-white to-[#FAF8F5] dark:from-zinc-900 dark:to-zinc-950 p-6 sm:p-8 shadow-[0_30px_60px_-15px_rgba(210,200,190,0.5),inset_0_1px_2px_rgba(255,255,255,1)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.05)] border border-[#F3F0EA] dark:border-zinc-800/80 rounded-t-[2.5rem] sm:rounded-[2.5rem]"
+            >
+              <div className="mb-8 flex items-center justify-between">
+                <h2 className="text-xl font-medium text-foreground tracking-tight">
+                  {t("events.quickAddTitle")}
+                </h2>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FAF8F5] dark:bg-white/5 shadow-sm border border-white/80 dark:border-white/5 transition-transform active:scale-90"
+                >
+                  <span className="opacity-50 text-sm">✕</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {options.map((opt) => {
+                  const lStyle = getLucentIcon(opt.kind);
+                  return (
+                    <button
+                      key={opt.kind}
+                      onClick={() => onSelect(opt.kind)}
+                      className={`flex flex-col items-center justify-center gap-3 rounded-[2rem] border p-5 transition-all hover:scale-[1.02] active:scale-95 shadow-sm ${lStyle.bg} ${lStyle.border}`}
+                    >
+                      <span className="text-3xl opacity-80 drop-shadow-sm" aria-hidden>
+                        {lStyle.icon}
+                      </span>
+                      <span className="text-xs font-medium text-foreground/70 tracking-wide">
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    );
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (

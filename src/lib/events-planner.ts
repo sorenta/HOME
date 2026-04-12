@@ -1,5 +1,3 @@
-import { eventsList } from "@/lib/demo-data";
-
 export type EventKind = "event" | "reminder" | "birthday" | "nameday" | "homework" | "personal" | "shared" | "meal";
 
 export type PlannerEvent = {
@@ -23,28 +21,7 @@ export type PlannerTask = {
 const EVENTS_KEY = "majapps-planner-events-v1";
 const TASKS_KEY = "majapps-planner-tasks-v1";
 
-const DEFAULT_TASKS: PlannerTask[] = [
-  {
-    id: "task-1",
-    title: "Pasūtīt torti",
-    assigneeId: "2",
-    assigneeName: "Anna",
-    dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 4)
-      .toISOString()
-      .slice(0, 10),
-    done: false,
-  },
-  {
-    id: "task-2",
-    title: "Saplānot dāvanas",
-    assigneeId: "1",
-    assigneeName: "Soren",
-    dueDate: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 7)
-      .toISOString()
-      .slice(0, 10),
-    done: false,
-  },
-];
+const DEFAULT_TASKS: PlannerTask[] = [];
 
 function safeRead<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -69,16 +46,7 @@ function safeWrite<T>(key: string, value: T) {
 }
 
 function defaultEvents(): PlannerEvent[] {
-  const year = new Date().getFullYear();
-
-  return eventsList.map((item, index) => ({
-    id: item.id,
-    title: item.title,
-    style: item.style,
-    date: new Date(year, new Date().getMonth(), 10 + index * 6)
-      .toISOString()
-      .slice(0, 10),
-  }));
+  return [];
 }
 
 export function readPlannerEvents() {

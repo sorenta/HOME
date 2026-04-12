@@ -16,7 +16,7 @@ export function GlassPanel({ children, className = "", style, ...rest }: Props) 
   if (themeId === "forge") {
     themeClass = "glass-panel bg-black/20 backdrop-blur-xl border border-white/5 rounded-sm p-4 md:p-6 text-white/80";
   } else if (themeId === "lucent") {
-    themeClass = "glass-panel bg-card/60 backdrop-blur-xl border border-border/50 shadow-theme rounded-theme p-4 md:p-6";
+    themeClass = "relative overflow-hidden rounded-[2.5rem] bg-[#FCFBF8] dark:bg-zinc-900/90 p-6 sm:p-8 shadow-[0_30px_60px_-15px_rgba(210,200,190,0.5),inset_0_1px_2px_rgba(255,255,255,1)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.05)] border border-[#F3F0EA] dark:border-zinc-800/80";
   } else if (themeId === "hive") {
     themeClass = "glass-panel bg-card border-4 border-border shadow-sm rounded-theme p-4 md:p-6 relative overflow-hidden";
   } else if (themeId === "pulse") {
@@ -29,7 +29,7 @@ export function GlassPanel({ children, className = "", style, ...rest }: Props) 
     <div
       className={`${themeClass} transition-all duration-500 ${className}`}
       style={{
-        ...(themeId !== 'forge' ? {
+        ...(themeId !== 'forge' && themeId !== 'lucent' ? {
           backgroundColor: "var(--glass-bg, var(--color-surface))",
           borderRadius: "var(--radius-card)",
           borderColor: "var(--color-surface-border)",

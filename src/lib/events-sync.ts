@@ -185,10 +185,6 @@ export async function loadPlannerStateSynced(input: {
     }),
   );
 
-  if (!hasLocalPlannerData(remoteEvents, remoteTasks) && hasLocalPlannerData(localEvents, localTasks)) {
-    return { events: localEvents, tasks: localTasks };
-  }
-
   writePlannerEvents(remoteEvents);
   writePlannerTasks(remoteTasks);
   return { events: remoteEvents, tasks: remoteTasks };

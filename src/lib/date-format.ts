@@ -9,7 +9,10 @@ export function formatAppDate(
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return null;
 
-  return date.toLocaleDateString(locale === "lv" ? "lv-LV" : "en-US", {
+  // Izmantojam undefined, lai pārlūks automātiski piemērotu 
+  // lietotāja operētājsistēmas/pārlūka reģionālos iestatījumus 
+  // (dd.mm.yyyy vai mm/dd/yyyy) tā vietā, lai to uzspiestu cieti.
+  return date.toLocaleDateString(undefined, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

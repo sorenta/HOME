@@ -129,6 +129,7 @@ function AppSectionGlyph({
   const accentFill = themeId === "pulse" ? "currentColor" : "none";
   const accentOpacity = themeId === "pulse" ? 0.14 : 0;
   const isForge = themeId === "forge";
+  const isLucent = themeId === "lucent";
 
   // Forge technical accents (corner brackets/crosshairs)
   const forgeAccents = isForge ? (
@@ -139,6 +140,13 @@ function AppSectionGlyph({
 
   switch (sectionId) {
     case "home":
+      if (isLucent) return (
+        <>
+          <path d="M4 11s3.5-5 8-8c4.5 3 8 8 8 8" />
+          <path d="M6 10v7.5A2.5 2.5 0 0 0 8.5 20h7a2.5 2.5 0 0 0 2.5-2.5V10" />
+          <path d="M12 14v6" />
+        </>
+      );
       return (
         <>
           {forgeAccents}
@@ -148,6 +156,13 @@ function AppSectionGlyph({
         </>
       );
     case "calendar":
+      if (isLucent) return (
+        <>
+          <rect x="5" y="6" width="14" height="14" rx="4" />
+          <path d="M8 4v4M16 4v4M5 11h14" />
+          <circle cx="12" cy="15.5" r="1.5" />
+        </>
+      );
       return (
         <>
           {forgeAccents}
@@ -166,6 +181,12 @@ function AppSectionGlyph({
         </>
       );
     case "kitchen":
+      if (isLucent) return (
+        <>
+          <path d="M4 12a8 8 0 0 0 16 0H4Z" />
+          <path d="M9 5c0 2-2 3-2 3M15 5c0 2 2 3 2 3M12 4v4" />
+        </>
+      );
       return (
         <>
           {forgeAccents}
@@ -175,6 +196,13 @@ function AppSectionGlyph({
         </>
       );
     case "finance":
+      if (isLucent) return (
+        <>
+          <rect x="4" y="7" width="16" height="11" rx="3.5" />
+          <path d="M15 12.5h5" />
+          <circle cx="15" cy="12.5" r="1.5" />
+        </>
+      );
       return (
         <>
           {forgeAccents}
@@ -193,6 +221,12 @@ function AppSectionGlyph({
         </>
       );
     case "pharmacy":
+      if (isLucent) return (
+        <>
+          <path d="M12 20.5C12 20.5 4.5 15 4.5 8.5a4.5 4.5 0 0 1 9-3 4.5 4.5 0 0 1 9 3C22.5 15 12 20.5 12 20.5Z" />
+          <path d="M12 9v5M9.5 11.5h5" />
+        </>
+      );
       return (
         <>
           {forgeAccents}
@@ -203,6 +237,12 @@ function AppSectionGlyph({
         </>
       );
     case "reset":
+      if (isLucent) return (
+        <>
+          <path d="M12 3c0 5 4 9 9 9-5 0-9 4-9 9 0-5-4-9-9-9 5 0 9-4 9-9Z" />
+          <circle cx="12" cy="12" r="2.5" />
+        </>
+      );
       return (
         <>
           {forgeAccents}

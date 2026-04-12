@@ -58,16 +58,16 @@ export function EventForm({ kind, onSave, onCancel, locale, members = [], initia
   const modalBg = isForge 
     ? "bg-black/90 border-primary shadow-[0_0_60px_rgba(225,29,46,0.3)]" 
     : isLucent
-      ? "bg-white/70 backdrop-blur-2xl border-white shadow-2xl"
+      ? "bg-gradient-to-br from-white to-[#FAF8F5] dark:from-zinc-900 dark:to-zinc-950 border-[#F3F0EA] dark:border-zinc-800/80 shadow-[0_30px_60px_-15px_rgba(210,200,190,0.5),inset_0_1px_2px_rgba(255,255,255,1)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.05)] border"
       : isPulse
         ? "bg-white border-[4px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)]"
         : isBotanical
           ? "bg-[#fdfcf0] border-[#4a5d23]/20 shadow-xl"
           : "bg-[#fffbeb] border-[#d97706]/20 shadow-xl";
 
-  const textColor = isForge ? "text-white" : "text-[var(--color-foreground)]";
-  const labelColor = isForge ? "text-primary" : "text-[var(--color-text-secondary)]";
-  const inputBg = isForge ? "bg-white/5 border-white/10" : "bg-[var(--color-surface-2)] border-[var(--color-border)]";
+  const textColor = isForge ? "text-white" : isLucent ? "text-foreground/90" : "text-[var(--color-foreground)]";
+  const labelColor = isForge ? "text-primary" : isLucent ? "text-foreground/90" : "text-[var(--color-text-secondary)]";
+  const inputBg = isForge ? "bg-white/5 border-white/10" : isLucent ? "bg-white/60 dark:bg-black/10 border-black/5 dark:border-white/5 shadow-inner" : "bg-[var(--color-surface-2)] border-[var(--color-border)]";
   
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -104,7 +104,7 @@ export function EventForm({ kind, onSave, onCancel, locale, members = [], initia
         <div className="space-y-4">
           {/* Title Field */}
           <div className="space-y-1">
-            <label className={`text-[0.6rem] font-black uppercase tracking-[0.2em] ${labelColor}`}>
+            <label className={`text-[0.65rem] font-bold uppercase ${isLucent ? 'tracking-[0.1em]' : 'tracking-[0.2em] font-black'} ${labelColor}`}>
               {isBirthdayOrNameday ? t("events.field.person") : isTask ? t("events.todo.form.title") : (isForge ? "Identifikators (Nosaukums)" : t("events.form.title"))}
             </label>
             <input
@@ -120,7 +120,7 @@ export function EventForm({ kind, onSave, onCancel, locale, members = [], initia
           {/* Assignee Field (Tasks only) */}
           {isTask && members.length > 0 && (
             <div className="space-y-1">
-              <label className={`text-[0.6rem] font-black uppercase tracking-[0.2em] ${isForge ? 'text-white/40' : labelColor}`}>
+              <label className={`text-[0.65rem] font-bold uppercase ${isLucent ? 'tracking-[0.1em]' : 'tracking-[0.2em] font-black'} ${isForge ? 'text-white/40' : labelColor}`}>
                 {t("events.todo.form.assignee")}
               </label>
               <select
@@ -141,7 +141,7 @@ export function EventForm({ kind, onSave, onCancel, locale, members = [], initia
           {/* Date and Time Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div className={`space-y-1 ${isBirthdayOrNameday ? "col-span-2" : ""}`}>
-              <label className={`text-[0.6rem] font-black uppercase tracking-[0.2em] ${isForge ? 'text-white/40' : labelColor}`}>
+              <label className={`text-[0.65rem] font-bold uppercase ${isLucent ? 'tracking-[0.1em]' : 'tracking-[0.2em] font-black'} ${isForge ? 'text-white/40' : labelColor}`}>
                 {t("events.form.date")}
               </label>
               <input
@@ -154,7 +154,7 @@ export function EventForm({ kind, onSave, onCancel, locale, members = [], initia
             </div>
             {!isBirthdayOrNameday && (
               <div className="space-y-1">
-                <label className={`text-[0.6rem] font-black uppercase tracking-[0.2em] ${isForge ? 'text-white/40' : labelColor}`}>
+                <label className={`text-[0.65rem] font-bold uppercase ${isLucent ? 'tracking-[0.1em]' : 'tracking-[0.2em] font-black'} ${isForge ? 'text-white/40' : labelColor}`}>
                   {t("events.field.time")}
                 </label>
                 <input
@@ -170,7 +170,7 @@ export function EventForm({ kind, onSave, onCancel, locale, members = [], initia
 
           {/* Notes Field */}
           <div className="space-y-1">
-            <label className={`text-[0.6rem] font-black uppercase tracking-[0.2em] ${isForge ? 'text-white/40' : labelColor}`}>
+            <label className={`text-[0.65rem] font-bold uppercase ${isLucent ? 'tracking-[0.1em]' : 'tracking-[0.2em] font-black'} ${isForge ? 'text-white/40' : labelColor}`}>
               {kind === "birthday" 
                 ? t("events.field.notes.birthday") 
                 : kind === "nameday" 
@@ -198,7 +198,7 @@ export function EventForm({ kind, onSave, onCancel, locale, members = [], initia
             <div className={`flex items-center justify-between rounded-sm px-4 py-3 ${isForge ? 'border border-white/5 bg-white/[0.02]' : 'bg-[var(--color-surface-2)]'}`}
                  style={{ borderRadius: isLucent ? '1.5rem' : isBotanical ? '1rem' : undefined }}>
               <div className="space-y-0.5">
-                <p className={`text-[0.6rem] font-black uppercase tracking-widest ${isForge ? 'text-white/60' : labelColor}`}>
+                <p className={`text-[0.65rem] font-bold uppercase ${isLucent ? 'tracking-[0.1em]' : 'tracking-widest font-black'} ${isForge ? 'text-white/60' : labelColor}`}>
                   {locale === "lv" ? "Atkārtot katru gadu" : "Repeat yearly"}
                 </p>
                 {isForge && (

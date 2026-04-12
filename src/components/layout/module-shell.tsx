@@ -43,7 +43,7 @@ export function ModuleShell({
   let backBtnTheme = "bg-card text-foreground rounded-full shadow-sm border border-border hover:scale-105 py-2.5 px-4";
 
   if (themeId === "lucent") {
-    backBtnTheme = "bg-card/60 backdrop-blur-md text-foreground rounded-full shadow-theme border border-border/50 hover:scale-105 py-2.5 px-4";
+    backBtnTheme = "bg-[#FCFBF8] dark:bg-zinc-900 text-foreground rounded-full shadow-[0_8px_16px_-6px_rgba(220,210,200,0.6)] dark:shadow-none border border-white/80 dark:border-white/5 hover:scale-105 py-2.5 px-4";
   }
   if (themeId === "hive") {
     backBtnTheme = "bg-primary text-primary-foreground theme-octagon border-2 border-amber-500 hover:scale-105 py-2.5 px-4";
@@ -94,7 +94,7 @@ export function ModuleShell({
 
   return (
     <div
-      className={`relative z-1 flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-8 md:p-8 space-y-6 ${shellClass}`}
+      className={`relative z-1 flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-8 md:p-8 ${themeId === "lucent" ? "space-y-4" : "space-y-6"} ${shellClass}`}
       data-section-id={sectionId}
     >
       
