@@ -442,6 +442,8 @@ export default function EventsPage() {
     setIsAddMenuOpen(true);
   }
 
+  const selectedDateLabel = formatAppDate(selectedDate, locale) ?? selectedDate;
+
   const layoutProps = {
     upcomingDetails,
     locale,
