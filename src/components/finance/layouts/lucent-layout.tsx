@@ -35,29 +35,15 @@ export function LucentFinanceLayout({
   onMarkPaid,
   onEdit,
 }: FinanceLayoutProps) {
+  const isSolo = householdInitials.length <= 1;
+
   return (
     <div className="space-y-12 pt-8 pb-20 px-2 sm:px-4">
       {/* 1. Mūsu maciņš - Galvenais pārskats */}
       <section className="space-y-6">
-        <div className="text-center space-y-2 mb-6">
-          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">
-            {locale === "lv" ? "Mūsu maciņš" : "Our Wallet"}
-          </h2>
-          <p className="text-sm text-slate-500 font-medium">
-            {locale === "lv"
-              ? "Mierīga naudas plūsma un kopīgi mērķi."
-              : "Calm cash flow and shared goals."}
-          </p>
-        </div>
-
-        {/* 
-          Piezīme: Lai WalletHero pilnībā atbilstu Lucent tēmai, 
-          pašā WalletHero komponentē iekšā būtu jāizmanto 
-          bg-gradient-to-br from-white to-[#FAF8F5] un lielas ēnas.
-        */}
         <WalletHero
-          title={locale === "lv" ? "Brīvie līdzekļi" : "Available funds"}
-          subtitle={locale === "lv" ? "Šim mēnesim" : "For this month"}
+          title={locale === "lv" ? "Mūsu maciņš" : "Our Wallet"}
+          subtitle={locale === "lv" ? "Mierīga naudas plūsma" : "Calm cash flow"}
           total={formatEuro(summary.balance, locale)}
           incomeShare={incomeVsExpense.incomeShare}
           expenseShare={incomeVsExpense.expenseShare}
@@ -127,10 +113,10 @@ export function LucentFinanceLayout({
       <section className="space-y-6 pt-6 border-t border-slate-100/50">
         <div className="px-2">
           <h3 className="text-xl font-semibold text-slate-800">
-            {locale === "lv" ? "Mūsu sapņi" : "Our dreams"}
+            {isSolo ? (locale === "lv" ? "Mani sapņi" : "My dreams") : (locale === "lv" ? "Mūsu sapņi" : "Our dreams")}
           </h3>
         </div>
-        <FinanceSavingsGoals />
+        <FinanceSavingsGoals isSolo={isSolo} />
       </section>
     </div>
   );

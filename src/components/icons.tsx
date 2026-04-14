@@ -131,6 +131,8 @@ function AppSectionGlyph({
   const isForge = themeId === "forge";
   const isLucent = themeId === "lucent";
   const isHive = themeId === "hive";
+  const isBotanical = themeId === "botanical";
+  const isPulse = themeId === "pulse";
 
   // Forge technical accents (corner brackets/crosshairs)
   const forgeAccents = isForge ? (
@@ -156,6 +158,16 @@ function AppSectionGlyph({
           <path d="M12 14v6" />
         </>
       );
+      if (isBotanical) return (
+        <>
+          <path d="M12 20v-8M12 12c-3 0-6 2-6 6 0 2 2 2 6 2 4 0 6 0 6-2 0-4-3-6-6-6Z" />
+          <path d="M12 12c0-4 2-7 6-8-4 0-6 4-6 8Z" />
+          <path d="M12 12c0-4-2-7-6-8 4 0 6 4 6 8Z" />
+        </>
+      );
+      if (isPulse) return (
+        <path d="M13 3L4 14h7l-2 7 11-11h-7l2-7z" />
+      );
       return (
         <>
           {forgeAccents}
@@ -177,6 +189,20 @@ function AppSectionGlyph({
           <rect x="5" y="6" width="14" height="14" rx="4" />
           <path d="M8 4v4M16 4v4M5 11h14" />
           <circle cx="12" cy="15.5" r="1.5" />
+        </>
+      );
+      if (isBotanical) return (
+        <>
+          <path d="M12 21V10M12 10s3-2 3-5-3 1-3 1-3-4-3-1 0 5 3 5Z" />
+          <path d="M12 14c2 0 5-1 6-4-3 0-5 2-6 4Z" />
+          <path d="M12 16c-2 0-5-1-6-4 3 0 5 2 6 4Z" />
+        </>
+      );
+      if (isPulse) return (
+        <>
+          <path d="M4 5h16v15H4z" />
+          <path d="M4 10h16M8 3v4M16 3v4" />
+          <circle cx="12" cy="15" r="1" fill="currentColor" />
         </>
       );
       return (
@@ -212,6 +238,19 @@ function AppSectionGlyph({
           <path d="M9 5c0 2-2 3-2 3M15 5c0 2 2 3 2 3M12 4v4" />
         </>
       );
+      if (isBotanical) return (
+        <>
+          <path d="M12 21v-7M7 14c0-4 2-7 5-7s5 3 5 7H7Z" />
+          <circle cx="10" cy="10" r="1" fill="currentColor" opacity="0.4" />
+          <circle cx="14" cy="11" r="0.8" fill="currentColor" opacity="0.4" />
+        </>
+      );
+      if (isPulse) return (
+        <>
+          <path d="M8 6h8v13a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V6z" />
+          <path d="M8 9h16 M11 4h2" />
+        </>
+      );
       return (
         <>
           {forgeAccents}
@@ -234,6 +273,19 @@ function AppSectionGlyph({
           <rect x="4" y="7" width="16" height="11" rx="3.5" />
           <path d="M15 12.5h5" />
           <circle cx="15" cy="12.5" r="1.5" />
+        </>
+      );
+      if (isBotanical) return (
+        <>
+          <path d="M12 11c3 0 5 2 5 5 0 3-2 5-5 5s-5-2-5-5c0-3 2-5 5-5Z" />
+          <path d="M12 11c-2 0-4-2-4-4s2-2 4-2 4 0 4 2-2 4-4 4Z" />
+          <path d="M12 13v3" />
+        </>
+      );
+      if (isPulse) return (
+        <>
+          <path d="M12 4c-2 0-4 1-4 4v2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2V8c0-3-2-4-4-4z" />
+          <path d="M12 13v4" />
         </>
       );
       return (
@@ -266,6 +318,19 @@ function AppSectionGlyph({
           <path d="M12 9v5M9.5 11.5h5" />
         </>
       );
+      if (isBotanical) return (
+        <>
+          <path d="M12 21V11M12 11c0-3 2-6 6-7-4 0-6 3-6 7Z" />
+          <path d="M12 14c-3 0-6 2-6 5 4 0 6-2 6-5Z" />
+          <path d="M12 11c3 0 6 2 6 5-4 0-6-2-6-5Z" />
+        </>
+      );
+      if (isPulse) return (
+        <>
+          <path d="M7 12a5 5 0 0 1 5-5h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5z" />
+          <path d="M12 7v10" />
+        </>
+      );
       return (
         <>
           {forgeAccents}
@@ -288,6 +353,19 @@ function AppSectionGlyph({
         <>
           <path d="M12 3c0 5 4 9 9 9-5 0-9 4-9 9 0-5-4-9-9-9 5 0 9-4 9-9Z" />
           <circle cx="12" cy="12" r="2.5" />
+        </>
+      );
+      if (isBotanical) return (
+        <>
+          <path d="M12 18c-3 0-6-2-6-6 0-4 3-6 6-6s6 2 6 6c0 4-3 6-6 6Z" />
+          <path d="M12 6s1-3 3-3-1 3-1 3 3-1 3 2-3 1-3 1 1 3-2 3s-1-3-1-3-3 1-3-2 3-1 3-1-1-3 2-3Z" />
+        </>
+      );
+      if (isPulse) return (
+        <>
+          <path d="M19 5l-2 2" />
+          <path d="M12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" />
+          <path d="M17 4l2-2" />
         </>
       );
       return (

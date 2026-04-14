@@ -108,6 +108,14 @@ export function ForgeSettingsLayout({
             </div>
           </div>
 
+          <div className="border border-primary/20 bg-primary/5 p-4 rounded-sm">
+            <p className="text-[0.55rem] font-black text-primary uppercase tracking-widest mb-2">SYSTEM_SECURE_BYOK</p>
+            <p className="text-[0.65rem] text-white/60 leading-relaxed font-mono">
+              [INIT] Null_subscription_cost. Tu maksā tikai par patērēto trafiku tieši AI mašīnām.
+              [SECURITY] Atslēga tiek 100% šifrēta izolētā Supabase Vault konteinerī.
+            </p>
+          </div>
+
           <div className="space-y-4">
             {PROVIDERS.map((p) => (
               <div key={p.id} className="space-y-2">

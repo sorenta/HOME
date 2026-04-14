@@ -166,7 +166,6 @@ export function ModuleShell({
             <div className="maj-forge-scanline" />
           </>
         )}
-        {themeId === "pulse" && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-pulse-dots-ambient" />}
         {themeId === "botanical" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-botanical-grain-ambient maj-botanical-drift" />
         )}

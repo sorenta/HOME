@@ -15,7 +15,7 @@ export function GlobalCornerActions() {
   }
 
   const items = [
-    { href: "/settings", label: t("nav.settings"), side: "right-4", icon: "⚙" },
+    { href: "/profile", label: t("nav.profile"), side: "right-4", icon: "👤" },
   ];
 
   async function resetLocalState() {

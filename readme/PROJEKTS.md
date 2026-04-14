@@ -36,7 +36,7 @@ Dizaina noteikums: identitāte ir konsekvence visos ekrānos, nevis tikai Dashbo
 ### Slāņu modelis:
 - **App layer (`src/app`)**: Route lapas, layout, loading, API routes.
 - **UI layer (`src/components`)**: Domēna komponentes + UI primitīvi + provideri.
-- **Domain layer (`src/lib`)**: Biznesa loģika, datu operācijas, i18n, integrācijas.
+- **Domain layer (`src/lib`)**: Biznesa loģika, datu operācijas, i18n, integrācijas. Skatīt detalizētāk [ARHITEKTURA.md](ARHITEKTURA.md).
 - **Data layer (`supabase/*.sql`)**: Shēma, RLS politikas, migrācijas.
 
 ### Provider ķēde (`src/components/providers/app-providers.tsx`):

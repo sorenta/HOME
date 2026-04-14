@@ -1,12 +1,68 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n/i18n-context";
-import { financeGoals } from "@/lib/demo-data";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { motion } from "framer-motion";
+import { useTheme } from "@/components/providers/theme-provider";
 
-export function FinanceSavingsGoals() {
+export type SavingsGoal = {
+  id: string;
+  label: string;
+  current: string;
+  target: string;
+  pct: number;
+};
+
+type Props = {
+  goals?: SavingsGoal[];
+  isSolo?: boolean;
+};
+
+export function FinanceSavingsGoals({ goals = [], isSolo = false }: Props) {
   const { t, locale } = useI18n();
+  const { themeId } = useTheme();
+
+  let cardStyle: React.CSSProperties = {
+    borderRadius: "var(--radius-card)",
+    background: "color-mix(in srgb, var(--color-surface) 90%, transparent)",
+  };
+
+  if (themeId === "lucent") {
+    cardStyle = {
+      borderRadius: "36px",
+      background: "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(250,248,244,0.7))",
+      border: "1px solid rgba(184,150,106,0.18)",
+      boxShadow: "0 20px 40px -10px rgba(100,80,60,0.06), inset 0 2px 4px rgba(255,255,255,0.9)",
+      backdropFilter: "blur(16px)",
+    };
+  } else if (themeId === "forge") {
+    cardStyle = {
+      borderRadius: "4px",
+      background: "linear-gradient(180deg, #111418 0%, #0a0c0e 100%)",
+      border: "1px solid rgba(217,31,38,0.2)",
+      boxShadow: "0 0 12px rgba(217,31,38,0.05)",
+    };
+  } else if (themeId === "pulse") {
+    cardStyle = {
+      borderRadius: "1rem",
+      background: "#fff",
+      border: "2.5px solid #000",
+      boxShadow: "4px 4px 0 #000",
+    };
+  } else if (themeId === "botanical") {
+    cardStyle = {
+      borderRadius: "28px",
+      background: "rgba(255,255,255,0.7)",
+      border: "1px solid rgba(62,107,50,0.15)",
+      boxShadow: "0 4px 12px rgba(51,66,41,0.05)",
+    };
+  } else if (themeId === "hive") {
+    cardStyle = {
+      borderRadius: "16px",
+      background: "rgba(255,250,230,0.85)",
+      border: "1.5px solid rgba(217,119,6,0.2)",
+    };
+  }
 
   return (
     <section className="space-y-4">
@@ -21,15 +77,19 @@ export function FinanceSavingsGoals() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {financeGoals.map((goal) => (
+      {goals.length === 0 ? (
+        <GlassPanel style={cardStyle} className="p-6 text-center">
+          <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+            {locale === "lv" ? "Pagaidām nav pievienoti lieli mērķi." : "No big goals set yet."}
+          </p>
+        </GlassPanel>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {goals.map((goal) => (
           <GlassPanel
             key={goal.id}
             className="group relative flex flex-col justify-between overflow-hidden p-4 transition-all hover:scale-[1.01]"
-            style={{
-              borderRadius: "var(--radius-card)",
-              background: "color-mix(in srgb, var(--color-surface) 72%, transparent)",
-            }}
+            style={cardStyle}
           >
             <div className="mb-4 flex items-start justify-between">
               <div className="min-w-0 flex-1">
@@ -69,6 +129,7 @@ export function FinanceSavingsGoals() {
           </GlassPanel>
         ))}
       </div>
+      )}
     </section>
   );
 }

@@ -101,6 +101,8 @@ HOME/
 ├── CLAUDE.md                         # Claude instrukcijas
 ├── CONCEPTION.md                     # ← ŠIS FAILS — pilns plāns
 ├── README.md                         # Produkta filozofija un vīzija
+├── ARHITEKTURA.md                    # Datu relācijas, fetch standarti, i18n
+├── UI_KARTINAS.md                    # Kartiņu (UI) dizaina un tēmu vadlīnijas
 ├── package.json                      # Next 16.2.2, React 19, TW4, Framer Motion 12
 ├── tsconfig.json
 ├── next.config.ts

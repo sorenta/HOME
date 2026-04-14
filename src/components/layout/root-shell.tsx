@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { GlobalCornerActions } from "@/components/layout/global-corner-actions";
 import { ThemeBottomNav } from "@/components/navigation/theme-bottom-nav";
 
@@ -20,7 +19,6 @@ export function RootShell({ children }: { children: React.ReactNode }) {
         <main id="main-content" className="relative z-10 flex min-h-[100dvh] flex-1 flex-col">
           {children}
         </main>
-        <ThemeSwitcher />
       </div>
       <ThemeBottomNav />
     </>

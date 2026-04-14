@@ -25,6 +25,7 @@ import {
   type FixedCostRecord,
   type FinanceTransactionRecord,
 } from "@/lib/finance";
+import { fetchMyHouseholdMembers } from "@/lib/household";
 import { FinanceSavingsGoals } from "@/components/finance/FinanceSavingsGoals";
 import { useThemeActionEffects } from "@/components/theme/theme-action-effects";
 
@@ -130,13 +131,6 @@ export default function FinancePage() {
   }, [loading, householdId, searchParams, handleAddExpense]);
 
   const summary = useMemo(() => summarizeFinance(transactions), [transactions]);
-  const householdInitials = useMemo(() => {
-    const profileInitial =
-      profile?.display_name?.trim().slice(0, 1).toUpperCase() ??
-      (locale === "lv" ? "M" : "H");
-    const pairInitial = locale === "lv" ? "K" : "W";
-    return [profileInitial, pairInitial];
-  }, [locale, profile?.display_name]);
 
   const billPreview = useMemo(() => {
     return fixedCosts
@@ -220,6 +214,8 @@ export default function FinancePage() {
 
   const primaryUrgentBill = urgentBills[0]?.id ?? null;
 
+  const householdInitials = ["H", "H"];
+
   const layoutProps = {
     summary,
     urgentBills,
@@ -299,7 +295,7 @@ export default function FinancePage() {
         </div>
 
         {error ? <p className="px-4 text-sm font-medium text-red-500">{error}</p> : null}
-      </FinanceThemeLayer>
-    </ModuleShell>
-  );
-}
+        </FinanceThemeLayer>
+        </ModuleShell>
+        );
+        }

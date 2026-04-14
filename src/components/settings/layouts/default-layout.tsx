@@ -93,6 +93,12 @@ export function DefaultSettingsLayout({
           {byokMeta && <StatusPill tone="good">Aktīvs</StatusPill>}
         </div>
         <GlassPanel className="space-y-6 p-6">
+          <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 mb-4">
+            <h4 className="text-sm font-bold text-primary mb-1">Kāpēc sava atslēga (BYOK)?</h4>
+            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+              Mēs neiekasējam ikmēneša maksu par AI. Ievadot savu API atslēgu, tu maksā tieši pakalpojuma sniedzējam tikai par to, ko patērē (parasti centus mēnesī). Tava atslēga ir drošībā — tā tiek glabāta šifrētā veidā ar <strong>Supabase Vault</strong>.
+            </p>
+          </div>
           {PROVIDERS.map((p) => (
             <div key={p.id} className="space-y-2">
               <label className="text-xs font-bold text-(--color-text-secondary)">{p.name} API atslēga</label>

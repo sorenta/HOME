@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -273,6 +274,14 @@ function LucentActionOverlay({ effect }: { effect: ThemeActionEffect }) {
 export function ThemeActionEffectsProvider({ children }: { children: React.ReactNode }) {
   const { themeId } = useTheme();
   const [effect, setEffect] = useState<ThemeActionEffect | null>(null);
+
+  useEffect(() => {
+    if (!effect) return;
+    const timer = setTimeout(() => {
+      setEffect(null);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [effect]);
 
   const triggerThemeActionEffect = useCallback(
     (input?: { kind?: ThemeActionKind; label?: string }) => {

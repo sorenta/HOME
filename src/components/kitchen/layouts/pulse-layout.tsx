@@ -85,7 +85,6 @@ export function PulseKitchenLayout({
       )}
 
       <div className="space-y-8">
-        <div className="maj-pulse-dots-ambient opacity-10 absolute inset-0 pointer-events-none" />
         
         <KitchenStock
           items={normalInventory}

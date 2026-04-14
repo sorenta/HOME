@@ -2716,13 +2716,9 @@
   }
 
   :root[data-theme="botanical"] .maj-module-content--botanical {
-    border-radius: 28px;
-    background: color-mix(in srgb, var(--color-surface) 72%, transparent);
-    padding: 1rem;
-    box-shadow:
-      0 2px 16px rgba(51,66,41,0.06),
-      inset 0 1px 0 rgba(255,255,255,0.6);
-    border: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+    background: transparent;
+    border: none;
+    box-shadow: none;
   }
 
   /* Botanical decorative zone — organic leaf divider between shelves */
@@ -2814,13 +2810,9 @@
   }
 
   :root[data-theme="hive"] .maj-module-content--hive {
-    background: color-mix(in srgb, var(--color-surface) 78%, transparent);
-    border-radius: 20px;
-    border: 1.5px solid rgba(217,119,6,0.22);
-    padding: 1rem;
-    box-shadow:
-      0 8px 24px rgba(180,100,0,0.07),
-      inset 0 1px 0 rgba(255,255,255,0.55);
+    background: transparent;
+    border: none;
+    box-shadow: none;
   }
 
   /* Hive decorative zone — honey gradient bar */

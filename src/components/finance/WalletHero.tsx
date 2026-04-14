@@ -3,6 +3,7 @@
 import { useTheme } from "@/components/providers/theme-provider";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { motion, AnimatePresence } from "framer-motion";
+import { useI18n } from "@/lib/i18n/i18n-context";
 
 type WalletHeroProps = {
   title: string;
@@ -15,7 +16,7 @@ type WalletHeroProps = {
 
 function OdometerDigit({ value }: { value: string }) {
   if (isNaN(Number(value))) return <span className="px-0.5">{value}</span>;
-  
+
   return (
     <div className="relative h-[1.2em] w-[0.6em] overflow-hidden inline-flex justify-center items-center">
       <AnimatePresence mode="popLayout">
@@ -43,8 +44,9 @@ export function WalletHero({
   initials,
 }: WalletHeroProps) {
   const { themeId } = useTheme();
-  const leftInitial = initials[0] ?? "M";
-  const rightInitial = initials[1] ?? "H";
+  const { locale } = useI18n();
+
+  const joinedInitials = initials.slice(0, 2).join(" & ");
 
   // Per-theme card style
   let cardStyle: React.CSSProperties = {
@@ -56,8 +58,7 @@ export function WalletHero({
   if (themeId === "forge") {
     cardStyle = {
       borderRadius: "8px",
-      background:
-        "linear-gradient(180deg, #0C0E10 0%, #080a0c 100%)",
+      background: "linear-gradient(180deg, #0C0E10 0%, #080a0c 100%)",
       border: "1px solid rgba(217,31,38,0.28)",
       borderLeft: "3px solid rgba(217,31,38,0.7)",
       boxShadow: "0 0 28px rgba(217,31,38,0.08), inset 0 1px 0 rgba(255,255,255,0.04)",
@@ -65,8 +66,7 @@ export function WalletHero({
   } else if (themeId === "botanical") {
     cardStyle = {
       borderRadius: "36px",
-      background:
-        "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(238,232,216,0.85))",
+      background: "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(238,232,216,0.85))",
       border: "1px solid rgba(62,107,50,0.22)",
       boxShadow: "0 8px 24px rgba(51,66,41,0.08), inset 0 1px 0 rgba(255,255,255,0.7)",
     };
@@ -80,24 +80,20 @@ export function WalletHero({
   } else if (themeId === "lucent") {
     cardStyle = {
       borderRadius: "36px",
-      background:
-        "linear-gradient(180deg, rgba(255,255,255,0.82), rgba(248,244,238,0.6))",
+      background: "linear-gradient(180deg, rgba(255,255,255,0.82), rgba(248,244,238,0.6))",
       border: "1px solid rgba(184,150,106,0.24)",
-      boxShadow:
-        "0 16px 48px rgba(100,80,60,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
+      boxShadow: "0 16px 48px rgba(100,80,60,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",
       backdropFilter: "blur(12px)",
     };
   } else if (themeId === "hive") {
     cardStyle = {
       borderRadius: "20px",
-      background:
-        "linear-gradient(135deg, rgba(255,246,214,0.95), rgba(255,240,188,0.9))",
+      background: "linear-gradient(135deg, rgba(255,246,214,0.95), rgba(255,240,188,0.9))",
       border: "1.5px solid rgba(217,119,6,0.28)",
       boxShadow: "0 8px 24px rgba(180,100,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
     };
   }
 
-  // Balance text style per theme
   let balanceClass = "text-3xl font-semibold leading-none";
   if (themeId === "forge") balanceClass = "text-3xl font-black leading-none tracking-widest uppercase";
   if (themeId === "pulse") balanceClass = "text-4xl font-black leading-none";
@@ -106,55 +102,45 @@ export function WalletHero({
   if (themeId === "botanical") balanceClass = "text-3xl font-semibold leading-none";
 
   return (
-    <GlassPanel className="space-y-4" style={cardStyle}>
+    <GlassPanel className="space-y-6 p-6" style={cardStyle}>
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p
-            className="text-[11px] font-semibold uppercase tracking-[0.14em]"
-            style={{ color: "var(--color-accent)" }}
-          >
+        <div className="space-y-1">
+          <p className={`text-xs uppercase tracking-[0.16em] ${themeId === "forge" ? "text-primary font-black" : "text-(--color-accent) font-bold"}`}>
             {title}
           </p>
-          <p className="text-xs opacity-50 font-medium">{subtitle}</p>
+          <p className="text-sm font-medium text-(--color-text-secondary)">{subtitle}</p>
         </div>
 
-        <div className="flex -space-x-2">
-          <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold border-2 border-background"
-            style={{
-              background: "var(--color-accent)",
-              color: "white",
-            }}
-          >
-            {leftInitial}
-          </span>
-          <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold border-2 border-background"
-            style={{
-              background: "var(--color-success)",
-              color: "white",
-            }}
-          >
-            {rightInitial}
-          </span>
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border" style={{ borderColor: "color-mix(in srgb, var(--color-border) 40%, transparent)", background: "color-mix(in srgb, var(--color-surface) 60%, transparent)" }}>
+          <div className="flex items-center gap-1">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--color-accent)" }}>
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-(--color-text-primary)">
+              {joinedInitials}
+            </span>
+          </div>
         </div>
       </div>
-<div className="flex items-center gap-2">
-  {themeId === "forge" ? (
-    <div className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
-      {total.split('').map((char, i) => (
-        <OdometerDigit key={i} value={char} />
-      ))}
-    </div>
-  ) : (
-    <p className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
-      {total}
-    </p>
-  )}
-</div>
 
+      <div className="flex items-center">
+        {themeId === "forge" ? (
+          <div className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
+            {total.split('').map((char, i) => (
+              <OdometerDigit key={i} value={char} />
+            ))}
+          </div>
+        ) : (
+          <p className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
+            {total}
+          </p>
+        )}
+      </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <div
           className="h-2 w-full overflow-hidden"
           style={{
@@ -167,23 +153,26 @@ export function WalletHero({
               className="h-full transition-all duration-700"
               style={{
                 width: `${incomeShare}%`,
-                background:
-                  "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 65%, white))",
+                background: "linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 65%, white))",
               }}
             />
             <div
               className="h-full transition-all duration-700"
               style={{
                 width: `${expenseShare}%`,
-                background:
-                  "linear-gradient(90deg, color-mix(in srgb, var(--color-warning) 75%, var(--color-accent)), color-mix(in srgb, var(--color-warning) 94%, white))",
+                background: "linear-gradient(90deg, color-mix(in srgb, var(--color-warning) 75%, var(--color-accent)), color-mix(in srgb, var(--color-warning) 94%, white))",
               }}
             />
           </div>
         </div>
-        <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
-          Kopskats no majas dalibnieku ierakstiem
-        </p>
+        <div className="flex justify-between items-center px-1">
+          <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: "var(--color-accent)" }}>
+            {locale === "lv" ? "Ienākumi" : "Income"}
+          </p>
+          <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: "var(--color-warning)" }}>
+            {locale === "lv" ? "Izdevumi" : "Expenses"}
+          </p>
+        </div>
       </div>
     </GlassPanel>
   );

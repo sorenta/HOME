@@ -10,6 +10,7 @@ import { subscribeHouseholdActivity } from "@/lib/household-activity";
 import { DashboardHomeLayout } from "@/components/dashboard/dashboard-home-layout";
 import { HouseholdWaterWidget } from "@/components/dashboard/household-water-widget";
 import { LucentWaterWidget } from "@/components/dashboard/lucent/LucentWaterWidget";
+import { BotanicalWaterWidget } from "@/components/dashboard/botanical/BotanicalWaterWidget";
 import { HiveWaterWidget } from "@/components/dashboard/hive/HiveWaterWidget";
 import { TodayFocus } from "@/components/dashboard/today-focus";
 import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
@@ -74,25 +75,34 @@ export function BentoDashboard() {
             </div>
           ),
           focus: <TodayFocus />,
-          water: themeId === "lucent" ? (
-            <LucentWaterWidget
-              scopeId={waterScopeId}
-              members={members}
-              currentUserId={user?.id ?? null}
-            />
-          ) : themeId === "hive" ? (
-            <HiveWaterWidget
-              scopeId={waterScopeId}
-              members={members}
-              currentUserId={user?.id ?? null}
-            />
-          ) : (
-            <HouseholdWaterWidget
-              scopeId={waterScopeId}
-              members={members}
-              currentUserId={user?.id ?? null}
-            />
-          ),
+          water:
+            themeId === "lucent" ? (
+              <LucentWaterWidget
+                scopeId={waterScopeId}
+                members={members}
+                currentUserId={user?.id ?? null}
+              />
+            ) : themeId === "botanical" ? (
+              <BotanicalWaterWidget
+                members={members}
+                currentUserId={user?.id ?? null}
+                water={Object.fromEntries(members.map(m => [m.id, 0]))} // TODO: wire real water state
+                goal={2000}
+                addForMember={() => {}}
+              />
+            ) : themeId === "hive" ? (
+              <HiveWaterWidget
+                scopeId={waterScopeId}
+                members={members}
+                currentUserId={user?.id ?? null}
+              />
+            ) : (
+              <HouseholdWaterWidget
+                scopeId={waterScopeId}
+                members={members}
+                currentUserId={user?.id ?? null}
+              />
+            ),
           metrics: (
             <ResetMoodPanel
               scorePercent={resetScore}
