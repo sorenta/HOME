@@ -13,6 +13,30 @@ import { ResetHealthSourcesPanel } from "@/components/reset/reset-health-sources
 import type { ResetWellnessV1 } from "@/lib/reset-wellness";
 import type { ResetDailySignalsRow } from "@/lib/reset-daily-signals";
 
+type Props = {
+  locale: "lv" | "en";
+  userId: string | null;
+  todaySignals: ResetDailySignalsRow | null;
+  quickMetrics: any[];
+  wellness: ResetWellnessV1;
+  signalsRefreshToken: number;
+  onSignalsSaved: () => void;
+  onUpdate: (next: ResetWellnessV1) => void;
+  onOpenQuestionnaire: () => void;
+  bodyMode: any;
+  hasTodayCheckIn: boolean;
+  moodLabel: string;
+  moodScore: number;
+  aiSignals: any[];
+  quitPlan: any;
+  quitDays: number | null;
+  aiGoals: string[];
+  activeQuitGoals: any[];
+  goalLabel: string;
+  metricPreview: string;
+  t: (key: string) => string;
+};
+
 export function DefaultResetLayout({
   locale,
   userId,
