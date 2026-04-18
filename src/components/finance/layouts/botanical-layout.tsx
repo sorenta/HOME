@@ -9,6 +9,7 @@ export function BotanicalFinanceLayout({
   summary,
   urgentBills,
   plannedBills,
+  goals,
   householdInitials,
   incomeVsExpense,
   locale,

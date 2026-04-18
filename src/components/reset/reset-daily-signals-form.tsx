@@ -14,6 +14,7 @@ import {
 } from "@/lib/reset-daily-signals";
 import { QuitStreakProgressRing } from "@/components/reset/QuitStreakProgressRing";
 import { useThemeActionEffects } from "@/components/theme/theme-action-effects";
+import { ThemedFeedback } from "@/components/ui/themed-feedback";
 
 import { type ResetTrackMetric } from "@/lib/reset-wellness";
 
@@ -126,16 +127,22 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
   async function save() {
     if (!userId) return;
     hapticTap();
+    
+    // 1. OPTIMISTIC UPDATE: Trigger effect immediately
+    triggerThemeActionEffect({ kind: "save", label: t("reset.signals.title") });
+    
     setSaving(true);
     setMessage(null);
-    const ok = await upsertTodaySignals({ userId, loggedOn, payload: form }).then(
-      (r) => r.ok,
-    );
+    
+    // 2. BACKGROUND SYNC: Save to database
+    const { ok } = await upsertTodaySignals({ userId, loggedOn, payload: form });
+    
     setSaving(false);
-    setMessage(ok ? "ok" : "err");
     if (ok) {
-      triggerThemeActionEffect({ kind: "save", label: t("reset.signals.title") });
+      setMessage("ok");
       onSaved?.();
+    } else {
+      setMessage("err");
     }
   }
 
@@ -184,6 +191,7 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                     min="1"
                     max="5"
                     step="1"
+                    aria-label={t("reset.signals.groupSleep")}
                     value={
                       form.sleep_wake_time === "05:00" ? 1 : 
                       form.sleep_wake_time === "06:00" ? 2 : 
@@ -201,7 +209,7 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                         sleep_wake_time: wake,
                       }));
                     }}
-                    className="flex-1 h-2 bg-(--color-surface-border) rounded-full appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
+                    className="flex-1 maj-themed-slider"
                   />
                   <span className="text-xl">😌</span>
                 </div>
@@ -224,12 +232,13 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                     min="1"
                     max="5"
                     step="1"
+                    aria-label={t("reset.signals.mood")}
                     value={form.mood ?? 3}
                     onChange={(e) => {
                       hapticTap();
                       setForm((f) => ({ ...f, mood: parseInt(e.target.value, 10) }));
                     }}
-                    className="flex-1 h-2 bg-(--color-surface-border) rounded-full appearance-none cursor-pointer accent-primary hover:accent-primary-hover transition-all"
+                    className="flex-1 maj-themed-slider"
                   />
                   <span className="text-xl">😄</span>
                 </div>
@@ -252,12 +261,13 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
                     min="1"
                     max="5"
                     step="1"
+                    aria-label={t("reset.signals.energy")}
                     value={form.energy ?? 3}
                     onChange={(e) => {
                       hapticTap();
                       setForm((f) => ({ ...f, energy: parseInt(e.target.value, 10) }));
                     }}
-                    className="flex-1 h-2 bg-(--color-surface-border) rounded-full appearance-none cursor-pointer accent-amber-500 hover:accent-amber-400 transition-all"
+                    className="flex-1 maj-themed-slider"
                   />
                   <span className="text-xl">⚡</span>
                 </div>
@@ -305,16 +315,29 @@ export function ResetDailySignalsForm({ userId, trackMetrics, onSaved }: Props) 
             {saving ? t("reset.signals.saving") : t("reset.signals.save")}
           </button>
 
-          {message === "ok" ? (
-            <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/30 p-3 mt-4 animate-in fade-in zoom-in-95 duration-300">
-              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                {generateQuickInsight(form, locale)}
-              </p>
+          {message === "ok" && (
+            <div className="mt-4">
+              <ThemedFeedback
+                type="success"
+                title={locale === "lv" ? "Sinhronizēts" : "Synced"}
+                message={generateQuickInsight(form, locale)}
+              />
             </div>
-          ) : null}
-          {message === "err" ? (
-            <p className="text-sm text-rose-600 dark:text-rose-400 mt-2">{t("reset.signals.error")}</p>
-          ) : null}
+          )}
+
+          {message === "err" && (
+            <div className="mt-4">
+              <ThemedFeedback
+                type="error"
+                title={locale === "lv" ? "Kļūda" : "Error"}
+                message={locale === "lv" ? "Neizdevās saglabāt datus. Lūdzu, mēģiniet vēlreiz." : "Failed to save data. Please try again."}
+                action={{
+                  label: locale === "lv" ? "Mēģināt vēlreiz" : "Try Again",
+                  onClick: () => save()
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </GlassPanel>

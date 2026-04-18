@@ -5,9 +5,10 @@ import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { type AppSectionId } from "@/components/icons";
-import { hapticTap } from "@/lib/haptic";
+import { hapticTheme } from "@/lib/haptic";
 import { recordModuleVisit, type ModuleId } from "@/lib/bento-usage";
 import { useTheme } from "@/components/providers/theme-provider";
+import { transitionForTheme } from "@/lib/theme-logic";
 import { useI18n } from "@/lib/i18n/i18n-context";
 
 type Props = {
@@ -69,28 +70,9 @@ export function ModuleShell({
     : `maj-module-title maj-module-title--${themeId}`;
   const actionClass = `maj-module-action maj-module-action--${themeId}`;
 
-  // Per-theme entrance spring config
-  const headerTransition =
-    themeId === "forge"
-      ? { type: "spring" as const, stiffness: 520, damping: 38 }
-      : themeId === "lucent"
-        ? { type: "spring" as const, stiffness: 80, damping: 20 }
-        : themeId === "pulse"
-          ? { type: "spring" as const, stiffness: 620, damping: 30 }
-          : themeId === "botanical"
-            ? { type: "spring" as const, stiffness: 110, damping: 22 }
-            : { type: "spring" as const, stiffness: 280, damping: 32 };
-
-  const contentTransition =
-    themeId === "forge"
-      ? { delay: 0.04, type: "spring" as const, stiffness: 480, damping: 40 }
-      : themeId === "lucent"
-        ? { delay: 0.12, type: "spring" as const, stiffness: 70, damping: 18 }
-        : themeId === "pulse"
-          ? { delay: 0.03, type: "spring" as const, stiffness: 580, damping: 28 }
-          : themeId === "botanical"
-            ? { delay: 0.1, type: "spring" as const, stiffness: 100, damping: 20 }
-            : { delay: 0.05 };
+  const baseTransition = transitionForTheme(themeId);
+  const headerTransition = baseTransition;
+  const contentTransition = { ...baseTransition, delay: themeId === "lucent" ? 0.12 : 0.05 };
 
   return (
     <div
@@ -107,7 +89,7 @@ export function ModuleShell({
       >
         <Link
           href="/"
-          onClick={() => hapticTap()}
+          onClick={() => hapticTheme(themeId)}
           className={`${backBtnClass} ${themeId === "forge" ? "-mt-1" : ""}`}
           aria-label={t("nav.back")}
         >
@@ -138,7 +120,7 @@ export function ModuleShell({
           ) : null}
         </div>
         {actionHref && actionLabel ? (
-          <Link href={actionHref} onClick={() => hapticTap()} className={actionClass}>
+          <Link href={actionHref} onClick={() => hapticTheme(themeId)} className={actionClass}>
             {actionLabel}
           </Link>
         ) : null}
@@ -169,6 +151,31 @@ export function ModuleShell({
         {themeId === "botanical" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-botanical-grain-ambient maj-botanical-drift" />
         )}
+        {themeId === "pulse" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="maj-pulse-dots-ambient" />
+        )}
+        {themeId === "lucent" && (
+          <div className="absolute inset-0">
+            <motion.div 
+              animate={{ 
+                x: [0, 100, 0], 
+                y: [0, -50, 0],
+                scale: [1, 1.2, 1] 
+              }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-20 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" 
+            />
+            <motion.div 
+              animate={{ 
+                x: [0, -80, 0], 
+                y: [0, 60, 0],
+                scale: [1, 1.3, 1] 
+              }}
+              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              className="absolute -bottom-20 -right-20 w-[30rem] h-[30rem] bg-accent/5 rounded-full blur-[150px]" 
+            />
+          </div>
+        )}
         
         {/* Decorative Zones */}
         <div className="relative h-full w-full">
@@ -188,3 +195,4 @@ export function ModuleShell({
     </div>
   );
 }
+

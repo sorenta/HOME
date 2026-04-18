@@ -9,6 +9,7 @@ export function HiveFinanceLayout({
   summary,
   urgentBills,
   plannedBills,
+  goals,
   householdInitials,
   incomeVsExpense,
   locale,

@@ -3,7 +3,7 @@
 import { motion, type Transition } from "framer-motion";
 import Link from "next/link";
 import { hapticTap } from "@/lib/haptic";
-import type { ThemeId } from "@/lib/theme-logic";
+import { type ThemeId, transitionForTheme } from "@/lib/theme-logic";
 import hiveStyles from "@/components/theme/hive.module.css";
 import { AppSectionIcon, type AppSectionId } from "@/components/icons";
 
@@ -20,15 +20,6 @@ type Props = {
   colSpan?: 1 | 2;
   tier?: BentoTileTier;
 };
-
-function transitionForTheme(themeId: ThemeId): Transition {
-  if (themeId === "forge") return { type: "spring", stiffness: 450, damping: 24 };
-  if (themeId === "botanical") return { type: "spring", stiffness: 280, damping: 28 };
-  if (themeId === "pulse") return { type: "spring", stiffness: 520, damping: 32 };
-  if (themeId === "lucent") return { type: "spring", stiffness: 140, damping: 22 };
-  if (themeId === "hive") return { type: "spring", stiffness: 380, damping: 30 };
-  return { type: "spring", stiffness: 200, damping: 36 };
-}
 
 export function BentoTile({
   href,
@@ -52,11 +43,11 @@ export function BentoTile({
 
   // 2. TĒMAS SPECIFIKA (Mūsu dizaina odziņas)
   let themeClass = "border border-border"; // Noklusējums
-  if (themeId === "lucent") themeClass = "border border-border/50 backdrop-blur-md bg-card/60";
-  if (themeId === "hive") themeClass = "border-4 border-border";
-  if (themeId === "pulse") themeClass = "border-4 border-black hover:shadow-[6px_6px_0px_#000] hover:-translate-x-0.5 hover:-translate-y-0.5";
-  if (themeId === "forge") themeClass = "bg-black/60 backdrop-blur-xl border border-white/5 border-l-[3px] border-l-primary shadow-[inset_0_0_20px_rgba(255,0,0,0.03)] hover:bg-black/70 hover:border-white/10 transition-all";
-  if (themeId === "botanical") themeClass = "border border-border shadow-[inset_0_0_20px_rgba(255,255,255,0.3)]";
+  if (themeId === "lucent") themeClass = "border border-white/40 backdrop-blur-xl bg-gradient-to-br from-white/60 to-white/20 shadow-[0_8px_32px_rgba(200,180,160,0.15)] hover:shadow-[0_16px_48px_rgba(200,180,160,0.25)]";
+  if (themeId === "hive") themeClass = "maj-hive-bento-depth bg-gradient-to-br from-[#FFFDF5] to-[#FFF8E0] hover:brightness-105";
+  if (themeId === "pulse") themeClass = "maj-pulse-neo-shadow bg-white hover:bg-[#FDFDFD]";
+  if (themeId === "forge") themeClass = "maj-forge-scanline bg-[#0F1115] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_16px_rgba(0,0,0,0.6)] hover:brightness-110";
+  if (themeId === "botanical") themeClass = "liquid-shape border border-white/20 bg-gradient-to-br from-white/10 to-transparent backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:border-white/40";
 
 
   // 3. IZMĒRS UN IZKĀRTOJUMS

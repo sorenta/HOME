@@ -1,5 +1,6 @@
 "use client";
 
+import { type ThemeId, transitionForTheme } from "@/lib/theme-logic";
 import { useTheme } from "@/components/providers/theme-provider";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,19 +15,20 @@ type WalletHeroProps = {
   initials: string[];
 };
 
-function OdometerDigit({ value }: { value: string }) {
+function OdometerDigit({ value, themeId }: { value: string, themeId: ThemeId }) {
   if (isNaN(Number(value))) return <span className="px-0.5">{value}</span>;
+  const spring = transitionForTheme(themeId);
 
   return (
     <div className="relative h-[1.2em] w-[0.6em] overflow-hidden inline-flex justify-center items-center">
       <AnimatePresence mode="popLayout">
         <motion.span
           key={value}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -20, opacity: 0 }}
-          transition={{ duration: 0.4, ease: "backOut" }}
-          className="font-mono tabular-nums"
+          initial={{ y: 25, opacity: 0, filter: "blur(4px)" }}
+          animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+          exit={{ y: -25, opacity: 0, filter: "blur(4px)" }}
+          transition={spring}
+          className="font-mono tabular-nums inline-block"
         >
           {value}
         </motion.span>
@@ -102,8 +104,17 @@ export function WalletHero({
   if (themeId === "botanical") balanceClass = "text-3xl font-semibold leading-none";
 
   return (
-    <GlassPanel className="space-y-6 p-6" style={cardStyle}>
-      <div className="flex items-start justify-between gap-3">
+    <GlassPanel className="space-y-6 p-6 overflow-hidden relative group" style={cardStyle}>
+      {/* ── Lucent Shimmer Effect ── */}
+      {themeId === "lucent" && (
+        <motion.div
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 5 }}
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] pointer-events-none z-0"
+        />
+      )}
+
+      <div className="flex items-start justify-between gap-3 relative z-10">
         <div className="space-y-1">
           <p className={`text-xs uppercase tracking-[0.16em] ${themeId === "forge" ? "text-primary font-black" : "text-(--color-accent) font-bold"}`}>
             {title}
@@ -126,21 +137,15 @@ export function WalletHero({
         </div>
       </div>
 
-      <div className="flex items-center">
-        {themeId === "forge" ? (
-          <div className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
-            {total.split('').map((char, i) => (
-              <OdometerDigit key={i} value={char} />
-            ))}
-          </div>
-        ) : (
-          <p className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
-            {total}
-          </p>
-        )}
+      <div className="flex items-center relative z-10">
+        <div className={balanceClass} style={{ color: "var(--color-text-primary)" }}>
+          {total.split('').map((char, i) => (
+            <OdometerDigit key={i} value={char} themeId={themeId} />
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 relative z-10">
         <div
           className="h-2 w-full overflow-hidden"
           style={{

@@ -21,6 +21,37 @@ export type FinanceTransactionRecord = {
   metadata: Record<string, unknown> | null;
 };
 
+export type FinanceSavingsGoalRecord = {
+  id: string;
+  label: string;
+  current_amount: number;
+  target_amount: number;
+  is_active: boolean;
+};
+
+export async function fetchFinanceSavingsGoals(householdId: string) {
+  const supabase = getBrowserClient();
+  if (!supabase) return [] as FinanceSavingsGoalRecord[];
+
+  const { data, error } = await supabase
+    .from("finance_savings_goals")
+    .select("id, label, current_amount, target_amount, is_active, created_at")
+    .eq("household_id", householdId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Failed to fetch finance savings goals", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    return [];
+  }
+
+  return ((data as FinanceSavingsGoalRecord[] | null) ?? []).map((row) => ({
+    ...row,
+    current_amount: Number(row.current_amount),
+    target_amount: Number(row.target_amount),
+  }));
+}
+
 export async function fetchFixedCosts(householdId: string) {
   const supabase = getBrowserClient();
   if (!supabase) return [] as FixedCostRecord[];

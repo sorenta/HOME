@@ -55,9 +55,30 @@ function PulseActionOverlay({ effect }: { effect: ThemeActionEffect }) {
       animate={{ scale: 1, opacity: 1, rotate: 0 }}
       exit={{ scale: 1.28, opacity: 0, rotate: 6 }}
       transition={{ type: "spring", stiffness: 420, damping: 24 }}
-      className="pointer-events-none fixed inset-0 z-9999 flex items-center justify-center px-6"
+      className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center px-6"
     >
       <div className="relative">
+        {/* Comic Action Lines */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: [0, 1, 0], opacity: [0, 1, 0] }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: "140px",
+              height: "4px",
+              backgroundColor: "black",
+              originX: 0,
+              rotate: `${i * 30}deg`,
+              translateX: "40px",
+            }}
+          />
+        ))}
+
         <motion.div
           initial={{ rotate: -8 }}
           animate={{ rotate: [0, -2, 2, 0] }}
@@ -97,13 +118,6 @@ function PulseActionOverlay({ effect }: { effect: ThemeActionEffect }) {
             {effect.label}
           </p>
         </motion.div>
-
-        <div className="absolute -left-4 top-8 rounded-full border-[3px] border-black bg-white px-2 py-1 text-[0.65rem] font-black uppercase text-black shadow-[4px_4px_0_#00000018]">
-          Ink!
-        </div>
-        <div className="absolute -right-1 bottom-9 rounded-full border-[3px] border-black bg-[#ff8f4d] px-2 py-1 text-[0.65rem] font-black uppercase text-white shadow-[4px_4px_0_#00000018]">
-          Snap!
-        </div>
       </div>
     </motion.div>
   );
@@ -121,6 +135,18 @@ function ForgeActionOverlay({ effect }: { effect: ThemeActionEffect }) {
         className="absolute inset-0"
         style={{ background: "linear-gradient(180deg, rgba(217,31,38,0.25) 0%, transparent 60%)" }}
       />
+      {/* Data Leak Particles */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: "80vh", x: 200 + i * 40, opacity: 0 }}
+          animate={{ y: "110vh", opacity: [0, 0.8, 0] }}
+          transition={{ duration: 0.8, delay: i * 0.1, repeat: Infinity, repeatDelay: 1 }}
+          className="absolute text-[10px] font-mono text-primary/40"
+        >
+          {Math.random() > 0.5 ? "0101" : "DATA_EX"}
+        </motion.div>
+      ))}
       {/* Mechanical status card */}
       <motion.div
         key={effect.id}
@@ -138,9 +164,15 @@ function ForgeActionOverlay({ effect }: { effect: ThemeActionEffect }) {
           padding: "0.6rem 0.85rem",
         }}
       >
-        <p className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: "rgba(217,31,38,0.9)" }}>
-          {effect.kind === "done" ? "EXECUTED" : "SAVED"}
-        </p>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color: "rgba(217,31,38,0.9)" }}>
+            {effect.kind === "done" ? "EXECUTED" : "SAVED"}
+          </p>
+          <div className="flex gap-1">
+             <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
+             <div className="w-1.5 h-1.5 bg-primary/40" />
+          </div>
+        </div>
         <p className="mt-0.5 text-[12px] font-bold uppercase tracking-[0.06em] text-white/90">
           {effect.label}
         </p>
@@ -160,6 +192,19 @@ function ForgeActionOverlay({ effect }: { effect: ThemeActionEffect }) {
 function BotanicalActionOverlay({ effect }: { effect: ThemeActionEffect }) {
   return (
     <div className="pointer-events-none fixed inset-0 z-9998 overflow-hidden">
+      {/* Growing Vines */}
+      <svg className="absolute bottom-0 left-0 w-32 h-64 opacity-20" viewBox="0 0 100 200">
+        <motion.path
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+          d="M20,200 Q40,150 20,100 T30,0"
+          fill="none"
+          stroke="var(--color-accent)"
+          strokeWidth="2"
+        />
+      </svg>
+
       {/* Sprout growing upward */}
       <motion.div
         key={effect.id}
@@ -181,10 +226,10 @@ function BotanicalActionOverlay({ effect }: { effect: ThemeActionEffect }) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12 }}
+          className="liquid-shape"
           style={{
             background: "rgba(238,232,216,0.95)",
             border: "1px solid rgba(62,107,50,0.28)",
-            borderRadius: "20px",
             padding: "0.45rem 0.8rem",
             boxShadow: "0 6px 20px rgba(51,66,41,0.10)",
           }}
@@ -222,6 +267,14 @@ function HiveActionOverlay({ effect }: { effect: ThemeActionEffect }) {
           transition={{ duration: 0.55, repeat: 2, ease: "easeInOut" }}
           className="relative rounded-[1.25rem] border-2 border-amber-500/70 bg-[rgba(255,248,220,0.96)] px-4 py-3 shadow-[0_10px_28px_rgba(245,184,0,0.18)]"
         >
+          {/* Honey Drip */}
+          <motion.div 
+            initial={{ height: 0 }}
+            animate={{ height: [0, 15, 10] }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="absolute -bottom-2 left-6 w-3 bg-amber-500/80 rounded-b-full"
+          />
+          
           <div className="absolute -left-2 top-3 h-3 w-3 rounded-full bg-amber-400/70 blur-[1px]" />
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
             {effect.kind === "done" ? "Pienests stropam" : "Jauna zīmīte"}

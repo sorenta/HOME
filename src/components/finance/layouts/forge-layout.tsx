@@ -9,6 +9,7 @@ export function ForgeFinanceLayout({
   summary,
   urgentBills,
   plannedBills,
+  goals,
   householdInitials,
   incomeVsExpense,
   locale,

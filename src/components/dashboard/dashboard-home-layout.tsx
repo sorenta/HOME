@@ -52,6 +52,22 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
 
   if (!mounted) return <div className="h-screen bg-transparent" />; // Wait for prefs to load
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 }
+  };
+
   const CustomizationModal = () => (
     <AnimatePresence>
       {isEditing && (
@@ -111,11 +127,16 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
   );
 
   return (
-    <div className={`relative maj-dash-compose maj-dash-compose--${themeId} ${isOrganicTheme ? "space-y-4 pt-24 pb-28 px-4" : "space-y-10 pt-20 pb-12 px-4"}`}>
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className={`relative maj-dash-compose maj-dash-compose--${themeId} ${isOrganicTheme ? "space-y-4 pt-24 pb-28 px-4" : "space-y-10 pt-20 pb-12 px-4"}`}
+    >
       <CustomizationModal />
 
       {/* SECTOR 01: COMMAND & CONTROL */}
-      <div className={isOrganicTheme ? "space-y-4" : "space-y-3"}>
+      <motion.div variants={item} className={isOrganicTheme ? "space-y-4" : "space-y-3"}>
         {!isOrganicTheme && (
           <div className="flex items-center gap-3 px-1 opacity-40">
             <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 01</span>
@@ -132,12 +153,12 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
             </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* SECTOR 02: BIOMETRICS */}
       <AnimatePresence>
         {prefs.showWater && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={isOrganicTheme ? "space-y-4" : "space-y-3"}>
+          <motion.div variants={item} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={isOrganicTheme ? "space-y-4" : "space-y-3"}>
             {!isOrganicTheme && (
               <div className="flex items-center gap-3 px-1 opacity-40">
                 <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 02</span>
@@ -153,7 +174,7 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
       {/* SECTOR 03: LOGISTICS & DATA */}
       <AnimatePresence>
         {prefs.showLogistics && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={isOrganicTheme ? "space-y-4" : "space-y-3"}>
+          <motion.div variants={item} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={isOrganicTheme ? "space-y-4" : "space-y-3"}>
             {!isOrganicTheme && (
               <div className="flex items-center gap-3 px-1 opacity-40">
                 <span className="text-[0.5rem] font-black text-primary uppercase tracking-[0.4em]">Sektors 03</span>
@@ -170,9 +191,9 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
       </AnimatePresence>
 
       {/* Optional Feed (Module activity) */}
-      {feed ? <div className="mt-8">{feed}</div> : null}
+      {feed ? <motion.div variants={item} className="mt-8">{feed}</motion.div> : null}
 
-      <div className="flex justify-center pt-8 pb-4">
+      <motion.div variants={item} className="flex justify-center pt-8 pb-4">
         <button
           onClick={() => setIsEditing(true)}
           className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${
@@ -182,7 +203,7 @@ export function DashboardHomeLayout({ themeId, slots = {} }: Props) {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
           Pielāgot ekrānu
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

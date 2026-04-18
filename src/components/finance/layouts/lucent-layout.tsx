@@ -2,14 +2,15 @@ import { FinanceQuickActions } from "@/components/finance/FinanceQuickActions";
 import { PlannedBillsPreview } from "@/components/finance/PlannedBillsPreview";
 import { UrgentBillsCard } from "@/components/finance/UrgentBillsCard";
 import { WalletHero } from "@/components/finance/WalletHero";
-import { FinanceSavingsGoals } from "@/components/finance/FinanceSavingsGoals";
+import { FinanceSavingsGoals, type SavingsGoal } from "@/components/finance/FinanceSavingsGoals";
 import { formatEuro } from "@/lib/finance";
 
-// Mēs definējam interfeisu, ko pieņems visi izkārtojumi
+// MÄ“s definÄ“jam interfeisu, ko pieÅ†ems visi izkÄrtojumi
 export interface FinanceLayoutProps {
   summary: { balance: number; income: number; expense: number };
   urgentBills: any[];
   plannedBills: any[];
+  goals: SavingsGoal[];
   householdInitials: string[];
   incomeVsExpense: { incomeShare: number; expenseShare: number };
   locale: "lv" | "en";
@@ -25,6 +26,7 @@ export function LucentFinanceLayout({
   summary,
   urgentBills,
   plannedBills,
+  goals,
   householdInitials,
   incomeVsExpense,
   locale,
@@ -116,7 +118,7 @@ export function LucentFinanceLayout({
             {isSolo ? (locale === "lv" ? "Mani sapņi" : "My dreams") : (locale === "lv" ? "Mūsu sapņi" : "Our dreams")}
           </h3>
         </div>
-        <FinanceSavingsGoals isSolo={isSolo} />
+        <FinanceSavingsGoals isSolo={isSolo} goals={goals} />
       </section>
     </div>
   );

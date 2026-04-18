@@ -9,6 +9,7 @@ export function PulseFinanceLayout({
   summary,
   urgentBills,
   plannedBills,
+  goals,
   householdInitials,
   incomeVsExpense,
   locale,

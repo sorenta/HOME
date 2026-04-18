@@ -6,8 +6,11 @@ import type { KitchenInventoryRecord } from "@/lib/kitchen";
 import { useI18n } from "@/lib/i18n/i18n-context";
 import { useTheme } from "@/components/providers/theme-provider";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { hapticTheme } from "@/lib/haptic";
+import { transitionForTheme } from "@/lib/theme-logic";
+import { ThemedFeedback } from "@/components/ui/themed-feedback";
 
 type AiChefSuggestionsProps = {
   inventory: KitchenInventoryRecord[];
@@ -38,6 +41,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
   const { locale } = useI18n();
   const { themeId } = useTheme();
   const isForge = themeId === "forge";
+  const spring = transitionForTheme(themeId);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +77,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
   }
 
   const handleFetchAi = async () => {
+    hapticTheme(themeId);
     setLoading(true);
     setError(null);
     try {
@@ -201,23 +206,77 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
         )}
         
         {loading && (
-          <div className="py-8 text-center space-y-3">
-            <div className="inline-block animate-spin text-2xl">🌀</div>
-            <p className="text-sm animate-pulse text-[var(--color-text-secondary)]">
-              {locale === "lv" ? "Šefpavārs domā..." : "Chef is thinking..."}
-            </p>
+          <div className="py-12 text-center space-y-5 relative overflow-hidden">
+            <motion.div 
+              animate={{ 
+                rotate: 360,
+                scale: [1, 1.1, 1],
+              }}
+              transition={{ 
+                rotate: { duration: 10, repeat: Infinity, ease: "linear" },
+                scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="inline-block relative"
+            >
+              <span className="text-4xl block">🍲</span>
+              {/* Magic Particles */}
+              {[...Array(6)].map((_, i) => (
+                <motion.span
+                  key={i}
+                  animate={{ 
+                    y: [-20, -60],
+                    x: [0, (i % 2 === 0 ? 30 : -30)],
+                    opacity: [0, 1, 0],
+                    scale: [0, 1.5, 0]
+                  }}
+                  transition={{ 
+                    duration: 1.5, 
+                    delay: i * 0.2, 
+                    repeat: Infinity,
+                    ease: "easeOut" 
+                  }}
+                  className="absolute top-0 left-1/2 text-xs"
+                >
+                  ✨
+                </motion.span>
+              ))}
+            </motion.div>
+            
+            <div className="space-y-1">
+              <p className="text-sm font-black uppercase tracking-[0.15em] text-primary animate-pulse">
+                {locale === "lv" ? "Notiek garšu sintēze..." : "Synthesizing flavors..."}
+              </p>
+              <p className="text-[10px] font-bold text-(--color-text-muted) uppercase tracking-widest px-4">
+                {themeId === "forge" ? "Analyzing molecular structure" : 
+                 themeId === "botanical" ? "Gathering forest herbs" : 
+                 "Consulting the master chef"}
+              </p>
+            </div>
+
+            {/* Forge-specific scan overlay during loading */}
+            {themeId === "forge" && (
+              <motion.div 
+                animate={{ y: ["-100%", "100%"] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 bg-primary/5 border-y border-primary/20 pointer-events-none"
+              />
+            )}
           </div>
         )}
 
+import { ThemedFeedback } from "@/components/ui/themed-feedback";
+...
         {error && (
-          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-            <p className="text-sm text-red-500">{error}</p>
-            <button 
-              onClick={() => setError(null)}
-              className="mt-2 text-xs font-bold uppercase text-red-500/60 hover:text-red-500"
-            >
-              {locale === "lv" ? "Mēģināt vēlreiz" : "Try again"}
-            </button>
+          <div className="py-2">
+            <ThemedFeedback
+              type="error"
+              title={locale === "lv" ? "Chef kļūda" : "Chef Error"}
+              message={error}
+              action={{
+                label: locale === "lv" ? "Mēģināt vēlreiz" : "Try Again",
+                onClick: () => handleFetchAi()
+              }}
+            />
           </div>
         )}
 
@@ -248,31 +307,47 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
       </GlassPanel>
 
       {aiData && aiData.recipes.length > 0 && (
-        <GlassPanel className="space-y-3" style={{ background: "color-mix(in srgb, var(--color-surface) 90%, transparent)" }}>
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
-              {locale === "lv" ? "Ieteiktās receptes" : "Suggested recipes"}
+        <GlassPanel className="space-y-4" style={{ background: "color-mix(in srgb, var(--color-surface) 90%, transparent)" }}>
+          <div className="flex items-center justify-between gap-2 px-1">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
+              {locale === "lv" ? "AI šedevri tev" : "AI Masterpieces"}
             </p>
             <button
               onClick={handleFetchAi}
-              className="px-2 py-1 text-xs font-black uppercase border border-[var(--color-border)] rounded-full hover:bg-[var(--color-surface-2)]"
+              className="p-2 text-xs font-black uppercase bg-background/50 border border-[var(--color-border)] rounded-full hover:bg-primary hover:text-white transition-all active:scale-90 shadow-sm"
             >
               🔄
             </button>
           </div>
 
-          <ul className="space-y-3">
+          <motion.ul 
+            initial="hidden"
+            animate="show"
+            variants={{
+              show: {
+                transition: {
+                  staggerChildren: 0.15
+                }
+              }
+            }}
+            className="space-y-4"
+          >
             {aiData.recipes.map((idea, index) => (
               <motion.li
                 key={index}
-                whileHover={{ x: 4 }}
-                className={`flex flex-col px-3 py-3 text-sm border transition-all group ${
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.95 },
+                  show: { opacity: 1, y: 0, scale: 1 }
+                }}
+                whileHover={{ scale: 1.02, x: 4 }}
+                transition={spring}
+                className={`flex flex-col overflow-hidden border transition-all group ${
                   isForge 
-                    ? 'border-white/5 bg-black/40 text-white/80 hover:border-primary/30' 
-                    : 'rounded-xl border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-primary)] hover:shadow-md'
+                    ? 'border-white/10 bg-black/60 text-white/90 rounded-sm' 
+                    : 'rounded-3xl border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-primary)] shadow-sm hover:shadow-xl'
                 }`}
               >
-                <div className="flex gap-4">
+                <div className="flex gap-4 p-4">
                   {idea.image_url && (
                     <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-white/10 bg-black/20">
                       <img src={idea.image_url} alt={idea.title} className="w-full h-full object-cover" />
@@ -347,7 +422,7 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
                 )}
               </motion.li>
             ))}
-          </ul>
+          </motion.ul>
         </GlassPanel>
       )}
     </div>

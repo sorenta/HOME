@@ -14,7 +14,17 @@
 }
 
 @layer base {
-  /* ─── LUCENT: Quiet luxury — champagne alabaster, warm platinum ─────── */
+  @keyframes liquid-morph {
+    0%, 100% { border-radius: var(--radius-liquid); }
+    50% { border-radius: 40% 60% 30% 70% / 60% 40% 70% 30%; }
+  }
+
+  .liquid-shape {
+    animation: liquid-morph 8s ease-in-out infinite;
+    transition: border-radius 1s ease;
+  }
+  
+  /* Pārējās bāzes definīcijas */
   :root[data-theme="lucent"] {
     --background: 36 43% 96%;
     --foreground: 28 14% 20%;
@@ -113,6 +123,53 @@
     gap: 0.75rem;
   }
 
+  /* ─── PULSE: Neo-brutalism effects ─── */
+  .maj-pulse-neo-shadow {
+    box-shadow: 4px 4px 0px var(--color-foreground);
+    border: 2px solid var(--color-foreground);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .maj-pulse-neo-shadow:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--color-foreground);
+  }
+
+  /* ─── FORGE: Cyber-industrial effects ─── */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  
+  .maj-forge-scanline {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .maj-forge-scanline::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      color-mix(in srgb, var(--color-accent) 15%, transparent) 50%,
+      transparent 100%
+    );
+    height: 200%;
+    pointer-events: none;
+    animation: scanline 4s linear infinite;
+    z-index: 10;
+  }
+
+  /* ─── HIVE: Bento structure effects ─── */
+  .maj-hive-bento-depth {
+    box-shadow: 
+      inset 2px 2px 4px color-mix(in srgb, white 60%, transparent),
+      inset -2px -2px 4px color-mix(in srgb, var(--color-accent) 15%, transparent),
+      0 4px 12px color-mix(in srgb, var(--color-foreground) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
   .maj-dash-compose--pulse {
     gap: 0.8rem;
   }
@@ -165,12 +222,13 @@
   .maj-botanical-shelf-plate {
     position: relative;
     border: 1px solid color-mix(in srgb, var(--color-border) 15%, transparent);
-    border-radius: var(--radius-card);
+    border-radius: var(--radius-liquid);
     background: color-mix(in srgb, var(--color-card) 65%, transparent);
     padding: 1.25rem;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(12px);
-    transition: transform 0.3s ease, border-color 0.3s ease;
+    transition: transform 0.3s ease, border-color 0.3s ease, border-radius 1s ease;
+    animation: liquid-morph 10s ease-in-out infinite;
   }
 
   .maj-botanical-shelf-plate:hover {
@@ -2763,21 +2821,32 @@
   }
 
 /* ─── LUCENT — Quiet Luxury ─────────────────────────────────────────── */
+  @keyframes ambient-drift {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+  }
+
   :root[data-theme="lucent"] .maj-module-shell--lucent {
     background:
-      radial-gradient(ellipse at 72% 8%, rgba(184,150,106,0.12) 0%, transparent 40%),
-      radial-gradient(ellipse at 18% 88%, rgba(216,234,239,0.18) 0%, transparent 40%),
-      linear-gradient(180deg, #F8F4EE 0%, #F2ECE3 100%);
+      radial-gradient(ellipse at 72% 8%, rgba(184,150,106,0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 18% 88%, rgba(216,234,239,0.22) 0%, transparent 55%),
+      linear-gradient(135deg, #F8F4EE 0%, #F2ECE3 50%, #EAE0D3 100%);
+    background-size: 200% 200%;
+    animation: ambient-drift 20s ease-in-out infinite;
   }
 
   :root[data-theme="lucent"] .maj-module-content--lucent {
-    /* Mīksti integrējam galveno lapas saturu, atceļot lieko dubulto kartiņas izskatu */
-    background: transparent !important;
-    border-radius: 0 !important;
-    border: none !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
+    /* Glassmorphism 2.0 - caurspīdīgs un mīksts ietvars */
+    background: rgba(255, 255, 255, 0.45) !important;
+    border-radius: 2rem !important;
+    border: 1px solid rgba(255,255,255,0.7) !important;
+    padding: 1.5rem !important;
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.9),
+      0 12px 32px rgba(160,140,118,0.08) !important;
+    backdrop-filter: blur(16px) !important;
+    margin: 0.5rem;
   }
 
   /* Lucent decorative zone — pearl shimmer line */
@@ -2798,15 +2867,18 @@
 /* ─── HIVE — Wabi-Sabi Amber ────────────────────────────────────────── */
   :root[data-theme="hive"] .maj-module-shell--hive {
     background:
-      radial-gradient(ellipse at 85% 5%, rgba(217,119,6,0.1) 0%, transparent 45%),
+      radial-gradient(ellipse at 85% 5%, rgba(217,119,6,0.2) 0%, transparent 60%),
+      radial-gradient(circle at 10% 90%, rgba(255,200,50,0.15) 0%, transparent 40%),
       repeating-linear-gradient(
         60deg,
         transparent,
         transparent 28px,
-        rgba(217,119,6,0.025) 28px,
-        rgba(217,119,6,0.025) 29px
+        rgba(217,119,6,0.035) 28px,
+        rgba(217,119,6,0.035) 29px
       ),
       linear-gradient(180deg, #FFF6D6 0%, #FFF0BC 100%);
+    background-size: 150% 150%;
+    animation: ambient-drift 25s ease-in-out infinite reverse;
   }
 
   :root[data-theme="hive"] .maj-module-content--hive {
@@ -2863,3 +2935,6 @@
   opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
+`n/* --- THEMED SLIDERS --- */`ninput[type=\"range\"].maj-themed-slider {`n  appearance: none;`n  background: transparent;`n  cursor: pointer;`n  width: 100%;`n}`n`ninput[type=\"range\"].maj-themed-slider::-webkit-slider-runnable-track {`n  height: 8px;`n  border-radius: 999px;`n  background: color-mix(in srgb, var(--color-border) 40%, transparent);`n  transition: all 0.3s ease;`n}`n`ninput[type=\"range\"].maj-themed-slider::-webkit-slider-thumb {`n  appearance: none;`n  height: 24px;`n  width: 24px;`n  margin-top: -8px;`n  border-radius: 50%;`n  background: var(--color-accent-oklch);`n  box-shadow: 0 4px 12px rgba(0,0,0,0.15);`n  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);`n  border: 2px solid #fff;`n}`n`n:root[data-theme=\"botanical\"] input[type=\"range\"].maj-themed-slider::-webkit-slider-thumb {`n  border-radius: var(--radius-liquid);`n  animation: liquid-morph 6s ease-in-out infinite;`n  box-shadow: 0 8px 24px var(--color-accent-soft);`n}`n`n:root[data-theme=\"forge\"] input[type=\"range\"].maj-themed-slider::-webkit-slider-runnable-track {`n  height: 4px;`n  background: rgba(255,255,255,0.05);`n  border: 1px solid rgba(255,255,255,0.1);`n}`n:root[data-theme=\"forge\"] input[type=\"range\"].maj-themed-slider::-webkit-slider-thumb {`n  height: 20px;`n  width: 10px;`n  margin-top: -9px;`n  border-radius: 1px;`n  background: var(--color-accent-oklch);`n  box-shadow: 0 0 20px var(--color-accent-oklch);`n  border: 1px solid rgba(255,255,255,0.4);`n}`n`n:root[data-theme=\"pulse\"] input[type=\"range\"].maj-themed-slider::-webkit-slider-runnable-track {`n  height: 12px;`n  background: #fff;`n  border: 2.5px solid #000;`n}`n:root[data-theme=\"pulse\"] input[type=\"range\"].maj-themed-slider::-webkit-slider-thumb {`n  height: 28px;`n  width: 28px;`n  margin-top: -10px;`n  background: var(--color-accent-oklch);`n  border: 2.5px solid #000;`n  box-shadow: 4px 4px 0 #000;`n  border-radius: 4px;`n}`n`n:root[data-theme=\"lucent\"] input[type=\"range\"].maj-themed-slider::-webkit-slider-runnable-track {`n  background: rgba(160,140,118,0.15);`n  backdrop-filter: blur(4px);`n}`n:root[data-theme=\"lucent\"] input[type=\"range\"].maj-themed-slider::-webkit-slider-thumb {`n  background: #fff;`n  border: 1px solid var(--color-border);`n  box-shadow: 0 8px 20px rgba(160,140,118,0.15);`n}
+`n/* --- THEMED SKELETON LOADERS --- */`n.skeleton-theme {`n  background: color-mix(in srgb, var(--color-border) 40%, transparent);`n  border-radius: var(--radius-card);`n  position: relative;`n  overflow: hidden;`n}`n`n.skeleton-theme::after {`n  content: \"\";`n  position: absolute;`n  inset: 0;`n}`n`n:root[data-theme=\"forge\"] .skeleton-theme::after {`n  background: linear-gradient(90deg, transparent, rgba(217,31,38,0.2), transparent);`n  animation: skeleton-scan 2s linear infinite;`n}`n`n:root[data-theme=\"botanical\"] .skeleton-theme {`n  border-radius: var(--radius-liquid);`n  animation: liquid-morph 8s ease-in-out infinite, pulse-soft 3s infinite;`n}`n`n:root[data-theme=\"pulse\"] .skeleton-theme {`n  border: 2px solid #000;`n  background: #f0f0f0;`n  animation: pulse-hard 1s steps(2, end) infinite;`n}`n`n:root[data-theme=\"lucent\"] .skeleton-theme {`n  background: rgba(255,255,255,0.4);`n  backdrop-filter: blur(4px);`n  animation: pulse-soft 3s ease-in-out infinite;`n}`n`n@keyframes skeleton-scan {`n  0% { transform: translateX(-100%); }`n  100% { transform: translateX(100%); }`n}`n`n@keyframes pulse-soft {`n  0%, 100% { opacity: 0.6; }`n  50% { opacity: 0.3; }`n}`n`n@keyframes pulse-hard {`n  0%, 100% { opacity: 1; }`n  50% { opacity: 0.5; }`n}
+

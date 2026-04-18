@@ -41,175 +41,150 @@ type Props = {
   onUpdate: (next: ResetWellnessV1) => void;
 };
 
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/components/providers/theme-provider";
+import { transitionForTheme } from "@/lib/theme-logic";
+import { GlassPanel } from "@/components/ui/glass-panel";
+...
 export function ResetQuitStreak({ goals, state, onUpdate }: Props) {
   const { t } = useI18n();
+  const { themeId } = useTheme();
+  const spring = transitionForTheme(themeId);
   const [now, setNow] = useState(() => Date.now());
-  const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
-  const [slipReason, setSlipReason] = useState("");
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-
-    const rows = useMemo(() => {
-    return goals.map((g) => {
-      const start = new Date(g.startedAt).getTime();
-      const elapsed = now - start;
-      const isNewSlip = elapsed < 86400 * 1000; // Less than 1 day
-
-      let empathyMsg = "";
-      if (isNewSlip && g.lastSlipAt) {
-         empathyMsg = t("locale") === "lv" 
-           ? "Viens klupiens neizdzēš tavu progresu. Svarīgākais ir tas, ka tu turpini." 
-           : "One slip doesn't erase your progress. The most important thing is that you keep going.";
-      } else if (isNewSlip) {
-         empathyMsg = t("locale") === "lv"
-           ? "Katrs liels mērķis sākas ar pirmo dienu."
-           : "Every big goal starts with day one.";
-      }
-
-      return { goal: g, elapsed, line: formatDuration(elapsed, t), empathyMsg };
-    });
-  }, [goals, now, t]);
-
-  function submitSlip(goal: QuitGoal) {
-    const nowIso = new Date().toISOString();
-    const trimmedReason = slipReason.trim();
-    let hasUpdated = false;
-
-    onUpdate({
-      ...state,
-      goals: state.goals.map((existingGoal) => {
-        if (existingGoal.kind !== "quit" || existingGoal.id !== goal.id) return existingGoal;
-        hasUpdated = true;
-        return {
-          ...existingGoal,
-          startedAt: nowIso,
-          lastSlipAt: nowIso,
-          lastSlipReason: trimmedReason || undefined,
-        };
-      }).concat(
-        hasUpdated
-          ? []
-          : [
-              {
-                ...goal,
-                id: goal.id === "active-quit-plan" ? newId() : goal.id,
-                startedAt: nowIso,
-                lastSlipAt: nowIso,
-                lastSlipReason: trimmedReason || undefined,
-              },
-            ],
-      ),
-    });
-
-    setActiveGoalId(null);
-    setSlipReason("");
-  }
-
-  if (goals.length === 0) return null;
-
+...
   return (
-    <GlassPanel className="space-y-3">
-      <SectionHeading title={t("reset.wellness.quit.sectionTitle")} />
-      <p className="text-sm text-(--color-secondary)">
-        {t("reset.wellness.quit.sectionHint")}
-      </p>
-      <ul className="space-y-3">
-        {rows.map(({ goal, line, elapsed, empathyMsg }) => (
-          <li
-            key={goal.id}
-            className="rounded-2xl border border-(--color-surface-border) bg-(--color-surface)/40 px-4 py-3 relative overflow-hidden"
-          >
-            {/* Visual background progress indicator for the first 7 days to build momentum */}
-            <div 
-               className="absolute top-0 left-0 bottom-0 bg-(--color-accent-soft) transition-all duration-1000 -z-10" 
-               style={{ width: `${Math.min((elapsed / (86400 * 1000 * 7)) * 100, 100)}%` }} 
-            />
+    <GlassPanel className="space-y-4">
+      <div className="space-y-1">
+        <SectionHeading title={t("reset.wellness.quit.sectionTitle")} />
+        <p className="text-xs text-(--color-text-muted) leading-relaxed">
+          {t("reset.wellness.quit.sectionHint")}
+        </p>
+      </div>
 
-            <p className="text-sm font-semibold text-(--color-text)">
-              {quitLabel(goal, t)}
-            </p>
-            <p
-              className="mt-2 font-(family-name:--font-theme-display) text-2xl font-semibold tabular-nums tracking-tight text-primary"
-              aria-live="polite"
+      <ul className="space-y-4">
+        {rows.map(({ goal, line, elapsed, empathyMsg }) => {
+          const progressDays = Math.min((elapsed / (86400 * 1000 * 7)) * 100, 100);
+          const isBotanical = themeId === "botanical";
+          
+          return (
+            <motion.li
+              key={goal.id}
+              layout
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="rounded-3xl border border-(--color-border) bg-background/40 px-5 py-4 relative overflow-hidden group transition-all hover:bg-background/60 shadow-sm"
             >
-              {line}
-            </p>
-            
-            {empathyMsg ? (
-              <div className="mt-2 rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5">
-                <p className="text-xs text-amber-700 dark:text-amber-400 font-medium flex items-center gap-2">
-                  <span className="text-base">🌱</span> {empathyMsg}
+              {/* Visual background progress indicator */}
+              <motion.div 
+                 initial={{ width: 0 }}
+                 animate={{ width: `${progressDays}%` }}
+                 transition={{ duration: 1.5, ease: "easeOut" }}
+                 className={`absolute top-0 left-0 bottom-0 bg-primary/10 transition-all -z-10 ${isBotanical ? 'liquid-shape' : ''}`}
+                 style={{ 
+                   background: `linear-gradient(90deg, transparent, var(--color-accent-soft))` 
+                 }}
+              />
+
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+                  {quitLabel(goal, t)}
+                </p>
+                {progressDays >= 100 && (
+                   <span className="text-base animate-bounce">🏆</span>
+                )}
+              </div>
+
+              <div className="mt-3">
+                <p
+                  className="font-(family-name:--font-display) text-3xl font-black tabular-nums tracking-tighter text-(--color-text-primary) drop-shadow-sm"
+                  aria-live="polite"
+                >
+                  {line}
                 </p>
               </div>
-            ) : null}
-
-            <p className="mt-2 text-xs text-(--color-secondary)">
-              {t("reset.wellness.quit.since")}{" "}
-              {new Date(goal.startedAt).toLocaleString()}
-            </p>
-            {goal.lastSlipAt ? (
-              <p className="mt-1 text-xs text-(--color-secondary)">
-                {t("reset.wellness.quit.lastSlipAt", {
-                  date: new Date(goal.lastSlipAt).toLocaleString(),
-                })}
-              </p>
-            ) : null}
-            {goal.lastSlipReason ? (
-              <p className="mt-1 text-xs italic text-(--color-secondary)">
-                &ldquo;{goal.lastSlipReason}&rdquo;
-              </p>
-            ) : null}
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveGoalId((current) => (current === goal.id ? null : goal.id))}
-                className="rounded-xl border border-(--color-surface-border) px-3 py-2 text-sm font-medium text-(--color-text)"
-              >
-                {t("reset.dashboard.markSlip")}
-              </button>
-            </div>
-            {activeGoalId === goal.id ? (
-              <div className="mt-3 space-y-3 rounded-xl border border-(--color-surface-border) bg-background/50 p-3">
-                <label className="block text-sm text-(--color-text)">
-                  <span className="font-medium">{t("reset.wellness.quit.slipReasonLabel")}</span>
-                  <textarea
-                    rows={2}
-                    value={slipReason}
-                    onChange={(event) => setSlipReason(event.target.value)}
-                    placeholder={t("reset.wellness.quit.slipReasonPlaceholder")}
-                    className="mt-1 w-full resize-none rounded-xl border border-(--color-surface-border) bg-background px-3 py-2 text-sm text-(--color-text)"
-                    maxLength={220}
-                  />
-                </label>
-                <p className="text-xs text-(--color-secondary)">
-                  {t("reset.wellness.quit.slipHint")}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => submitSlip(goal)}
-                    className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-background"
+              
+              <AnimatePresence>
+                {empathyMsg && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 rounded-2xl bg-amber-500/5 border border-amber-500/10 p-3"
                   >
-                    {t("reset.wellness.quit.restartNow")}
-                  </button>
-                  <button
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300 font-bold flex items-center gap-2">
+                      <span className="text-lg">🌿</span> {empathyMsg}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="mt-4 flex items-center justify-between">
+                 <div className="space-y-0.5">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-(--color-text-muted)">
+                      {t("reset.wellness.quit.since")}
+                    </p>
+                    <p className="text-[10px] font-medium text-(--color-text-secondary)">
+                      {new Date(goal.startedAt).toLocaleDateString()}
+                    </p>
+                 </div>
+                 
+                 <button
                     type="button"
                     onClick={() => {
-                      setActiveGoalId(null);
-                      setSlipReason("");
+                      hapticTheme(themeId);
+                      setActiveGoalId((current) => (current === goal.id ? null : goal.id));
                     }}
-                    className="rounded-xl border border-(--color-surface-border) px-3 py-2 text-sm font-medium text-(--color-text)"
+                    className="rounded-full border border-(--color-border) bg-background/80 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-(--color-text-primary) transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
                   >
-                    {t("reset.wellness.quit.cancelSlip")}
+                    {t("reset.dashboard.markSlip")}
                   </button>
-                </div>
               </div>
-            ) : null}
-          </li>
-        ))}
+
+              <AnimatePresence>
+                {activeGoalId === goal.id && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-4 space-y-4 overflow-hidden"
+                  >
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-(--color-text-muted) px-1">
+                        {t("reset.wellness.quit.slipReasonLabel")}
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={slipReason}
+                        onChange={(event) => setSlipReason(event.target.value)}
+                        placeholder={t("reset.wellness.quit.slipReasonPlaceholder")}
+                        className="w-full resize-none rounded-2xl border border-(--color-border) bg-background px-4 py-3 text-sm text-(--color-text-primary) focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/40 outline-none transition-all"
+                        maxLength={220}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => submitSlip(goal)}
+                        className="flex-1 rounded-2xl bg-rose-500 px-4 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-rose-500/20 active:scale-95"
+                      >
+                        {t("reset.wellness.quit.restartNow")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveGoalId(null);
+                          setSlipReason("");
+                        }}
+                        className="rounded-2xl border border-(--color-border) px-4 py-3 text-xs font-black uppercase tracking-widest text-(--color-text-primary) active:scale-95"
+                      >
+                        {t("reset.wellness.quit.cancelSlip")}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.li>
+          );
+        })}
       </ul>
     </GlassPanel>
   );

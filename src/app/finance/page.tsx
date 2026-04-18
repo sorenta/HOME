@@ -19,14 +19,16 @@ import {
   addFinanceTransaction,
   fetchFinanceTransactions,
   fetchFixedCosts,
+  fetchFinanceSavingsGoals,
   fixedCostPaidThisMonth,
   formatEuro,
   summarizeFinance,
   type FixedCostRecord,
   type FinanceTransactionRecord,
+  type FinanceSavingsGoalRecord,
 } from "@/lib/finance";
 import { fetchMyHouseholdMembers } from "@/lib/household";
-import { FinanceSavingsGoals } from "@/components/finance/FinanceSavingsGoals";
+import { FinanceSavingsGoals, type SavingsGoal } from "@/components/finance/FinanceSavingsGoals";
 import { useThemeActionEffects } from "@/components/theme/theme-action-effects";
 
 type BillPreview = {
@@ -74,6 +76,7 @@ export default function FinancePage() {
 
   const [fixedCosts, setFixedCosts] = useState<FixedCostRecord[]>([]);
   const [transactions, setTransactions] = useState<FinanceTransactionRecord[]>([]);
+  const [savingsGoals, setSavingsGoals] = useState<FinanceSavingsGoalRecord[]>([]);
   const [payingBillId, setPayingBillId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,17 +87,20 @@ export default function FinancePage() {
     if (!householdId) {
       setFixedCosts([]);
       setTransactions([]);
+      setSavingsGoals([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const [costs, txns] = await Promise.all([
+    const [costs, txns, goalsRecs] = await Promise.all([
       fetchFixedCosts(householdId),
       fetchFinanceTransactions(householdId),
+      fetchFinanceSavingsGoals(householdId),
     ]);
     setFixedCosts(costs);
     setTransactions(txns);
+    setSavingsGoals(goalsRecs);
     setLoading(false);
   }, [householdId]);
 
@@ -216,10 +222,24 @@ export default function FinancePage() {
 
   const householdInitials = ["H", "H"];
 
+  const mappedGoals: SavingsGoal[] = useMemo(() => {
+    return savingsGoals.map(g => {
+      const pct = g.target_amount > 0 ? Math.round((g.current_amount / g.target_amount) * 100) : 0;
+      return {
+        id: g.id,
+        label: g.label,
+        current: formatEuro(g.current_amount, locale),
+        target: formatEuro(g.target_amount, locale),
+        pct: Math.min(100, pct),
+      };
+    });
+  }, [savingsGoals, locale]);
+
   const layoutProps = {
     summary,
     urgentBills,
     plannedBills,
+    goals: mappedGoals,
     householdInitials,
     incomeVsExpense,
     locale,

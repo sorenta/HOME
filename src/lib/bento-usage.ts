@@ -40,11 +40,20 @@ const DEFAULT_ORDER: ModuleId[] = [
   "pharmacy",
 ];
 
-export function getAdaptiveModuleOrder(): ModuleId[] {
+export function getModuleTiers(): Record<ModuleId, "compact" | "featured"> {
   const counts = readCounts();
-  return [...DEFAULT_ORDER].sort((a, b) => {
-    const diff = (counts[b] ?? 0) - (counts[a] ?? 0);
-    if (diff !== 0) return diff;
-    return DEFAULT_ORDER.indexOf(a) - DEFAULT_ORDER.indexOf(b);
+  const sorted = [...DEFAULT_ORDER].sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
+  
+  const out: any = {};
+  DEFAULT_ORDER.forEach(id => {
+    // Top 2 modules or modules with more than 10 visits become featured
+    const isTop = sorted.indexOf(id) < 2;
+    const hasHighUsage = (counts[id] ?? 0) > 10;
+    out[id] = (isTop || hasHighUsage) ? "featured" : "compact";
   });
+  
+  // Settings is always compact
+  out["settings"] = "compact";
+  
+  return out;
 }

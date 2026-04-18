@@ -70,6 +70,8 @@ export type ThemeRadiusV2 = {
   input: string;
   nav: string;
   chip: string;
+  /** Custom liquid/organic border shape (e.g. for botanical theme) */
+  liquid?: string;
 };
 
 export type ThemeSpacingV2 = {
@@ -90,6 +92,12 @@ export type ThemeUiChromeV2 = {
   bodyOverlayStrength: number;
 };
 
+export type ThemeMotionConfigV2 = {
+  stiffness: number;
+  damping: number;
+  mass?: number;
+};
+
 export type ThemeManifestV2 = {
   id: ThemeId;
   labelKey: string;
@@ -100,6 +108,7 @@ export type ThemeManifestV2 = {
   spacing: ThemeSpacingV2;
   layoutDensity: LayoutDensity;
   motion: ThemeMotion;
+  motionConfig: ThemeMotionConfigV2;
   /** Home (/) screen layout id — CSS adapts grids, shelves, float, poster, cluster. */
   homeScreenLayout: HomeScreenLayout;
   ui: ThemeUiChromeV2;
@@ -184,6 +193,7 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
     spacing: { sectionScale: 0.80, basePx: 4 },
     layoutDensity: "compact",
     motion: "snappy",
+    motionConfig: { stiffness: 450, damping: 24, mass: 1 },
     homeScreenLayout: "forge-rail",
     ui: {
       backgroundImage:
@@ -250,10 +260,12 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
       input: "16px",
       nav: "32px",
       chip: "24px",
+      liquid: "60% 40% 70% 30% / 40% 60% 30% 70%",
     },
     spacing: { sectionScale: 1.02, basePx: 4 },
     layoutDensity: "standard",
     motion: "organic",
+    motionConfig: { stiffness: 280, damping: 28, mass: 1 },
     homeScreenLayout: "botanical-shelf",
     ui: {
       backgroundImage:
@@ -271,7 +283,7 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
     labelKey: "theme.pulse",
     emoji: "◆",
     colors: {
-      /* 2026: Neobrutalism 2.0 — electric violet + acid lemon, extreme contrast, zero compromise */
+      /* 2026: Neobrutalism 3.0 — electric violet + acid lemon, extreme contrast, zero compromise */
       background: "#FAFAFA",
       backgroundSecondary: "#F0F0E8",
       surface: "#FFFFFF",
@@ -283,30 +295,30 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
       textMuted: "#40435A",
       border: "#050508",
       borderStrong: "#050508",
-      /* Electric violet — richer than fuchsia, more authoritative */
-      accent: "#7C3AED",
-      accentHover: "#6D28D9",
-      accentSoft: "rgba(124,58,237,0.12)",
-      success: "#16A34A",
+      /* Ultra-Electric violet */
+      accent: "#8B5CF6",
+      accentHover: "#7C3AED",
+      accentSoft: "rgba(139,92,246,0.18)",
+      success: "#10B981",
       /* Acid lemon — maximum energy */
-      warning: "#EAB308",
-      danger: "#DC2626",
+      warning: "#FDE047",
+      danger: "#EF4444",
       info: "#0EA5E9",
-      buttonPrimary: "#7C3AED",
+      buttonPrimary: "#8B5CF6",
       buttonPrimaryText: "#FFFFFF",
       buttonSecondary: "#FFFFFF",
       buttonSecondaryText: "#050508",
       inputBackground: "#FFFFFF",
       inputBorder: "#050508",
-      focusRing: "rgba(124,58,237,0.50)",
+      focusRing: "rgba(139,92,246,0.60)",
       navBackground: "#FAFAFA",
-      navActive: "#7C3AED",
+      navActive: "#8B5CF6",
       navInactive: "#40435A",
       heroGlow:
-        "radial-gradient(ellipse 70% 50% at 15% 8%, rgba(124,58,237,0.22), transparent 48%), radial-gradient(ellipse 65% 42% at 85% 12%, rgba(234,179,8,0.18), transparent 44%)",
+        "radial-gradient(ellipse 75% 55% at 15% 5%, rgba(139,92,246,0.30), transparent 50%), radial-gradient(ellipse 70% 45% at 85% 15%, rgba(253,224,71,0.35), transparent 48%)",
       panelShadow: "5px 5px 0 #050508",
       authBackground:
-        "linear-gradient(135deg, #EAB308 0%, #FAFAFA 42%, #7C3AED 100%)",
+        "linear-gradient(135deg, #FDE047 0%, #FAFAFA 42%, #8B5CF6 100%)",
       authCard: "#FFFFFF",
       authBorder: "#050508",
     },
@@ -324,6 +336,7 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
     spacing: { sectionScale: 1.05, basePx: 4 },
     layoutDensity: "standard",
     motion: "snappy",
+    motionConfig: { stiffness: 520, damping: 32, mass: 1 },
     homeScreenLayout: "pulse-poster",
     ui: {
       backgroundImage:
@@ -393,6 +406,7 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
     spacing: { sectionScale: 1.10, basePx: 4 },
     layoutDensity: "airy",
     motion: "soft",
+    motionConfig: { stiffness: 140, damping: 22, mass: 1 },
     homeScreenLayout: "lucent-float",
     ui: {
       backgroundImage:
@@ -462,6 +476,7 @@ export const THEMES: Record<ThemeId, ThemeManifestV2> = {
     spacing: { sectionScale: 1.04, basePx: 4 },
     layoutDensity: "comfortable",
     motion: "soft",
+    motionConfig: { stiffness: 380, damping: 30, mass: 1 },
     homeScreenLayout: "hive-cluster",
     ui: {
       backgroundImage:
@@ -559,6 +574,7 @@ export function buildRootThemeCssVars(m: ThemeManifestV2): Record<string, string
     "--color-primary": legacy.primary,
     "--color-secondary": legacy.secondary,
     "--color-accent": legacy.accent,
+    "--color-accent-oklch": legacy.accent.startsWith("#") ? `oklch(from ${legacy.accent} l c h)` : legacy.accent,
     "--color-surface": legacy.surface,
     "--color-surface-border": legacy.surfaceBorder,
     "--glass-bg": c.surface,
@@ -601,6 +617,7 @@ export function buildRootThemeCssVars(m: ThemeManifestV2): Record<string, string
     "--radius-input": r.input,
     "--radius-nav": r.nav,
     "--radius-chip": r.chip,
+    "--radius-liquid": r.liquid || r.card,
     "--spacing-section-scale": String(s.sectionScale),
     "--spacing-base-px": `${s.basePx}px`,
     "--maj-space-page-x": `${Math.round(16 * scale)}px`,
@@ -637,13 +654,6 @@ export function buildRootThemeCssVars(m: ThemeManifestV2): Record<string, string
  * Also useful for performance throttling based on `motion` mode.
  */
 export function transitionForTheme(themeId: ThemeId) {
-  const m = THEMES[themeId].motion;
-  if (m === "snappy") {
-    return { type: "spring", stiffness: 400, damping: 28 };
-  }
-  if (m === "soft") {
-    return { type: "spring", stiffness: 120, damping: 35 };
-  }
-  // organic
-  return { type: "spring", stiffness: 260, damping: 20 };
+  const config = THEMES[themeId].motionConfig;
+  return { type: "spring" as const, ...config };
 }
