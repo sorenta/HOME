@@ -2,7 +2,17 @@ import { motion } from "framer-motion";
 import { useTheme } from "@/components/providers/theme-provider";
 import { transitionForTheme } from "@/lib/theme-logic";
 import { GlassPanel } from "@/components/ui/glass-panel";
-...
+import { ResetDailySignalsForm } from "@/components/reset/reset-daily-signals-form";
+import { ResetTrendsPanel } from "@/components/reset/reset-trends-panel";
+import { ResetJournal } from "@/components/reset/reset-journal";
+import { ResetBodyTracking } from "@/components/reset/reset-body-tracking";
+import { ResetTrainingPlan } from "@/components/reset/reset-training-plan";
+import { ResetAiPanel } from "@/components/reset/reset-ai-panel";
+import { ResetQuitStreak } from "@/components/reset/reset-quit-streak";
+import { ResetHealthSourcesPanel } from "@/components/reset/reset-health-sources-panel";
+import type { ResetWellnessV1 } from "@/lib/reset-wellness";
+import type { ResetDailySignalsRow } from "@/lib/reset-daily-signals";
+
 export function DefaultResetLayout({
   locale,
   userId,

@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useI18n } from "@/lib/i18n/i18n-context";
+import { useTheme } from "@/components/providers/theme-provider";
+import { transitionForTheme } from "@/lib/theme-logic";
+import { hapticTheme } from "@/lib/haptic";
+import { newId, type QuitGoal, type ResetWellnessV1 } from "@/lib/reset-wellness";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { useI18n } from "@/lib/i18n/i18n-context";
-import { newId, type QuitGoal, type ResetWellnessV1 } from "@/lib/reset-wellness";
 
 function formatDuration(ms: number, t: (k: string, v?: Record<string, string>) => string): string {
   if (ms < 0) ms = 0;
@@ -41,17 +45,77 @@ type Props = {
   onUpdate: (next: ResetWellnessV1) => void;
 };
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "@/components/providers/theme-provider";
-import { transitionForTheme } from "@/lib/theme-logic";
-import { GlassPanel } from "@/components/ui/glass-panel";
-...
 export function ResetQuitStreak({ goals, state, onUpdate }: Props) {
   const { t } = useI18n();
   const { themeId } = useTheme();
   const spring = transitionForTheme(themeId);
   const [now, setNow] = useState(() => Date.now());
-...
+  const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
+  const [slipReason, setSlipReason] = useState("");
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const rows = useMemo(() => {
+    return goals.map((g) => {
+      const start = new Date(g.startedAt).getTime();
+      const elapsed = now - start;
+      const isNewSlip = elapsed < 86400 * 1000; // Less than 1 day
+
+      let empathyMsg = "";
+      if (isNewSlip && g.lastSlipAt) {
+         empathyMsg = t("locale") === "lv" 
+           ? "Viens klupiens neizdzēš tavu progresu. Svarīgākais ir tas, ka tu turpini." 
+           : "One slip doesn't erase your progress. The most important thing is that you keep going.";
+      } else if (isNewSlip) {
+         empathyMsg = t("locale") === "lv"
+           ? "Katrs liels mērķis sākas ar pirmo dienu."
+           : "Every big goal starts with day one.";
+      }
+
+      return { goal: g, elapsed, line: formatDuration(elapsed, t), empathyMsg };
+    });
+  }, [goals, now, t]);
+
+  function submitSlip(goal: QuitGoal) {
+    const nowIso = new Date().toISOString();
+    const trimmedReason = slipReason.trim();
+    let hasUpdated = false;
+
+    onUpdate({
+      ...state,
+      goals: state.goals.map((existingGoal) => {
+        if (existingGoal.kind !== "quit" || existingGoal.id !== goal.id) return existingGoal;
+        hasUpdated = true;
+        return {
+          ...existingGoal,
+          startedAt: nowIso,
+          lastSlipAt: nowIso,
+          lastSlipReason: trimmedReason || undefined,
+        };
+      }).concat(
+        hasUpdated
+          ? []
+          : [
+              {
+                ...goal,
+                id: goal.id === "active-quit-plan" ? newId() : goal.id,
+                startedAt: nowIso,
+                lastSlipAt: nowIso,
+                lastSlipReason: trimmedReason || undefined,
+              },
+            ],
+      ),
+    });
+
+    setActiveGoalId(null);
+    setSlipReason("");
+  }
+
+  if (goals.length === 0) return null;
+
   return (
     <GlassPanel className="space-y-4">
       <div className="space-y-1">

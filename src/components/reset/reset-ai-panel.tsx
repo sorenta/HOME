@@ -27,7 +27,88 @@ export function ResetAiPanel({ mood, moodScore, energy, signals, quitDays, goals
   const { themeId } = useTheme();
   const spring = transitionForTheme(themeId);
   const [canUseAi, setCanUseAi] = useState(false);
-...
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [reply, setReply] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [encouragement, setEncouragement] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Proactive AI Context Chips based on current state
+  const contextChips = useMemo(() => {
+    const chips: string[] = [];
+    if (energy != null && energy <= 2) {
+      chips.push(locale === "lv" ? "Kā atgūt enerģiju šovakar?" : "How to recover energy tonight?");
+    }
+    if (moodScore != null && moodScore < 40) {
+      chips.push(locale === "lv" ? "Iesaki 5 minūšu miera rutīnu" : "Suggest a 5-minute peace routine");
+    }
+    if (quitDays != null && quitDays < 7) {
+      chips.push(locale === "lv" ? "Man vajag motivāciju turpināt manu streak" : "I need motivation to keep my streak");
+    }
+    if (chips.length === 0) {
+      chips.push(locale === "lv" ? "Kā saglabāt šo labo ritmu rītdienai?" : "How to keep this good rhythm for tomorrow?");
+      chips.push(locale === "lv" ? "Iesaki mierīgu vakara aktivitāti" : "Suggest a calm evening activity");
+    }
+    return chips;
+  }, [energy, moodScore, quitDays, locale]);
+
+  useEffect(() => {
+    let alive = true;
+    const syncKeyState = async () => {
+      const meta = await fetchHouseholdKitchenAiMeta();
+      if (!alive) return;
+      setCanUseAi(Boolean(meta?.provider));
+    };
+    const onFocus = () => {
+      void syncKeyState();
+    };
+    void syncKeyState();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      alive = false;
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+
+  async function runAdvisor(immediatePrompt?: string) {
+    const textToSend = immediatePrompt ?? prompt;
+    setError(null);
+    setReply(null);
+    setSuggestions([]);
+    setEncouragement(null);
+    const token = session?.access_token;
+    if (!token) {
+      setError(t("kitchen.ai.error.auth"));
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/ai/reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          locale,
+          prompt: textToSend.trim() || undefined,
+          mood,
+          moodScore,
+          signals,
+          quitDays,
+          goals,
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        code?: string;
+        message?: string;
+        reply?: string;
+        suggestions?: string[];
+        encouragement?: string;
+      };
+
       if (!res.ok || !data.ok) {
         const code = data.code ?? "UNKNOWN";
         if (code === "SCHEMA_MISSING") setError(t("kitchen.ai.error.schema"));
@@ -41,7 +122,12 @@ export function ResetAiPanel({ mood, moodScore, energy, signals, quitDays, goals
       setEncouragement(data.encouragement ?? null);
       hapticTheme(themeId);
     } catch {
-...
+      setError(t("kitchen.ai.error.generic"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (!canUseAi) {
     return null;
   }

@@ -264,8 +264,6 @@ export function AiChefSuggestions({ inventory, urgentItems, hasByok, onAddToCart
           </div>
         )}
 
-import { ThemedFeedback } from "@/components/ui/themed-feedback";
-...
         {error && (
           <div className="py-2">
             <ThemedFeedback
